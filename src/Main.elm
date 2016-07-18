@@ -51,10 +51,10 @@ type alias Model =
 init : Result String Page -> ( Model, Cmd Msg )
 init result =
     let
-        ( pairModel, _ ) =
+        ( pairModel, cmd ) =
             Pair.init
     in
-        urlUpdate result { page = PairPage, pair = pairModel }
+        { page = PairPage, pair = pairModel } ! [ Cmd.map (\_ -> None) cmd ]
 
 
 
@@ -67,9 +67,13 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "DEBUG10" msg of
         None ->
-            model ! []
+            let
+                ( _, cmd ) =
+                    Pair.update Pair.None model.pair
+            in
+                model ! [ Cmd.map (\_ -> None) cmd ]
 
 
 content : Model -> Html Msg

@@ -1,8 +1,16 @@
 <html>
   <body>
+    <script src="js/qrious.min.js"></script>
     <script src="index.js"></script>
     <script>
-      var app = Elm.Main.fullscreen()
+      const app = Elm.Main.fullscreen()
+
+      app.ports.qr.subscribe((id, content) => {
+        new QRious({
+          element: document.getElementById(id),
+          value: content
+        }
+      })
     </script>
   </body>
 </html>
