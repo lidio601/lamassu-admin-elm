@@ -1,8 +1,10 @@
 module Main exposing (..)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
+import Html.App exposing (map)
 import Navigation
 import UrlParser exposing (Parser, (</>), format, int, oneOf, s, string)
+import Pair
 
 
 main : Program Never
@@ -21,9 +23,7 @@ main =
 
 
 type Page
-    = Home
-    | Pair
-    | GlobalConfig
+    = PairPage
 
 
 parser : Navigation.Location -> Result String Page
@@ -34,9 +34,7 @@ parser location =
 pageParser : Parser (Page -> a) a
 pageParser =
     oneOf
-        [ format Home (s "home")
-        , format Pair (s "pair")
-        , format GlobalConfig (s "global-config")
+        [ format PairPage (s "" </> s "Main.elm")
         ]
 
 
@@ -46,12 +44,17 @@ pageParser =
 
 type alias Model =
     { page : Page
+    , pair : Pair.Model
     }
 
 
 init : Result String Page -> ( Model, Cmd Msg )
 init result =
-    urlUpdate result (Model Home)
+    let
+        ( pairModel, _ ) =
+            Pair.init
+    in
+        urlUpdate result { page = PairPage, pair = pairModel }
 
 
 
@@ -69,19 +72,27 @@ update msg model =
             model ! []
 
 
+content : Model -> Html Msg
+content model =
+    case model.page of
+        PairPage ->
+            map (\_ -> None) (Pair.view model.pair)
+
+
 view : Model -> Html Msg
 view model =
-    div [] []
+    div [] [ content model ]
 
 
 urlUpdate : Result String Page -> Model -> ( Model, Cmd Msg )
 urlUpdate result model =
     case Debug.log "result" result of
         Err _ ->
-            ( model, Navigation.modifyUrl "/" )
+            model ! []
 
         Ok page ->
-            { page = page
+            { model
+                | page = page
             }
                 ! []
 
