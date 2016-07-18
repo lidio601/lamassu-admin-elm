@@ -34,7 +34,7 @@ parser location =
 pageParser : Parser (Page -> a) a
 pageParser =
     oneOf
-        [ format PairPage (s "" </> s "Main.elm")
+        [ format PairPage (s "")
         ]
 
 
