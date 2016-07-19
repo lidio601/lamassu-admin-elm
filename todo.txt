@@ -1,0 +1,2 @@
+- create client/server higher level lib over websocket, emulating http
+- also allow updates (subscriptions, not client/server)
