@@ -54,7 +54,7 @@ init result =
         ( pairModel, cmd ) =
             Pair.init
     in
-        { page = PairPage, pair = pairModel } ! [ Cmd.map (\_ -> None) cmd ]
+        { page = PairPage, pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
 
 
@@ -62,25 +62,25 @@ init result =
 
 
 type Msg
-    = None
+    = PairMsg Pair.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "DEBUG10" msg of
-        None ->
+        PairMsg pairMsg ->
             let
                 ( _, cmd ) =
-                    Pair.update Pair.None model.pair
+                    Pair.update pairMsg model.pair
             in
-                model ! [ Cmd.map (\_ -> None) cmd ]
+                model ! [ Cmd.map PairMsg cmd ]
 
 
 content : Model -> Html Msg
 content model =
     case model.page of
         PairPage ->
-            map (\_ -> None) (Pair.view model.pair)
+            map PairMsg (Pair.view model.pair)
 
 
 view : Model -> Html Msg

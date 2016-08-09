@@ -1,2 +1,5 @@
 - create client/server higher level lib over websocket, emulating http
 - also allow updates (subscriptions, not client/server)
+
+- fetch qr code from l-a-s
+- start building first config page

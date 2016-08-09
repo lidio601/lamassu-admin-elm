@@ -1,15 +1,17 @@
 <html>
   <body>
+    <script src="build/elm.js"></script>
     <script src="js/qrious.min.js"></script>
-    <script src="index.js"></script>
     <script>
       const app = Elm.Main.fullscreen()
 
-      app.ports.qr.subscribe((id, content) => {
+      app.ports.portQr.subscribe(r => {
+        console.log('DEBUG5')
+        console.dir(r)
         new QRious({
-          element: document.getElementById(id),
-          value: content
-        }
+          element: document.getElementById(r.id),
+          value: r.content
+        })
       })
     </script>
   </body>

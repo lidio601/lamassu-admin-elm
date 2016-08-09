@@ -8,7 +8,9 @@ require('script!qrcodejs')
 
 const Elm = require('../src/Main')
 const app = Elm.Main.embed(document.getElementById('main'))
+console.log('DEBUG101')
 app.ports.portQr.subscribe(displayQR)
+console.log('DEBUG102')
 
 function displayQR (rec) {
   console.log('DEBUG100')

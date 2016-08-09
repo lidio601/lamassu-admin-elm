@@ -3,6 +3,7 @@ module ClientServerWebsocket exposing (..)
 -- Elm might not be the best platform for this kind of thing
 -- Hard to do a global lookup table
 -- Might be easiest to just use HTTP for this for now
+-- No need to prematurely optimize and go against the flow
 
 import WebSocket
 
