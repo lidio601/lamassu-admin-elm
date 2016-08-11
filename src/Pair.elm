@@ -59,6 +59,4 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ Html.canvas [ id "qr" ] []
-        ]
+    Html.canvas [ id "qr" ] []
