@@ -1,4 +1,4 @@
-module FetchInitial exposing (..)
+module Start exposing (..)
 
 import Http
 import RemoteData exposing (RemoteData, WebData)

@@ -5,6 +5,7 @@ import Html.App exposing (map)
 import Navigation
 import UrlParser exposing (Parser, (</>), format, int, oneOf, s, string)
 import Pair
+import Start
 
 
 main : Program Never
@@ -23,7 +24,8 @@ main =
 
 
 type Page
-    = PairPage
+    = StartPage
+    | PairPage
 
 
 parser : Navigation.Location -> Result String Page
@@ -45,16 +47,26 @@ pageParser =
 type alias Model =
     { page : Page
     , pair : Pair.Model
+    , start : Start.Model
     }
 
 
 init : Result String Page -> ( Model, Cmd Msg )
 init result =
     let
-        ( pairModel, cmd ) =
+        ( pairModel, pairCmd ) =
             Pair.init
+
+        ( startModel, startCmd ) =
+            Start.init
+
+        model =
+            { page = PairPage
+            , pair = pairModel
+            , start = startModel
+            }
     in
-        { page = PairPage, pair = pairModel } ! [ Cmd.map PairMsg cmd ]
+        model ! [ Cmd.map StartMsg startCmd, Cmd.map PairMsg pairCmd ]
 
 
 
@@ -62,7 +74,8 @@ init result =
 
 
 type Msg
-    = PairMsg Pair.Msg
+    = StartMsg Start.Msg
+    | PairMsg Pair.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,12 +88,22 @@ update msg model =
             in
                 model ! [ Cmd.map PairMsg cmd ]
 
+        StartMsg startMsg ->
+            let
+                ( startModel, cmd ) =
+                    Start.update startMsg model.start
+            in
+                { model | start = startModel } ! [ Cmd.map StartMsg cmd ]
+
 
 content : Model -> Html Msg
 content model =
     case model.page of
         PairPage ->
             map PairMsg (Pair.view model.pair)
+
+        StartPage ->
+            div [] []
 
 
 view : Model -> Html Msg
@@ -95,10 +118,7 @@ urlUpdate result model =
             model ! []
 
         Ok page ->
-            { model
-                | page = page
-            }
-                ! []
+            { model | page = page } ! []
 
 
 
