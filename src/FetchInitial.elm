@@ -17,6 +17,7 @@ fieldTypeDict =
 
 type alias Field =
     { name : String
+    , display : String
     , fieldType : FieldType
     , secret : Bool
     , required : Bool
@@ -43,8 +44,12 @@ type alias Config =
     { global : GlobalCrypto }
 
 
+type alias InitialRecord =
+    { config : Config }
+
+
 type alias Model =
-    Maybe { config : Config }
+    Maybe InitialRecord
 
 
 get : Cmd Msg
@@ -63,18 +68,63 @@ init =
 -- Decoders
 
 
-fieldDecoder : String -> Decoder FieldType
-fieldDecoder fieldTypeString =
+fieldTypeDecoder : Decoder FieldType
+fieldTypeDecoder =
+    customDecoder string fieldTypeMap
+
+
+fieldTypeMap : String -> Result String FieldType
+fieldTypeMap fieldTypeString =
     let
         fieldTypeMaybe =
             Dict.get fieldTypeString fieldTypeDict
-    in
-        case fieldTypeMaybe of
-            Just fieldType ->
-                succeed fieldType
 
-            Nothing ->
-                fail (fieldTypeString ++ " is not a supported field type")
+        error =
+            fieldTypeString ++ " is not a supported field type"
+    in
+        Result.fromMaybe error fieldTypeMaybe
+
+
+fieldDecoder : Decoder Field
+fieldDecoder =
+    object5 Field
+        ("name" := string)
+        ("display" := string)
+        ("type" := fieldTypeDecoder)
+        ("secret" := bool)
+        ("required" := bool)
+
+
+pluginDecoder : Decoder Plugin
+pluginDecoder =
+    object3 Plugin
+        ("name" := string)
+        ("display" := string)
+        ("fields" := list fieldDecoder)
+
+
+globalMachineDecoder : Decoder GlobalMachine
+globalMachineDecoder =
+    object1 GlobalMachine
+        ("plugins" := list pluginDecoder)
+
+
+globalCryptoDecoder : Decoder GlobalCrypto
+globalCryptoDecoder =
+    object1 GlobalCrypto
+        ("global" := globalMachineDecoder)
+
+
+configDecoder : Decoder Config
+configDecoder =
+    object1 Config
+        ("global" := globalCryptoDecoder)
+
+
+initialRecordDecoder : Decoder InitialRecord
+initialRecordDecoder =
+    object1 InitialRecord
+        ("config" := configDecoder)
 
 
 
