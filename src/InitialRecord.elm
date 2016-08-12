@@ -109,6 +109,10 @@ initialRecordDecoder =
         ("config" := configDecoder)
 
 
-decode : String -> Result String InitialRecord
+type alias InitialRecordResult =
+    Result String InitialRecord
+
+
+decode : String -> InitialRecordResult
 decode string =
     decodeString initialRecordDecoder string
