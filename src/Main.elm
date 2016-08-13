@@ -5,7 +5,7 @@ import Html.App exposing (map)
 import Navigation
 import UrlParser exposing (Parser, (</>), format, int, oneOf, s, string)
 import Pair
-import Start
+import Account
 
 
 main : Program Never
@@ -24,7 +24,9 @@ main =
 
 
 type Page
-    = PairPage
+    = AccountPage
+    | PairPage
+    | UnknownPage
 
 
 parser : Navigation.Location -> Result String Page
@@ -46,45 +48,36 @@ pageParser =
 type alias Model =
     { page : Page
     , pair : Pair.Model
-    , start : Start.Model
+    , account : Account.Model
     , err : Maybe String
     }
 
 
 init : Result String Page -> ( Model, Cmd Msg )
-init result =
-    case result of
-        Ok page ->
-            let
-                ( startModel, startCmd ) =
-                    Start.init
-
-                ( pairModel, pairCmd ) =
-                    Pair.init
-
-                initModel =
-                { page = page
-                , start = startModel
-                , pair = pairModel
-                , err = Nothing
-                }
-
-                updatedModel = case page of
+init pageResult =
+    let
+        initModel =
+            { page = UnknownPage
+            , account = Account.initModel
+            , pair = Pair.initModel
+            , err = Nothing
+            }
+    in
+        case pageResult of
+            Ok page ->
+                case page of
                     PairPage ->
                         let
                             ( pairModel, pairCmd ) =
                                 Pair.load
-
-                            model =
-                                { page = PairPage
-                                , pair = pairModel
-                                , start = startModel
-                                }
                         in
-                            model ! [ Cmd.map PairMsg pairCmd, Cmd.map StartMsg startCmd ]
+                            { initModel | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg pairCmd ]
 
-        Err routeErr ->
-            { err = routeErr } ! []
+                    _ ->
+                        initModel ! []
+
+            Err routeErr ->
+                { initModel | err = Just routeErr } ! []
 
 
 
@@ -92,7 +85,7 @@ init result =
 
 
 type Msg
-    = StartMsg Start.Msg
+    = AccountMsg Account.Msg
     | PairMsg Pair.Msg
 
 
@@ -101,17 +94,17 @@ update msg model =
     case Debug.log "DEBUG10" msg of
         PairMsg pairMsg ->
             let
-                ( _, cmd ) =
+                ( pairModel, cmd ) =
                     Pair.update pairMsg model.pair
             in
-                model ! [ Cmd.map PairMsg cmd ]
+                { model | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
-        StartMsg startMsg ->
+        AccountMsg accountMsg ->
             let
-                ( startModel, cmd ) =
-                    Start.update startMsg model.start
+                ( accountModel, cmd ) =
+                    Account.update accountMsg model.account
             in
-                { model | start = startModel } ! [ Cmd.map StartMsg cmd ]
+                { model | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
 
 content : Model -> Html Msg
@@ -119,6 +112,9 @@ content model =
     case model.page of
         PairPage ->
             map PairMsg (Pair.view model.pair)
+
+        _ ->
+            div [] [ text "Not implemented" ]
 
 
 view : Model -> Html Msg

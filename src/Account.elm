@@ -2,7 +2,7 @@ module Account exposing (..)
 
 import Http
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
-import RemoteData exposing (RemoteData, WebData)
+import RemoteData exposing (..)
 import AccountRecord
 
 
@@ -16,9 +16,9 @@ get code =
         |> RemoteData.asCmd
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( RemoteData.NotAsked, Cmd.none )
+initModel : Model
+initModel =
+    RemoteData.NotAsked
 
 
 load : String -> ( Model, Cmd Msg )
@@ -45,4 +45,20 @@ update webdata model =
 
 view : Model -> Html Msg
 view model =
-    div [] []
+    case model of
+        NotAsked ->
+            div [] []
+
+        Loading ->
+            div [] [ text "Loading..." ]
+
+        Failure err ->
+            div [] [ text (toString err) ]
+
+        Success accountResult ->
+            case accountResult of
+                Ok account ->
+                    div [] [ text ("Account: " ++ account.display) ]
+
+                Err err ->
+                    div [] [ text "Server error" ]

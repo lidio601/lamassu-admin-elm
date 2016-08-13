@@ -4,7 +4,7 @@ import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.Attributes exposing (id)
 import Port
 import Http
-import RemoteData exposing (RemoteData, WebData)
+import RemoteData exposing (..)
 
 
 -- MODEL
@@ -25,14 +25,14 @@ getTotem =
         |> Cmd.map Totem
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( RemoteData.NotAsked, Cmd.none )
+initModel : Model
+initModel =
+    NotAsked
 
 
 load : ( Model, Cmd Msg )
 load =
-    ( RemoteData.Loading, getTotem )
+    ( Loading, getTotem )
 
 
 
@@ -56,4 +56,21 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.canvas [ id "qr" ] []
+    case Debug.log "DEBUG3" model of
+        NotAsked ->
+            div [] []
+
+        Loading ->
+            div []
+                [ div [] [ text "..." ]
+                , Html.canvas [ id "qr" ] []
+                ]
+
+        Failure err ->
+            div [] [ text (Debug.log "DEBUG2" (toString err)) ]
+
+        Success _ ->
+            div []
+                [ div [] [ text "Loaded" ]
+                , Html.canvas [ id "qr" ] []
+                ]
