@@ -1,40 +1,25 @@
 module AccountRecord exposing (..)
 
 import Json.Decode exposing (..)
-import Dict exposing (..)
-
-
-type FieldType
-    = FieldString
-
-
-fieldTypeDict : Dict.Dict String FieldType
-fieldTypeDict =
-    Dict.fromList [ ( "string", FieldString ) ]
 
 
 type alias Field =
     { code : String
     , display : String
-    , fieldType : FieldType
     , secret : Bool
     , required : Bool
+    , value : FieldValue
     }
 
 
 type FieldValue
-    = FieldStringValue String
-
-
-type alias FieldValues =
-    Dict String FieldValue
+    = FieldString (Maybe String)
 
 
 type alias Account =
     { code : String
     , display : String
     , fields : List Field
-    , fieldValues : FieldValues
     }
 
 
@@ -42,21 +27,27 @@ type alias Account =
 -- Decoders
 
 
-fieldTypeDecoder : Decoder FieldType
-fieldTypeDecoder =
-    customDecoder string fieldTypeMap
+nullOr : Decoder a -> Decoder (Maybe a)
+nullOr decoder =
+    oneOf
+        [ null Nothing
+        , map Just decoder
+        ]
 
 
-fieldTypeMap : String -> Result String FieldType
-fieldTypeMap fieldTypeString =
-    let
-        fieldTypeMaybe =
-            Dict.get fieldTypeString fieldTypeDict
+fieldValueTypeDecoder : String -> Decoder FieldValue
+fieldValueTypeDecoder fieldType =
+    case fieldType of
+        "string" ->
+            map FieldString (nullOr string)
 
-        error =
-            fieldTypeString ++ " is not a supported field type"
-    in
-        Result.fromMaybe error fieldTypeMaybe
+        _ ->
+            fail ("Unsupported field type: " ++ fieldType)
+
+
+fieldValueDecoder : Decoder FieldValue
+fieldValueDecoder =
+    ("fieldType" := string) `andThen` fieldValueTypeDecoder
 
 
 fieldDecoder : Decoder Field
@@ -64,23 +55,17 @@ fieldDecoder =
     object5 Field
         ("code" := string)
         ("display" := string)
-        ("type" := fieldTypeDecoder)
         ("secret" := bool)
         ("required" := bool)
-
-
-fieldValuesDecoder : Decoder FieldValues
-fieldValuesDecoder =
-    dict fieldValueDecoder
+        ("value" := fieldValueDecoder)
 
 
 accountDecoder : Decoder Account
 accountDecoder =
-    object4 Account
+    object3 Account
         ("code" := string)
         ("display" := string)
         ("fields" := list fieldDecoder)
-        ("fieldValues" := fieldValuesDecoder)
 
 
 type alias AccountResult =

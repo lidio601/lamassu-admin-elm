@@ -68,19 +68,20 @@ init result =
                 , pair = pairModel
                 , err = Nothing
                 }
-            case page of
-                PairPage ->
-                    let
-                        ( pairModel, pairCmd ) =
-                            Pair.load
 
-                        model =
-                            { page = PairPage
-                            , pair = pairModel
-                            , start = startModel
-                            }
-                    in
-                        model ! [ Cmd.map PairMsg pairCmd, Cmd.map StartMsg startCmd ]
+                updatedModel = case page of
+                    PairPage ->
+                        let
+                            ( pairModel, pairCmd ) =
+                                Pair.load
+
+                            model =
+                                { page = PairPage
+                                , pair = pairModel
+                                , start = startModel
+                                }
+                        in
+                            model ! [ Cmd.map PairMsg pairCmd, Cmd.map StartMsg startCmd ]
 
         Err routeErr ->
             { err = routeErr } ! []
