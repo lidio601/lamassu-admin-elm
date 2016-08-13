@@ -1,36 +1,11 @@
 module InitialRecord exposing (..)
 
 import Json.Decode exposing (..)
-import Dict
-
-
-type FieldType
-    = FieldString
-
-
-fieldTypeDict : Dict.Dict String FieldType
-fieldTypeDict =
-    Dict.fromList [ ( "string", FieldString ) ]
-
-
-type alias Field =
-    { code : String
-    , display : String
-    , fieldType : FieldType
-    , secret : Bool
-    , required : Bool
-    }
-
-
-type alias Plugin =
-    { code : String
-    , display : String
-    , fields : List Field
-    }
+import Plugin
 
 
 type alias GlobalMachine =
-    { plugins : List Plugin }
+    { plugins : List Plugin.Plugin }
 
 
 type alias GlobalCrypto =
@@ -50,45 +25,10 @@ type alias InitialRecord =
 -- Decoders
 
 
-fieldTypeDecoder : Decoder FieldType
-fieldTypeDecoder =
-    customDecoder string fieldTypeMap
-
-
-fieldTypeMap : String -> Result String FieldType
-fieldTypeMap fieldTypeString =
-    let
-        fieldTypeMaybe =
-            Dict.get fieldTypeString fieldTypeDict
-
-        error =
-            fieldTypeString ++ " is not a supported field type"
-    in
-        Result.fromMaybe error fieldTypeMaybe
-
-
-fieldDecoder : Decoder Field
-fieldDecoder =
-    object5 Field
-        ("code" := string)
-        ("display" := string)
-        ("type" := fieldTypeDecoder)
-        ("secret" := bool)
-        ("required" := bool)
-
-
-pluginDecoder : Decoder Plugin
-pluginDecoder =
-    object3 Plugin
-        ("code" := string)
-        ("display" := string)
-        ("fields" := list fieldDecoder)
-
-
 globalMachineDecoder : Decoder GlobalMachine
 globalMachineDecoder =
     object1 GlobalMachine
-        ("plugins" := list pluginDecoder)
+        ("plugins" := list Plugin.pluginDecoder)
 
 
 globalCryptoDecoder : Decoder GlobalCrypto

@@ -6,7 +6,7 @@ import InitialRecord
 
 
 type alias Model =
-    { initialRecordResult : WebData InitialRecord.InitialRecordResult }
+    WebData InitialRecord.InitialRecordResult
 
 
 get : Cmd Msg
@@ -18,7 +18,12 @@ get =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { initialRecordResult = RemoteData.Loading }, get )
+    ( RemoteData.NotAsked, Cmd.none )
+
+
+load : ( Model, Cmd Msg )
+load =
+    ( RemoteData.Loading, get )
 
 
 
@@ -34,7 +39,7 @@ update msg model =
     case Debug.log "DEBUG0" msg of
         Initial webdata ->
             let
-                initialRecordResult =
-                    RemoteData.map InitialRecord.decode webdata
+                decodingMapper json =
+                    ( InitialRecord.decode json, Cmd.none )
             in
-                { initialRecordResult = initialRecordResult } ! []
+                RemoteData.update decodingMapper webdata

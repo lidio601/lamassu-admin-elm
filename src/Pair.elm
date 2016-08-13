@@ -11,8 +11,7 @@ import RemoteData exposing (RemoteData, WebData)
 
 
 type alias Model =
-    { totem : Maybe String
-    }
+    WebData String
 
 
 
@@ -28,7 +27,12 @@ getTotem =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { totem = Nothing }, getTotem )
+    ( RemoteData.NotAsked, Cmd.none )
+
+
+load : ( Model, Cmd Msg )
+load =
+    ( RemoteData.Loading, getTotem )
 
 
 
@@ -43,18 +47,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "DEBUG0" msg of
         Totem webdata ->
-            case webdata of
-                RemoteData.NotAsked ->
-                    model ! []
-
-                RemoteData.Loading ->
-                    model ! []
-
-                RemoteData.Failure _ ->
-                    model ! []
-
-                RemoteData.Success totem ->
-                    model ! [ Port.qr "qr" (Debug.log "DEBUG1" totem) ]
+            let
+                displayQr totem =
+                    totem ! [ Port.qr "qr" (Debug.log "DEBUG1" totem) ]
+            in
+                RemoteData.update displayQr webdata
 
 
 view : Model -> Html Msg

@@ -24,8 +24,7 @@ main =
 
 
 type Page
-    = StartPage
-    | PairPage
+    = PairPage
 
 
 parser : Navigation.Location -> Result String Page
@@ -48,25 +47,43 @@ type alias Model =
     { page : Page
     , pair : Pair.Model
     , start : Start.Model
+    , err : Maybe String
     }
 
 
 init : Result String Page -> ( Model, Cmd Msg )
 init result =
-    let
-        ( pairModel, pairCmd ) =
-            Pair.init
+    case result of
+        Ok page ->
+            let
+                ( startModel, startCmd ) =
+                    Start.init
 
-        ( startModel, startCmd ) =
-            Start.init
+                ( pairModel, pairCmd ) =
+                    Pair.init
 
-        model =
-            { page = PairPage
-            , pair = pairModel
-            , start = startModel
-            }
-    in
-        model ! [ Cmd.map StartMsg startCmd, Cmd.map PairMsg pairCmd ]
+                initModel =
+                { page = page
+                , start = startModel
+                , pair = pairModel
+                , err = Nothing
+                }
+            case page of
+                PairPage ->
+                    let
+                        ( pairModel, pairCmd ) =
+                            Pair.load
+
+                        model =
+                            { page = PairPage
+                            , pair = pairModel
+                            , start = startModel
+                            }
+                    in
+                        model ! [ Cmd.map PairMsg pairCmd, Cmd.map StartMsg startCmd ]
+
+        Err routeErr ->
+            { err = routeErr } ! []
 
 
 
@@ -101,9 +118,6 @@ content model =
     case model.page of
         PairPage ->
             map PairMsg (Pair.view model.pair)
-
-        StartPage ->
-            div [] []
 
 
 view : Model -> Html Msg
