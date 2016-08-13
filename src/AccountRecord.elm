@@ -13,7 +13,7 @@ type alias Field =
 
 
 type FieldValue
-    = FieldString (Maybe String)
+    = FieldString String
 
 
 type alias Account =
@@ -27,19 +27,11 @@ type alias Account =
 -- Decoders
 
 
-nullOr : Decoder a -> Decoder (Maybe a)
-nullOr decoder =
-    oneOf
-        [ null Nothing
-        , map Just decoder
-        ]
-
-
 fieldValueTypeDecoder : String -> Decoder FieldValue
 fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldString (nullOr string)
+            map FieldString ("value" := string)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
