@@ -3,7 +3,6 @@ module Main exposing (..)
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.App exposing (map)
 import Navigation
-import UrlParser exposing (Parser, (</>), format, int, oneOf, s, string)
 import Pair
 import Account
 
@@ -31,14 +30,15 @@ type Page
 
 parser : Navigation.Location -> Result String Page
 parser location =
-    UrlParser.parse identity pageParser location.pathname
+    case Debug.log "DEBUG6" location.hash of
+        "#account" ->
+            Ok AccountPage
 
+        "#pair" ->
+            Ok PairPage
 
-pageParser : Parser (Page -> a) a
-pageParser =
-    oneOf
-        [ format PairPage (s "")
-        ]
+        _ ->
+            Err "No such page"
 
 
 
@@ -73,8 +73,15 @@ init pageResult =
                         in
                             { initModel | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg pairCmd ]
 
-                    _ ->
-                        initModel ! []
+                    AccountPage ->
+                        let
+                            ( accountModel, accountCmd ) =
+                                Account.load "twilio"
+                        in
+                            { initModel | account = accountModel, page = AccountPage } ! [ Cmd.map AccountMsg accountCmd ]
+
+                    UnknownPage ->
+                        initModel ! [ Cmd.none ]
 
             Err routeErr ->
                 { initModel | err = Just routeErr } ! []
@@ -113,8 +120,11 @@ content model =
         PairPage ->
             map PairMsg (Pair.view model.pair)
 
-        _ ->
-            div [] [ text "Not implemented" ]
+        AccountPage ->
+            map AccountMsg (Account.view model.account)
+
+        UnknownPage ->
+            div [] [ text ("No such page") ]
 
 
 view : Model -> Html Msg
@@ -129,7 +139,23 @@ urlUpdate result model =
             model ! []
 
         Ok page ->
-            { model | page = page } ! []
+            case page of
+                PairPage ->
+                    let
+                        ( pairModel, cmd ) =
+                            Pair.load
+                    in
+                        { model | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg cmd ]
+
+                AccountPage ->
+                    let
+                        ( accountModel, cmd ) =
+                            Account.load "twilio"
+                    in
+                        { model | account = accountModel, page = AccountPage } ! [ Cmd.map AccountMsg cmd ]
+
+                UnknownPage ->
+                    { model | err = Just "Unknown page" } ! []
 
 
 
