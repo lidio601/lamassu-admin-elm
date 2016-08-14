@@ -2,9 +2,11 @@ module Main exposing (..)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.App exposing (map)
+import Html.Attributes exposing (class)
 import Navigation
 import Pair
 import Account
+import NavBar
 
 
 main : Program Never
@@ -94,6 +96,7 @@ init pageResult =
 type Msg
     = AccountMsg Account.Msg
     | PairMsg Pair.Msg
+    | NavBarMsg NavBar.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,19 +107,22 @@ update msg model =
                 ( pairModel, cmd ) =
                     Pair.update pairMsg model.pair
             in
-                { model | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
+                { model | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg cmd ]
 
         AccountMsg accountMsg ->
             let
                 ( accountModel, cmd ) =
                     Account.update accountMsg model.account
             in
-                { model | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+                { model | account = accountModel, page = AccountPage } ! [ Cmd.map AccountMsg cmd ]
+
+        NavBarMsg navBarMsg ->
+            ( model, Cmd.none )
 
 
 content : Model -> Html Msg
 content model =
-    case model.page of
+    case Debug.log "DEBUG7" model.page of
         PairPage ->
             map PairMsg (Pair.view model.pair)
 
@@ -129,14 +135,17 @@ content model =
 
 view : Model -> Html Msg
 view model =
-    div [] [ content model ]
+    div []
+        [ map NavBarMsg (NavBar.view ())
+        , div [ class "nav" ] [ content model ]
+        ]
 
 
 urlUpdate : Result String Page -> Model -> ( Model, Cmd Msg )
 urlUpdate result model =
     case Debug.log "result" result of
-        Err _ ->
-            model ! []
+        Err updateErr ->
+            { model | err = Just updateErr } ! []
 
         Ok page ->
             case page of
