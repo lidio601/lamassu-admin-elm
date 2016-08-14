@@ -1,18 +1,11 @@
 <html>
   <body>
+    <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+    <script src="bower_components/qrjs/qr.js"></script>
+    <script src="bower_components/qr-code/src/qr-code.js"></script>
     <script src="build/elm.js"></script>
-    <script src="js/qrious.min.js"></script>
     <script>
-      const app = Elm.Main.fullscreen()
-
-      app.ports.portQr.subscribe(r => {
-        console.log('DEBUG5')
-        console.dir(r)
-        new QRious({
-          element: document.getElementById(r.id),
-          value: r.content
-        })
-      })
+      Elm.Main.fullscreen()
     </script>
   </body>
 </html>
