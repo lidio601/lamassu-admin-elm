@@ -1,6 +1,7 @@
 module AccountRecord exposing (..)
 
 import Json.Decode exposing (..)
+import Json.Encode
 
 
 type alias Field =
@@ -71,3 +72,8 @@ type alias AccountResult =
 decode : String -> AccountResult
 decode string =
     decodeString accountDecoder string
+
+
+encode : Account -> String
+encode account =
+    Json.Encode.encode 0 (Json.Encode.object account)

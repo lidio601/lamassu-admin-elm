@@ -1,20 +1,33 @@
 module Account exposing (..)
 
-import Http
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import RemoteData exposing (..)
 import AccountRecord exposing (..)
+import HttpBuilder exposing (..)
 
 
 type alias Model =
-    WebData AccountResult
+    WebRecord
 
 
-get : String -> Cmd Msg
-get code =
-    Http.getString ("http://localhost:8093/account/" ++ code)
+getForm : String -> Cmd Msg
+getForm code =
+    get ("http://localhost:8093/account/" ++ code)
+        |> send (jsonReader accountDecoder) stringReader
         |> RemoteData.asCmd
+        |> Cmd.map Load
+
+
+postForm : Account -> Cmd Msg
+postForm account =
+    post "http://localhost:8093/account"
+        |> withHeader "Content-Type" "application/json"
+        |> withJsonBody account
+        |> send (jsonReader accountDecoder) stringReader
+        |> RemoteData.asCmd
+        |> Cmd.map Load
 
 
 initModel : Model
@@ -31,17 +44,27 @@ load code =
 -- UPDATE
 
 
-type alias Msg =
-    WebData String
+type alias WebRecord =
+    RemoteData (Error String) (Response Account)
+
+
+type Msg
+    = Load WebRecord
+    | Submit
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update webdata model =
-    let
-        decodingMapper json =
-            ( decode json, Cmd.none )
-    in
-        RemoteData.update decodingMapper webdata
+update msg model =
+    case msg of
+        Load webdata ->
+            let
+                decodingMapper json =
+                    ( decode json, Cmd.none )
+            in
+                RemoteData.update decodingMapper webdata
+
+        Submit ->
+            ( Debug.log "DEBUG12" model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -102,5 +125,8 @@ accountView account =
     in
         div []
             [ div [] [ text ("Account: " ++ account.display) ]
-            , fieldset [] fields
+            , Html.form [ onSubmit Submit ]
+                [ fieldset [] fields
+                , button [] [ text "Submit" ]
+                ]
             ]

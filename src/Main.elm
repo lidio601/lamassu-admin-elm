@@ -81,7 +81,7 @@ init pageResult =
                     AccountPage account ->
                         let
                             ( accountModel, accountCmd ) =
-                                Account.load account
+                                Account.load (Debug.log "DEBUG14" account)
                         in
                             { initModel | account = accountModel } ! [ Cmd.map AccountMsg accountCmd ]
 
@@ -166,7 +166,7 @@ urlUpdate pageResult model =
                     AccountPage account ->
                         let
                             ( accountModel, cmd ) =
-                                Account.load account
+                                Account.load (Debug.log "DEBUG13" account)
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
