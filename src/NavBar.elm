@@ -37,6 +37,6 @@ update msg model =
 view : Model -> Html Msg
 view model =
     ul []
-        [ li [] [ a [ href "/#pair" ] [ text "Pairing" ] ]
-        , li [] [ a [ href "/#account" ] [ text "Accounts" ] ]
+        [ li [] [ a [ href "/pair" ] [ text "Pairing" ] ]
+        , li [] [ a [ href "/account/twilio" ] [ text "Accounts" ] ]
         ]

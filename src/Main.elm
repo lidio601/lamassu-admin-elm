@@ -7,11 +7,14 @@ import Navigation
 import Pair
 import Account
 import NavBar
+import UrlParser exposing (..)
+import Result exposing (withDefault)
+import String
 
 
 main : Program Never
 main =
-    Navigation.program (Navigation.makeParser parser)
+    Navigation.program (Navigation.makeParser pageParser)
         { init = init
         , view = view
         , update = update
@@ -24,23 +27,23 @@ main =
 -- URL PARSERS
 
 
+pageParser : Navigation.Location -> Result String Page
+pageParser location =
+    UrlParser.parse identity desiredPage (String.dropLeft 1 location.pathname)
+
+
 type Page
-    = AccountPage
+    = AccountPage String
     | PairPage
     | UnknownPage
 
 
-parser : Navigation.Location -> Result String Page
-parser location =
-    case Debug.log "DEBUG6" location.hash of
-        "#account" ->
-            Ok AccountPage
-
-        "#pair" ->
-            Ok PairPage
-
-        _ ->
-            Err "No such page"
+desiredPage : Parser (Page -> a) a
+desiredPage =
+    oneOf
+        [ format AccountPage (s "account" </> string)
+        , format PairPage (s "pair")
+        ]
 
 
 
@@ -59,7 +62,7 @@ init : Result String Page -> ( Model, Cmd Msg )
 init pageResult =
     let
         initModel =
-            { page = UnknownPage
+            { page = withDefault UnknownPage (Debug.log "DEBUG11" pageResult)
             , account = Account.initModel
             , pair = Pair.initModel
             , err = Nothing
@@ -73,14 +76,14 @@ init pageResult =
                             ( pairModel, pairCmd ) =
                                 Pair.load
                         in
-                            { initModel | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg pairCmd ]
+                            { initModel | pair = pairModel } ! [ Cmd.map PairMsg pairCmd ]
 
-                    AccountPage ->
+                    AccountPage account ->
                         let
                             ( accountModel, accountCmd ) =
-                                Account.load "twilio"
+                                Account.load account
                         in
-                            { initModel | account = accountModel, page = AccountPage } ! [ Cmd.map AccountMsg accountCmd ]
+                            { initModel | account = accountModel } ! [ Cmd.map AccountMsg accountCmd ]
 
                     UnknownPage ->
                         initModel ! [ Cmd.none ]
@@ -107,14 +110,14 @@ update msg model =
                 ( pairModel, cmd ) =
                     Pair.update pairMsg model.pair
             in
-                { model | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg cmd ]
+                { model | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
         AccountMsg accountMsg ->
             let
                 ( accountModel, cmd ) =
                     Account.update accountMsg model.account
             in
-                { model | account = accountModel, page = AccountPage } ! [ Cmd.map AccountMsg cmd ]
+                { model | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
         NavBarMsg navBarMsg ->
             ( model, Cmd.none )
@@ -126,7 +129,7 @@ content model =
         PairPage ->
             map PairMsg (Pair.view model.pair)
 
-        AccountPage ->
+        AccountPage _ ->
             map AccountMsg (Account.view model.account)
 
         UnknownPage ->
@@ -142,29 +145,33 @@ view model =
 
 
 urlUpdate : Result String Page -> Model -> ( Model, Cmd Msg )
-urlUpdate result model =
-    case Debug.log "result" result of
-        Err updateErr ->
-            { model | err = Just updateErr } ! []
+urlUpdate pageResult model =
+    let
+        pagedModel =
+            { model | page = withDefault UnknownPage pageResult }
+    in
+        case Debug.log "result" pageResult of
+            Err updateErr ->
+                { model | err = Just updateErr } ! []
 
-        Ok page ->
-            case page of
-                PairPage ->
-                    let
-                        ( pairModel, cmd ) =
-                            Pair.load
-                    in
-                        { model | pair = pairModel, page = PairPage } ! [ Cmd.map PairMsg cmd ]
+            Ok page ->
+                case page of
+                    PairPage ->
+                        let
+                            ( pairModel, cmd ) =
+                                Pair.load
+                        in
+                            { pagedModel | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
-                AccountPage ->
-                    let
-                        ( accountModel, cmd ) =
-                            Account.load "twilio"
-                    in
-                        { model | account = accountModel, page = AccountPage } ! [ Cmd.map AccountMsg cmd ]
+                    AccountPage account ->
+                        let
+                            ( accountModel, cmd ) =
+                                Account.load account
+                        in
+                            { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
-                UnknownPage ->
-                    { model | err = Just "Unknown page" } ! []
+                    UnknownPage ->
+                        { model | err = Just "Unknown page" } ! []
 
 
 
