@@ -14,6 +14,7 @@ type alias Field =
 
 type FieldValue
     = FieldString String
+    | FieldPassword (Maybe String)
 
 
 type alias Account =
@@ -32,6 +33,9 @@ fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
             map FieldString ("value" := string)
+
+        "password" ->
+            succeed (FieldPassword Nothing)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
