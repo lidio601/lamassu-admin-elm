@@ -65,23 +65,34 @@ type Msg
 -- TODO: Make it do something
 
 
-updateField : Model -> String -> String -> Model
-updateField model fieldCode fieldValueString =
-    model
+updateField : String -> String -> Field -> Field
+updateField fieldCode fieldValueString field =
+    if .code field == fieldCode then
+        { field | value = updateFieldValue fieldValueString field.value }
+    else
+        field
+
+
+updateAccountField : String -> String -> Account -> Account
+updateAccountField fieldCode fieldValueString account =
+    let
+        fields =
+            account.fields
+
+        updatedFields =
+            List.map (updateField fieldCode fieldValueString) fields
+    in
+        { account | fields = updatedFields }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load accountResponse ->
-            let
-                wrapper response =
-                    ( response.data, Cmd.none )
-            in
-                RemoteData.update wrapper accountResponse
+            ( RemoteData.map .data accountResponse, Cmd.none )
 
         Input fieldCode valueString ->
-            ( updateField model fieldCode valueString, Cmd.none )
+            ( RemoteData.map (updateAccountField fieldCode valueString) model, Cmd.none )
 
         Submit ->
             ( Debug.log "DEBUG12" model, Cmd.none )

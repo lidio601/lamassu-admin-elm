@@ -24,3 +24,13 @@ type alias Account =
 
 type alias AccountResult =
     Result String Account
+
+
+updateFieldValue : String -> FieldValue -> FieldValue
+updateFieldValue stringValue oldFieldValue =
+    case oldFieldValue of
+        FieldString _ ->
+            FieldString stringValue
+
+        FieldPassword _ ->
+            FieldPassword (Just stringValue)
