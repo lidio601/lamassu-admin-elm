@@ -11,12 +11,12 @@ import AccountEncoder exposing (..)
 import List
 
 
-type alias WebRecord x =
-    RemoteData (Error String) (Response x)
+type alias AccountResponse =
+    RemoteData (Error String) (Response Account)
 
 
 type alias WebAccount =
-    WebRecord Account
+    RemoteData (Error String) Account
 
 
 type alias Model =
@@ -56,48 +56,32 @@ load code =
 
 
 type Msg
-    = Load WebAccount
+    = Load AccountResponse
     | Submit
     | Input String String
+
+
+
+-- TODO: Make it do something
+
+
+updateField : Model -> String -> String -> Model
+updateField model fieldCode fieldValueString =
+    model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Load webAccount ->
+        Load accountResponse ->
             let
                 wrapper response =
-                    ( response, Cmd.none )
+                    ( response.data, Cmd.none )
             in
-                RemoteData.update wrapper webAccount
+                RemoteData.update wrapper accountResponse
 
         Input fieldCode valueString ->
-            let
-                updatedModel =
-                    case model of
-                        Success response ->
-                            let
-                                account =
-                                    response.data
-
-                                fields =
-                                    account.fields
-
-                                updateField f =
-                                    if .code f == fieldCode then
-                                        { f | value = FieldString valueString }
-                                    else
-                                        f
-
-                                newFields =
-                                    List.map updateField fields
-                            in
-                                model
-
-                        _ ->
-                            model
-            in
-                ( updatedModel, Cmd.none )
+            ( updateField model fieldCode valueString, Cmd.none )
 
         Submit ->
             ( Debug.log "DEBUG12" model, Cmd.none )
@@ -115,8 +99,8 @@ view model =
         Failure err ->
             div [] [ text (toString err) ]
 
-        Success accountResponse ->
-            accountView accountResponse
+        Success account ->
+            accountView account
 
 
 fieldComponent : Field -> Html Msg
@@ -144,12 +128,9 @@ fieldView field =
     div [] [ fieldComponent field ]
 
 
-accountView : Response Account -> Html Msg
-accountView accountResponse =
+accountView : Account -> Html Msg
+accountView account =
     let
-        account =
-            accountResponse.data
-
         fields =
             List.map fieldView account.fields
     in
