@@ -4,12 +4,22 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import RemoteData exposing (..)
-import AccountRecord exposing (..)
 import HttpBuilder exposing (..)
+import AccountRecord exposing (..)
+import AccountDecoder exposing (..)
+import AccountEncoder exposing (..)
+
+
+type alias WebRecord x =
+    RemoteData (Error String) (Response x)
+
+
+type alias WebAccount =
+    WebRecord Account
 
 
 type alias Model =
-    WebRecord
+    WebAccount
 
 
 getForm : String -> Cmd Msg
@@ -24,7 +34,7 @@ postForm : Account -> Cmd Msg
 postForm account =
     post "http://localhost:8093/account"
         |> withHeader "Content-Type" "application/json"
-        |> withJsonBody account
+        |> withJsonBody (encodeAccount account)
         |> send (jsonReader accountDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -37,31 +47,31 @@ initModel =
 
 load : String -> ( Model, Cmd Msg )
 load code =
-    ( RemoteData.Loading, get code )
+    ( RemoteData.Loading, getForm code )
 
 
 
 -- UPDATE
 
 
-type alias WebRecord =
-    RemoteData (Error String) (Response Account)
-
-
 type Msg
-    = Load WebRecord
+    = Load WebAccount
     | Submit
+    | Input String String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Load webdata ->
+        Load webAccount ->
             let
-                decodingMapper json =
-                    ( decode json, Cmd.none )
+                wrapper response =
+                    ( response, Cmd.none )
             in
-                RemoteData.update decodingMapper webdata
+                RemoteData.update wrapper webAccount
+
+        Input fieldCode valueString ->
+            ( model, Cmd.none )
 
         Submit ->
             ( Debug.log "DEBUG12" model, Cmd.none )
@@ -79,17 +89,8 @@ view model =
         Failure err ->
             div [] [ text (toString err) ]
 
-        Success accountResult ->
-            case accountResult of
-                Ok account ->
-                    accountView account
-
-                Err err ->
-                    let
-                        _ =
-                            Debug.log "DEBUG11" err
-                    in
-                        div [] [ text "Server error (bad record)" ]
+        Success accountResponse ->
+            accountView accountResponse
 
 
 fieldComponent : Field -> Html Msg
@@ -99,7 +100,7 @@ fieldComponent field =
             label []
                 [ text field.display
                 , input
-                    [ value string ]
+                    [ onInput (Input field.code), value string ]
                     []
                 ]
 
@@ -107,7 +108,7 @@ fieldComponent field =
             label []
                 [ text field.display
                 , input
-                    [ type' "password" ]
+                    [ onInput (Input field.code), type' "password" ]
                     []
                 ]
 
@@ -117,9 +118,12 @@ fieldView field =
     div [] [ fieldComponent field ]
 
 
-accountView : Account -> Html Msg
-accountView account =
+accountView : Response Account -> Html Msg
+accountView accountResponse =
     let
+        account =
+            accountResponse.data
+
         fields =
             List.map fieldView account.fields
     in

@@ -20,3 +20,7 @@ type alias Account =
     , display : String
     , fields : List Field
     }
+
+
+type alias AccountResult =
+    Result String Account

@@ -40,10 +40,6 @@ accountDecoder =
         ("fields" := list fieldDecoder)
 
 
-type alias AccountResult =
-    Result String Account
-
-
-decode : String -> AccountResult
-decode string =
+decodeAccount : String -> AccountResult
+decodeAccount string =
     decodeString accountDecoder string
