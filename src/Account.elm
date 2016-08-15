@@ -8,6 +8,7 @@ import HttpBuilder exposing (..)
 import AccountRecord exposing (..)
 import AccountDecoder exposing (..)
 import AccountEncoder exposing (..)
+import List
 
 
 type alias WebRecord x =
@@ -71,7 +72,32 @@ update msg model =
                 RemoteData.update wrapper webAccount
 
         Input fieldCode valueString ->
-            ( model, Cmd.none )
+            let
+                updatedModel =
+                    case model of
+                        Success response ->
+                            let
+                                account =
+                                    response.data
+
+                                fields =
+                                    account.fields
+
+                                updateField f =
+                                    if .code f == fieldCode then
+                                        { f | value = FieldString valueString }
+                                    else
+                                        f
+
+                                newFields =
+                                    List.map updateField fields
+                            in
+                                model
+
+                        _ ->
+                            model
+            in
+                ( updatedModel, Cmd.none )
 
         Submit ->
             ( Debug.log "DEBUG12" model, Cmd.none )
