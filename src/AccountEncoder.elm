@@ -35,6 +35,7 @@ encodeFieldValue fieldValue =
 
 encodeField : Field -> Value
 encodeField field =
+    -- No need to encode status field, it's for client-side only
     Json.Encode.object
         [ ( "code", string field.code )
         , ( "display", string field.display )

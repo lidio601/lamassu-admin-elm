@@ -22,14 +22,34 @@ fieldValueDecoder =
     ("fieldType" := string) `andThen` fieldValueTypeDecoder
 
 
+fieldStatusValueDecoder statusCode =
+    case statusCode of
+        "error" ->
+            map FieldError ("error" := string)
+
+        "updated" ->
+            succeed FieldUpdated
+
+        "idle" ->
+            succeed FieldIdle
+
+        _ ->
+            fail ("Unsupported status code")
+
+
+fieldStatusDecoder =
+    ("code" := string) `andThen` fieldStatusValueDecoder
+
+
 fieldDecoder : Decoder Field
 fieldDecoder =
-    object5 Field
+    object6 Field
         ("code" := string)
         ("display" := string)
         ("secret" := bool)
         ("required" := bool)
         ("value" := fieldValueDecoder)
+        ("status" := fieldStatusDecoder)
 
 
 accountDecoder : Decoder Account

@@ -1,12 +1,19 @@
 module AccountRecord exposing (..)
 
 
+type FieldStatus
+    = FieldUpdated
+    | FieldError String
+    | FieldIdle
+
+
 type alias Field =
     { code : String
     , display : String
     , secret : Bool
     , required : Bool
     , value : FieldValue
+    , status : FieldStatus
     }
 
 
