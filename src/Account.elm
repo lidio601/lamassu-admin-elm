@@ -95,7 +95,11 @@ update msg model =
             ( RemoteData.map (updateAccountField fieldCode valueString) model, Cmd.none )
 
         Submit ->
-            ( Debug.log "DEBUG12" model, Cmd.none )
+            let
+                mapper account =
+                    ( account, postForm account )
+            in
+                RemoteData.update mapper model
 
 
 view : Model -> Html Msg
