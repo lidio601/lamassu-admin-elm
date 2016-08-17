@@ -1,5 +1,1 @@
-- create client/server higher level lib over websocket, emulating http
-- also allow updates (subscriptions, not client/server)
-
-- fetch qr code from l-a-s
-- start building first config page
+- refactor out more generic form, built up from FieldList, for use in account, config
