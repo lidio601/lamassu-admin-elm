@@ -62,10 +62,6 @@ type Msg
     | Input String String
 
 
-
--- TODO: Make it do something
-
-
 updateField : String -> String -> Field -> Field
 updateField fieldCode fieldValueString field =
     if .code field == fieldCode then
