@@ -70,7 +70,7 @@ update msg model =
         Submit ->
             case model of
                 Success account ->
-                    model ! [ postForm account ]
+                    Debug.log "DEBUG1" model ! [ postForm account ]
 
                 _ ->
                     model ! []
