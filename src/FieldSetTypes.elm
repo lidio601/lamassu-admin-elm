@@ -1,4 +1,4 @@
-module Fields exposing (..)
+module FieldSetTypes exposing (..)
 
 
 type FieldStatus
@@ -13,6 +13,7 @@ type alias Field =
     , secret : Bool
     , required : Bool
     , value : FieldValue
+    , loadedValue : FieldValue
     , status : FieldStatus
     }
 
@@ -22,8 +23,9 @@ type FieldValue
     | FieldPassword (Maybe String)
 
 
-type alias FieldList =
-    List Field
+type alias FieldSet =
+    { fields : List Field
+    }
 
 
 updateFieldValue : String -> FieldValue -> FieldValue

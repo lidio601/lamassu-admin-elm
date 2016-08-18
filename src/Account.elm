@@ -1,15 +1,14 @@
 module Account exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.App
 import RemoteData exposing (..)
 import HttpBuilder exposing (..)
-import Fields exposing (..)
-import AccountRecord exposing (..)
+import AccountTypes exposing (..)
 import AccountDecoder exposing (..)
 import AccountEncoder exposing (..)
-import List
+import FieldSet
 
 
 type alias AccountResponse =
@@ -21,7 +20,9 @@ type alias WebAccount =
 
 
 type alias Model =
-    WebAccount
+    { webAccount : WebAccount
+    , fieldSet : FieldSet.Model
+    }
 
 
 getForm : String -> Cmd Msg
@@ -44,12 +45,14 @@ postForm account =
 
 initModel : Model
 initModel =
-    RemoteData.NotAsked
+    { webAccount = RemoteData.NotAsked
+    , fieldSet = FieldSet.initModel
+    }
 
 
-load : String -> ( Model, Cmd Msg )
-load code =
-    ( RemoteData.Loading, getForm code )
+load : String -> Model -> ( Model, Cmd Msg )
+load code model =
+    ( { model | webAccount = RemoteData.Loading }, getForm code )
 
 
 
@@ -59,49 +62,34 @@ load code =
 type Msg
     = Load AccountResponse
     | Submit
-    | Input String String
-
-
-updateField : String -> String -> Field -> Field
-updateField fieldCode fieldValueString field =
-    if .code field == fieldCode then
-        { field | value = updateFieldValue fieldValueString field.value }
-    else
-        field
-
-
-updateAccountField : String -> String -> Account -> Account
-updateAccountField fieldCode fieldValueString account =
-    let
-        fields =
-            account.fields
-
-        updatedFields =
-            List.map (updateField fieldCode fieldValueString) fields
-    in
-        { account | fields = updatedFields }
+    | FieldSetMsg FieldSet.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load accountResponse ->
-            ( RemoteData.map .data accountResponse, Cmd.none )
-
-        Input fieldCode valueString ->
-            ( RemoteData.map (updateAccountField fieldCode valueString) model, Cmd.none )
+            ( { model | webAccount = RemoteData.map .data accountResponse }, Cmd.none )
 
         Submit ->
+            case model.webAccount of
+                Success account ->
+                    model ! [ postForm account ]
+
+                _ ->
+                    model ! []
+
+        FieldSetMsg fieldSetMsg ->
             let
-                mapper account =
-                    ( account, postForm account )
+                ( fieldSetModel, cmd ) =
+                    FieldSet.update fieldSetMsg model.fieldSet
             in
-                RemoteData.update mapper model
+                { model | fieldSet = fieldSetModel } ! [ Cmd.map FieldSetMsg cmd ]
 
 
 view : Model -> Html Msg
 view model =
-    case model of
+    case model.webAccount of
         NotAsked ->
             div [] []
 
@@ -112,44 +100,14 @@ view model =
             div [] [ text (toString err) ]
 
         Success account ->
-            accountView account
-
-
-fieldComponent : Field -> Html Msg
-fieldComponent field =
-    case field.value of
-        FieldString string ->
-            label []
-                [ text field.display
-                , input
-                    [ onInput (Input field.code), value string ]
-                    []
-                ]
-
-        FieldPassword _ ->
-            label []
-                [ text field.display
-                , input
-                    [ onInput (Input field.code), type' "password" ]
-                    []
-                ]
-
-
-fieldView : Field -> Html Msg
-fieldView field =
-    div [] [ fieldComponent field ]
-
-
-accountView : Account -> Html Msg
-accountView account =
-    let
-        fields =
-            List.map fieldView account.fields
-    in
-        div []
-            [ div [] [ text ("Account: " ++ account.display) ]
-            , Html.form [ onSubmit Submit ]
-                [ fieldset [] fields
-                , button [] [ text "Submit" ]
-                ]
-            ]
+            let
+                fieldSetView =
+                    Html.App.map FieldSetMsg (FieldSet.view model.fieldSet)
+            in
+                div []
+                    [ div [] [ text ("Account: " ++ account.display) ]
+                    , Html.form [ onSubmit Submit ]
+                        [ fieldset [] [ fieldSetView ]
+                        , button [] [ text "Submit" ]
+                        ]
+                    ]
