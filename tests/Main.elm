@@ -1,13 +1,13 @@
 port module Main exposing (..)
 
-import AccountRecordTests
+import AccountTypesTests
 import Test.Runner.Node exposing (run)
 import Json.Encode exposing (Value)
 
 
 main : Program Never
 main =
-    run emit AccountRecordTests.all
+    run emit AccountTypesTests.all
 
 
 port emit : ( String, Value ) -> Cmd msg
