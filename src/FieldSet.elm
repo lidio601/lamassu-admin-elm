@@ -8,12 +8,7 @@ import List
 
 
 type alias Model =
-    Maybe FieldSet
-
-
-initModel : Model
-initModel =
-    Nothing
+    FieldSet
 
 
 
@@ -21,8 +16,7 @@ initModel =
 
 
 type Msg
-    = Load FieldSet
-    | Input String String
+    = Input String String
 
 
 updateField : String -> String -> Field -> Field
@@ -48,11 +42,8 @@ updateFieldSet fieldCode fieldValueString fieldSet =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Load fieldSet ->
-            Just fieldSet ! []
-
         Input fieldCode valueString ->
-            (Maybe.map (updateFieldSet fieldCode valueString) model) ! []
+            updateFieldSet fieldCode valueString model ! []
 
 
 fieldComponent : Field -> Html Msg
@@ -82,15 +73,10 @@ fieldView field =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Nothing ->
-            div [] []
-
-        Just fieldSet ->
-            let
-                fields =
-                    List.map fieldView fieldSet.fields
-            in
-                div []
-                    [ fieldset [] fields
-                    ]
+    let
+        fields =
+            List.map fieldView model.fields
+    in
+        div []
+            [ fieldset [] fields
+            ]

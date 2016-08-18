@@ -20,9 +20,7 @@ type alias WebAccount =
 
 
 type alias Model =
-    { webAccount : WebAccount
-    , fieldSet : FieldSet.Model
-    }
+    WebAccount
 
 
 getForm : String -> Cmd Msg
@@ -45,14 +43,12 @@ postForm account =
 
 initModel : Model
 initModel =
-    { webAccount = RemoteData.NotAsked
-    , fieldSet = FieldSet.initModel
-    }
+    RemoteData.NotAsked
 
 
-load : String -> Model -> ( Model, Cmd Msg )
-load code model =
-    ( { model | webAccount = RemoteData.Loading }, getForm code )
+load : String -> ( Model, Cmd Msg )
+load code =
+    ( RemoteData.Loading, getForm code )
 
 
 
@@ -69,10 +65,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load accountResponse ->
-            ( { model | webAccount = RemoteData.map .data accountResponse }, Cmd.none )
+            ( RemoteData.map .data accountResponse, Cmd.none )
 
         Submit ->
-            case model.webAccount of
+            case model of
                 Success account ->
                     model ! [ postForm account ]
 
@@ -81,15 +77,19 @@ update msg model =
 
         FieldSetMsg fieldSetMsg ->
             let
-                ( fieldSetModel, cmd ) =
-                    FieldSet.update fieldSetMsg model.fieldSet
+                mapper account =
+                    let
+                        ( fieldSet, fieldSetCmd ) =
+                            FieldSet.update fieldSetMsg account.fieldSet
+                    in
+                        { account | fieldSet = fieldSet } ! [ Cmd.map FieldSetMsg fieldSetCmd ]
             in
-                { model | fieldSet = fieldSetModel } ! [ Cmd.map FieldSetMsg cmd ]
+                RemoteData.update mapper model
 
 
 view : Model -> Html Msg
 view model =
-    case model.webAccount of
+    case model of
         NotAsked ->
             div [] []
 
@@ -102,7 +102,7 @@ view model =
         Success account ->
             let
                 fieldSetView =
-                    Html.App.map FieldSetMsg (FieldSet.view model.fieldSet)
+                    Html.App.map FieldSetMsg (FieldSet.view account.fieldSet)
             in
                 div []
                     [ div [] [ text ("Account: " ++ account.display) ]
