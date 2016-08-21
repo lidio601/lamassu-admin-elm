@@ -21,8 +21,8 @@ machineDecoder =
 
 machineConfigDecoder : Decoder MachineConfig
 machineConfigDecoder =
-    object2 makeFieldSetRow
-        ("id" := machineDecoder)
+    object2 MachineConfig
+        ("machine" := machineDecoder)
         ("fieldSet" := fieldSetDecoder)
 
 
@@ -41,7 +41,7 @@ cryptoDecoder =
 
 cryptoConfigDecoder : Decoder CryptoConfig
 cryptoConfigDecoder =
-    object2 makeFieldSetTable
+    object2 CryptoConfig
         ("crypto" := cryptoDecoder)
         ("machineConfigs" := list machineConfigDecoder)
 
