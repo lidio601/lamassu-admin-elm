@@ -80,29 +80,27 @@ update (Input crypto machine fieldCode valueString) model =
         newConfigGroup ! []
 
 
-fieldComponent : Field -> Html Msg
-fieldComponent field =
+
+-- View
+
+
+fieldComponent : Crypto -> Machine -> Field -> Html Msg
+fieldComponent crypto machine field =
     case field.value of
         FieldString string ->
-            label []
-                [ text field.display
-                , input
-                    [ onInput (Input field.code), value string ]
-                    []
-                ]
+            input
+                [ onInput (Input crypto machine field.code), value string ]
+                []
 
         FieldPassword _ ->
-            label []
-                [ text field.display
-                , input
-                    [ onInput (Input field.code), type' "password" ]
-                    []
-                ]
+            input
+                [ onInput (Input crypto machine field.code), type' "password" ]
+                []
 
 
-fieldView : Field -> Html Msg
-fieldView field =
-    div [] [ fieldComponent field ]
+rowView : Crypto -> Machine -> Field -> Html Msg
+rowView crypto =
+    td [] [ fieldComponent crypto machine field ]
 
 
 view : Model -> Html Msg
