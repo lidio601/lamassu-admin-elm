@@ -25,9 +25,16 @@ type alias CryptoConfig =
     }
 
 
+type alias CryptoDescriptor =
+    { crypto : Crypto
+    , display : String
+    }
+
+
 type alias ConfigGroup =
     { code : String
     , display : String
     , crypto : Crypto
     , cryptoConfigs : List CryptoConfig
+    , cryptos : List CryptoDescriptor
     }

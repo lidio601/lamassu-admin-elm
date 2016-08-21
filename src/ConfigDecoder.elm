@@ -46,9 +46,18 @@ cryptoConfigDecoder =
         ("machineConfigs" := list machineConfigDecoder)
 
 
+cryptoDescriptorDecoder : Decoder CryptoDescriptor
+cryptoDescriptorDecoder =
+    object2 CryptoDescriptor
+        ("crypto" := cryptoDecoder)
+        ("display" := string)
+
+
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    object3 ConfigGroup
+    object5 ConfigGroup
         ("code" := string)
         ("display" := string)
+        ("crypto" := cryptoDecoder)
         ("cryptoConfigs" := list cryptoConfigDecoder)
+        ("cryptos" := list cryptoDescriptorDecoder)

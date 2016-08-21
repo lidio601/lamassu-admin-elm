@@ -23,9 +23,9 @@ type alias Model =
     WebConfigGroup
 
 
-getForm : String -> Cmd Msg
-getForm code =
-    get ("http://localhost:8093/config/" ++ code)
+getForm : Cmd Msg
+getForm =
+    get ("http://localhost:8093/config")
         |> send (jsonReader configGroupDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -46,9 +46,9 @@ initModel =
     RemoteData.NotAsked
 
 
-load : String -> ( Model, Cmd Msg )
-load code =
-    ( RemoteData.Loading, getForm code )
+load : ( Model, Cmd Msg )
+load =
+    ( RemoteData.Loading, getForm )
 
 
 
@@ -86,6 +86,28 @@ update msg model =
                         configGroupModel ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
             in
                 RemoteData.update mapper model
+
+
+cryptoView : CryptoConfig -> Html Msg
+cryptoView cryptoConfig =
+    let
+        cryptoString =
+            case cryptoConfig.crypto of
+                CryptoCode s ->
+                    s
+
+                GlobalCrypto ->
+                    "ALL"
+    in
+        li []
+            [ a []
+                [ text cryptoString ]
+            ]
+
+
+cryptosView : ConfigGroup -> Html Msg
+cryptosView configGroup =
+    ul [] (List.map cryptoView configGroup.cryptoConfigs)
 
 
 view : Model -> Html Msg

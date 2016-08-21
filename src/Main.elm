@@ -6,6 +6,7 @@ import Html.Attributes exposing (class)
 import Navigation
 import Pair
 import Account
+import Config
 import NavBar
 import UrlParser exposing (..)
 import Result exposing (withDefault)
@@ -35,6 +36,7 @@ pageParser location =
 type Page
     = AccountPage String
     | PairPage
+    | ConfigPage
     | UnknownPage
 
 
@@ -54,6 +56,7 @@ type alias Model =
     { page : Page
     , pair : Pair.Model
     , account : Account.Model
+    , config : Config.Model
     , err : Maybe String
     }
 
@@ -65,6 +68,7 @@ init pageResult =
             { page = withDefault UnknownPage (Debug.log "DEBUG11" pageResult)
             , account = Account.initModel
             , pair = Pair.initModel
+            , config = Config.initModel
             , err = Nothing
             }
     in
@@ -85,6 +89,13 @@ init pageResult =
                         in
                             { initModel | account = accountModel } ! [ Cmd.map AccountMsg accountCmd ]
 
+                    ConfigPage ->
+                        let
+                            ( configModel, configCmd ) =
+                                Config.load
+                        in
+                            { initModel | config = configModel } ! [ Cmd.map ConfigMsg configCmd ]
+
                     UnknownPage ->
                         initModel ! [ Cmd.none ]
 
@@ -99,6 +110,7 @@ init pageResult =
 type Msg
     = AccountMsg Account.Msg
     | PairMsg Pair.Msg
+    | ConfigMsg Config.Msg
     | NavBarMsg NavBar.Msg
 
 
@@ -119,6 +131,13 @@ update msg model =
             in
                 { model | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
+        ConfigMsg configMsg ->
+            let
+                ( configModel, cmd ) =
+                    Config.update configMsg model.config
+            in
+                { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+
         NavBarMsg navBarMsg ->
             ( model, Cmd.none )
 
@@ -131,6 +150,9 @@ content model =
 
         AccountPage _ ->
             map AccountMsg (Account.view model.account)
+
+        ConfigPage ->
+            map ConfigMsg (Config.view model.config)
 
         UnknownPage ->
             div [] [ text ("No such page") ]
@@ -169,6 +191,13 @@ urlUpdate pageResult model =
                                 Account.load (Debug.log "DEBUG13" account)
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+
+                    ConfigPage ->
+                        let
+                            ( configModel, cmd ) =
+                                Config.load
+                        in
+                            { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
                     UnknownPage ->
                         { model | err = Just "Unknown page" } ! []
