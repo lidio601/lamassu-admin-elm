@@ -8,7 +8,7 @@ import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (..)
 import ConfigEncoder exposing (..)
-import FieldSet
+import ConfigGroup
 
 
 type alias ConfigGroupResponse =
@@ -58,7 +58,7 @@ load code =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | FieldSetMsg FieldSet.Msg
+    | ConfigGroupMsg ConfigGroup.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,14 +75,15 @@ update msg model =
                 _ ->
                     model ! []
 
-        FieldSetMsg fieldSetMsg ->
+        ConfigGroupMsg configGroupMsg ->
             let
-                mapper account =
+                mapper : ConfigGroup -> ( ConfigGroup, Cmd Msg )
+                mapper configGroup =
                     let
-                        ( fieldSet, fieldSetCmd ) =
-                            FieldSet.update fieldSetMsg account.fieldSet
+                        ( configGroupModel, configGroupCmd ) =
+                            ConfigGroup.update configGroupMsg configGroup
                     in
-                        { account | fieldSet = fieldSet } ! [ Cmd.map FieldSetMsg fieldSetCmd ]
+                        configGroupModel ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
             in
                 RemoteData.update mapper model
 
@@ -99,15 +100,15 @@ view model =
         Failure err ->
             div [] [ text (toString err) ]
 
-        Success account ->
+        Success configGroup ->
             let
-                fieldSetView =
-                    Html.App.map FieldSetMsg (FieldSet.view account.fieldSet)
+                configGroupView =
+                    Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup)
             in
                 div []
-                    [ div [] [ text ("Account: " ++ account.display) ]
+                    [ div [] [ text configGroup.display ]
                     , Html.form [ onSubmit Submit ]
-                        [ fieldset [] [ fieldSetView ]
+                        [ div [] [ configGroupView ]
                         , button [] [ text "Submit" ]
                         ]
                     ]

@@ -1,4 +1,4 @@
-module ConfigFieldSet exposing (Msg, update, view)
+module ConfigGroup exposing (Msg, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,9 +9,7 @@ import List
 
 
 type alias Model =
-    { configGroup : ConfigGroup
-    , crypto : Crypto
-    }
+    ConfigGroup
 
 
 
@@ -75,11 +73,7 @@ updateConfigGroup crypto machine fieldCode fieldValueString configGroup =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update (Input crypto machine fieldCode valueString) model =
-    let
-        newConfigGroup =
-            updateConfigGroup crypto machine fieldCode valueString model.configGroup
-    in
-        { model | configGroup = newConfigGroup } ! []
+    updateConfigGroup crypto machine fieldCode valueString model ! []
 
 
 
@@ -133,7 +127,7 @@ view : Model -> Html Msg
 view model =
     let
         maybeCryptoConfig =
-            List.filter (isCrypto model.crypto) model.configGroup.cryptoConfigs
+            List.filter (isCrypto model.crypto) model.cryptoConfigs
                 |> List.head
     in
         case maybeCryptoConfig of
