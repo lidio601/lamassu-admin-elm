@@ -9,7 +9,9 @@ import List
 
 
 type alias Model =
-    ConfigGroup
+    { configGroup : ConfigGroup
+    , crypto : Crypto
+    }
 
 
 
@@ -75,9 +77,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update (Input crypto machine fieldCode valueString) model =
     let
         newConfigGroup =
-            updateConfigGroup crypto machine fieldCode valueString model
+            updateConfigGroup crypto machine fieldCode valueString model.configGroup
     in
-        newConfigGroup ! []
+        { model | configGroup = newConfigGroup } ! []
 
 
 
@@ -98,17 +100,45 @@ fieldComponent crypto machine field =
                 []
 
 
-rowView : Crypto -> Machine -> Field -> Html Msg
-rowView crypto =
+cellView : Crypto -> Machine -> Field -> Html Msg
+cellView crypto machine field =
     td [] [ fieldComponent crypto machine field ]
+
+
+rowView : Crypto -> MachineConfig -> Html Msg
+rowView crypto machineConfig =
+    let
+        cells =
+            List.map (cellView crypto machineConfig.machine) machineConfig.fieldSet.fields
+    in
+        tr [] cells
+
+
+tableView : CryptoConfig -> Html Msg
+tableView cryptoConfig =
+    let
+        rows =
+            List.map (rowView cryptoConfig.crypto) cryptoConfig.machineConfigs
+    in
+        table []
+            [ body [] rows ]
+
+
+isCrypto : Crypto -> CryptoConfig -> Bool
+isCrypto crypto cryptoConfig =
+    cryptoConfig.crypto == crypto
 
 
 view : Model -> Html Msg
 view model =
     let
-        fields =
-            List.map fieldView model.fields
+        maybeCryptoConfig =
+            List.filter (isCrypto model.crypto) model.configGroup.cryptoConfigs
+                |> List.head
     in
-        div []
-            [ fieldset [] fields
-            ]
+        case maybeCryptoConfig of
+            Just cryptoConfig ->
+                tableView cryptoConfig
+
+            Nothing ->
+                div [] [ text "No such cryptocurrency" ]
