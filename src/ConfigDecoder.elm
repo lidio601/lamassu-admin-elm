@@ -2,6 +2,7 @@ module ConfigDecoder exposing (..)
 
 import Json.Decode exposing (..)
 import FieldSetDecoder exposing (..)
+import FieldSetTypes exposing (..)
 import ConfigTypes exposing (..)
 
 
@@ -20,8 +21,8 @@ machineDecoder =
 
 machineConfigDecoder : Decoder MachineConfig
 machineConfigDecoder =
-    object2 MachineConfig
-        ("machine" := machineDecoder)
+    object2 makeFieldSetRow
+        ("id" := machineDecoder)
         ("fieldSet" := fieldSetDecoder)
 
 
@@ -40,7 +41,7 @@ cryptoDecoder =
 
 cryptoConfigDecoder : Decoder CryptoConfig
 cryptoConfigDecoder =
-    object2 CryptoConfig
+    object2 makeFieldSetTable
         ("crypto" := cryptoDecoder)
         ("machineConfigs" := list machineConfigDecoder)
 

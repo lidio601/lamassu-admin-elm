@@ -29,7 +29,7 @@ encodeMachine machine =
 encodeMachineConfig : MachineConfig -> Value
 encodeMachineConfig machineConfig =
     object
-        [ ( "machine", encodeMachine machineConfig.machine )
+        [ ( "machine", encodeMachine machineConfig.id )
         , ( "fieldSet", encodeFieldSet machineConfig.fieldSet )
         ]
 
@@ -37,8 +37,8 @@ encodeMachineConfig machineConfig =
 encodeCryptoConfig : CryptoConfig -> Value
 encodeCryptoConfig cryptoConfig =
     object
-        [ ( "cryptoCode", encodeCrypto cryptoConfig.crypto )
-        , ( "machineConfigs", list (List.map encodeMachineConfig cryptoConfig.machineConfigs) )
+        [ ( "cryptoCode", encodeCrypto cryptoConfig.id )
+        , ( "machineConfigs", list (List.map encodeMachineConfig cryptoConfig.rows) )
         ]
 
 

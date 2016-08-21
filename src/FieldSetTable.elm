@@ -1,4 +1,4 @@
-module FieldSet exposing (Msg, update, view)
+module FieldSetTable exposing (Msg, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -7,16 +7,16 @@ import FieldSetTypes exposing (..)
 import List
 
 
-type alias Model =
-    FieldSet
+type alias Model a b =
+    FieldSetTable a b
 
 
 
 -- UPDATE
 
 
-type Msg
-    = Input String String
+type Msg a b
+    = Input a b String String
 
 
 updateField : String -> String -> Field -> Field
@@ -39,7 +39,7 @@ updateFieldSet fieldCode fieldValueString fieldSet =
         { fieldSet | fields = updatedFields }
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model a b -> ( Model a b, Cmd Msg )
 update msg model =
     case msg of
         Input fieldCode valueString ->

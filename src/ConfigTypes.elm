@@ -14,15 +14,11 @@ type Machine
 
 
 type alias MachineConfig =
-    { machine : Machine
-    , fieldSet : FieldSet
-    }
+    FieldSetRow Machine
 
 
 type alias CryptoConfig =
-    { crypto : Crypto
-    , machineConfigs : List MachineConfig
-    }
+    FieldSetTable Crypto Machine
 
 
 type alias ConfigGroup =

@@ -1,1 +1,7 @@
-- refactor out more generic form, built up from FieldList, for use in account, config
+- build out FieldSetTables
+
+Highest level is a list of FieldSetTables, e.g., List of crypto tabs, where each tab has a table
+
+Rendering module renders all of the tabs and everything
+
+- For now, hard-code for config, not sure we need it for anything else
