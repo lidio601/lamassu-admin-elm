@@ -22,6 +22,7 @@ fieldValueDecoder =
     ("fieldType" := string) `andThen` fieldValueTypeDecoder
 
 
+fieldStatusValueDecoder : String -> Decoder FieldStatus
 fieldStatusValueDecoder statusCode =
     case statusCode of
         "error" ->
@@ -37,6 +38,7 @@ fieldStatusValueDecoder statusCode =
             fail ("Unsupported status code")
 
 
+fieldStatusDecoder : Decoder FieldStatus
 fieldStatusDecoder =
     ("code" := string) `andThen` fieldStatusValueDecoder
 

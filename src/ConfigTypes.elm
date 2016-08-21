@@ -13,15 +13,15 @@ type Machine
     | GlobalMachine
 
 
-type alias CryptoConfig =
-    { crypto : Crypto
-    , machineConfigs : List MachineConfig
-    }
-
-
 type alias MachineConfig =
     { machine : Machine
     , fieldSet : FieldSet
+    }
+
+
+type alias CryptoConfig =
+    { crypto : Crypto
+    , machineConfigs : List MachineConfig
     }
 
 

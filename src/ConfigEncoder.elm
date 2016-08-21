@@ -13,7 +13,7 @@ encodeCrypto crypto =
             string cryptoCode
 
         GlobalCrypto ->
-            string "globalCrypto"
+            string "global"
 
 
 encodeMachine : Machine -> Value
@@ -23,7 +23,7 @@ encodeMachine machine =
             string machineId
 
         GlobalMachine ->
-            string "globalMachine"
+            string "global"
 
 
 encodeMachineConfig : MachineConfig -> Value
