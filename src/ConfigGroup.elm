@@ -83,14 +83,19 @@ update (Input crypto machine fieldCode valueString) model =
 fieldComponent : Crypto -> Machine -> Field -> Html Msg
 fieldComponent crypto machine field =
     case field.value of
-        FieldString string ->
+        FieldString _ ->
             input
-                [ onInput (Input crypto machine field.code), value string ]
+                [ onInput (Input crypto machine field.code) ]
                 []
 
         FieldPassword _ ->
             input
                 [ onInput (Input crypto machine field.code), type' "password" ]
+                []
+
+        FieldPercentage _ ->
+            input
+                [ onInput (Input crypto machine field.code) ]
                 []
 
 
@@ -120,14 +125,14 @@ tableView cryptoConfig =
 
 isCrypto : Crypto -> CryptoConfig -> Bool
 isCrypto crypto cryptoConfig =
-    cryptoConfig.crypto == crypto
+    (Debug.log "DEBUG12" cryptoConfig.crypto) == (Debug.log "DEBUG13" crypto)
 
 
 view : Model -> Html Msg
 view model =
     let
         maybeCryptoConfig =
-            List.filter (isCrypto model.crypto) model.cryptoConfigs
+            List.filter (isCrypto model.crypto) (Debug.log "DEBUG14" model.cryptoConfigs)
                 |> List.head
     in
         case maybeCryptoConfig of

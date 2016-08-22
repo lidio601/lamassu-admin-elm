@@ -13,6 +13,9 @@ fieldValueTypeDecoder fieldType =
         "password" ->
             succeed (FieldPassword Nothing)
 
+        "percentage" ->
+            map FieldPercentage ("value" := int)
+
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
 

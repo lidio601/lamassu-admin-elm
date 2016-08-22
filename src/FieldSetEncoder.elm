@@ -29,6 +29,11 @@ encodeFieldValue fieldValue =
                         [ ( "fieldType", string "password" )
                         , ( "value", jsonValue )
                         ]
+
+                FieldPercentage value ->
+                    [ ( "fieldType", string "percentage" )
+                    , ( "value", int value )
+                    ]
     in
         Json.Encode.object list
 

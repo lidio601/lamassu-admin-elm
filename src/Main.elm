@@ -45,6 +45,7 @@ desiredPage =
     oneOf
         [ format AccountPage (s "account" </> string)
         , format PairPage (s "pair")
+        , format ConfigPage (s "config")
         ]
 
 
