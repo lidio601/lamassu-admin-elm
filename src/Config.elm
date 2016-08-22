@@ -128,7 +128,8 @@ view model =
                     Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup)
             in
                 div []
-                    [ div [] [ text configGroup.display ]
+                    [ div [] [ (cryptosView configGroup) ]
+                    , div [] [ text configGroup.display ]
                     , Html.form [ onSubmit Submit ]
                         [ div [] [ configGroupView ]
                         , button [] [ text "Submit" ]

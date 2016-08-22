@@ -1,7 +1,2 @@
-- build out FieldSetTables
-
-Highest level is a list of FieldSetTables, e.g., List of crypto tabs, where each tab has a table
-
-Rendering module renders all of the tabs and everything
-
-- For now, hard-code for config, not sure we need it for anything else
+- make crypto tabs clickable, do 2nd tier nav
+- fill out all current fields by loading via server
