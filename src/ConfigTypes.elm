@@ -34,7 +34,6 @@ type alias CryptoDescriptor =
 type alias ConfigGroup =
     { code : String
     , display : String
-    , crypto : Crypto
     , cryptoConfigs : List CryptoConfig
     , cryptos : List CryptoDescriptor
     }

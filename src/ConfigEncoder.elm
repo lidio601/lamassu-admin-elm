@@ -47,6 +47,5 @@ encodeConfigGroup configGroup =
     Json.Encode.object
         [ ( "code", string configGroup.code )
         , ( "display", string configGroup.display )
-        , ( "crypto", encodeCrypto configGroup.crypto )
         , ( "cryptoConfigs", list (List.map encodeCryptoConfig configGroup.cryptoConfigs) )
         ]

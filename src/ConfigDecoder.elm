@@ -55,9 +55,8 @@ cryptoDescriptorDecoder =
 
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    object5 ConfigGroup
+    object4 ConfigGroup
         ("code" := string)
         ("display" := string)
-        ("crypto" := cryptoDecoder)
         ("cryptoConfigs" := list cryptoConfigDecoder)
         ("cryptos" := list cryptoDescriptorDecoder)

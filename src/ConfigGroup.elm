@@ -9,7 +9,9 @@ import List
 
 
 type alias Model =
-    ConfigGroup
+    { crypto : Crypto
+    , configGroup : ConfigGroup
+    }
 
 
 
@@ -131,8 +133,11 @@ isCrypto crypto cryptoConfig =
 view : Model -> Html Msg
 view model =
     let
+        configGroup =
+            model.configGroup
+
         maybeCryptoConfig =
-            List.filter (isCrypto model.crypto) (Debug.log "DEBUG14" model.cryptoConfigs)
+            List.filter (isCrypto model.crypto) (Debug.log "DEBUG14" configGroup.cryptoConfigs)
                 |> List.head
     in
         case maybeCryptoConfig of

@@ -3,6 +3,7 @@ module Config exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.App
+import Html.Attributes exposing (href)
 import RemoteData exposing (..)
 import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
@@ -20,7 +21,9 @@ type alias WebConfigGroup =
 
 
 type alias Model =
-    WebConfigGroup
+    { crypto : Crypto
+    , webConfigGroup : WebConfigGroup
+    }
 
 
 getForm : Cmd Msg
@@ -43,12 +46,17 @@ postForm configGroup =
 
 initModel : Model
 initModel =
-    RemoteData.NotAsked
+    { crypto = GlobalCrypto
+    , webConfigGroup = RemoteData.NotAsked
+    }
 
 
-load : ( Model, Cmd Msg )
-load =
-    ( RemoteData.Loading, getForm )
+load : String -> ( Model, Cmd Msg )
+load cryptoCode =
+    { crypto = string2Crypto cryptoCode
+    , webConfigGroup = RemoteData.Loading
+    }
+        ! [ getForm ]
 
 
 
@@ -65,10 +73,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load configGroupResponse ->
-            ( RemoteData.map .data configGroupResponse, Cmd.none )
+            { model | webConfigGroup = RemoteData.map .data configGroupResponse } ! []
 
         Submit ->
-            case model of
+            case model.webConfigGroup of
                 Success configGroup ->
                     Debug.log "DEBUG1" model ! [ postForm configGroup ]
 
@@ -76,16 +84,17 @@ update msg model =
                     model ! []
 
         ConfigGroupMsg configGroupMsg ->
-            let
-                mapper : ConfigGroup -> ( ConfigGroup, Cmd Msg )
-                mapper configGroup =
+            case model.webConfigGroup of
+                Success configGroup ->
                     let
                         ( configGroupModel, configGroupCmd ) =
                             ConfigGroup.update configGroupMsg configGroup
                     in
-                        configGroupModel ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
-            in
-                RemoteData.update mapper model
+                        { model | webConfigGroup = Success configGroupModel }
+                            ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
+
+                _ ->
+                    model ! []
 
 
 cryptoView : CryptoConfig -> Html Msg
@@ -100,7 +109,7 @@ cryptoView cryptoConfig =
                     "ALL"
     in
         li []
-            [ a []
+            [ a [ href ("/config/" ++ cryptoString) ]
                 [ text cryptoString ]
             ]
 
@@ -112,7 +121,7 @@ cryptosView configGroup =
 
 view : Model -> Html Msg
 view model =
-    case model of
+    case model.webConfigGroup of
         NotAsked ->
             div [] []
 
