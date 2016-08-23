@@ -21,9 +21,7 @@ type alias WebConfigGroup =
 
 
 type alias Model =
-    { crypto : Crypto
-    , webConfigGroup : WebConfigGroup
-    }
+    WebConfigGroup
 
 
 getForm : Cmd Msg
@@ -46,17 +44,12 @@ postForm configGroup =
 
 initModel : Model
 initModel =
-    { crypto = GlobalCrypto
-    , webConfigGroup = RemoteData.NotAsked
-    }
+    RemoteData.NotAsked
 
 
-load : String -> ( Model, Cmd Msg )
-load cryptoCode =
-    { crypto = string2Crypto cryptoCode
-    , webConfigGroup = RemoteData.Loading
-    }
-        ! [ getForm ]
+load : ( Model, Cmd Msg )
+load =
+    ( RemoteData.Loading, getForm )
 
 
 
@@ -73,10 +66,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load configGroupResponse ->
-            { model | webConfigGroup = RemoteData.map .data configGroupResponse } ! []
+            ( RemoteData.map .data configGroupResponse, Cmd.none )
 
         Submit ->
-            case model.webConfigGroup of
+            case model of
                 Success configGroup ->
                     Debug.log "DEBUG1" model ! [ postForm configGroup ]
 
@@ -84,17 +77,16 @@ update msg model =
                     model ! []
 
         ConfigGroupMsg configGroupMsg ->
-            case model.webConfigGroup of
-                Success configGroup ->
+            let
+                mapper : ConfigGroup -> ( ConfigGroup, Cmd Msg )
+                mapper configGroup =
                     let
                         ( configGroupModel, configGroupCmd ) =
                             ConfigGroup.update configGroupMsg configGroup
                     in
-                        { model | webConfigGroup = Success configGroupModel }
-                            ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
-
-                _ ->
-                    model ! []
+                        configGroupModel ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
+            in
+                RemoteData.update mapper model
 
 
 cryptoView : CryptoConfig -> Html Msg
@@ -119,9 +111,9 @@ cryptosView configGroup =
     ul [] (List.map cryptoView configGroup.cryptoConfigs)
 
 
-view : Model -> Html Msg
-view model =
-    case model.webConfigGroup of
+view : Model -> String -> Html Msg
+view model cryptoCode =
+    case model of
         NotAsked ->
             div [] []
 
@@ -134,7 +126,7 @@ view model =
         Success configGroup ->
             let
                 configGroupView =
-                    Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup)
+                    Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup cryptoCode)
             in
                 div []
                     [ div [] [ (cryptosView configGroup) ]

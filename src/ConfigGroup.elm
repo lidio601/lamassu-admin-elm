@@ -5,13 +5,12 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import FieldSetTypes exposing (..)
 import ConfigTypes exposing (..)
+import ConfigDecoder exposing (string2Crypto)
 import List
 
 
 type alias Model =
-    { crypto : Crypto
-    , configGroup : ConfigGroup
-    }
+    ConfigGroup
 
 
 
@@ -130,14 +129,14 @@ isCrypto crypto cryptoConfig =
     (Debug.log "DEBUG12" cryptoConfig.crypto) == (Debug.log "DEBUG13" crypto)
 
 
-view : Model -> Html Msg
-view model =
+view : Model -> String -> Html Msg
+view model cryptoCode =
     let
-        configGroup =
-            model.configGroup
+        crypto =
+            string2Crypto cryptoCode
 
         maybeCryptoConfig =
-            List.filter (isCrypto model.crypto) (Debug.log "DEBUG14" configGroup.cryptoConfigs)
+            List.filter (isCrypto crypto) (Debug.log "DEBUG14" model.cryptoConfigs)
                 |> List.head
     in
         case maybeCryptoConfig of

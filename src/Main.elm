@@ -90,10 +90,10 @@ init pageResult =
                         in
                             { initModel | account = accountModel } ! [ Cmd.map AccountMsg accountCmd ]
 
-                    ConfigPage crypto ->
+                    ConfigPage _ ->
                         let
                             ( configModel, configCmd ) =
-                                Config.load crypto
+                                Config.load
                         in
                             { initModel | config = configModel } ! [ Cmd.map ConfigMsg configCmd ]
 
@@ -152,8 +152,8 @@ content model =
         AccountPage _ ->
             map AccountMsg (Account.view model.account)
 
-        ConfigPage _ ->
-            map ConfigMsg (Config.view model.config)
+        ConfigPage cryptoCode ->
+            map ConfigMsg (Config.view model.config cryptoCode)
 
         UnknownPage ->
             div [] [ text ("No such page") ]
@@ -193,10 +193,10 @@ urlUpdate pageResult model =
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
-                    ConfigPage crypto ->
+                    ConfigPage _ ->
                         let
                             ( configModel, cmd ) =
-                                Config.load crypto
+                                Config.load
                         in
                             { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
