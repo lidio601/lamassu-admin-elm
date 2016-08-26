@@ -1,9 +1,48 @@
 module ConfigDecoder exposing (..)
 
 import Json.Decode exposing (..)
-import FieldSetDecoder exposing (..)
-import FieldSetTypes exposing (..)
+import FieldSetTypes exposing (FieldStatus)
+import FieldSetDecoder exposing (fieldStatusDecoder, fieldStatusValueDecoder)
 import ConfigTypes exposing (..)
+
+
+fieldValueTypeDecoder : String -> Decoder FieldValue
+fieldValueTypeDecoder fieldType =
+    case fieldType of
+        "string" ->
+            map FieldString ("value" := string)
+
+        "percentage" ->
+            map FieldPercentage ("value" := int)
+
+        _ ->
+            fail ("Unsupported field type: " ++ fieldType)
+
+
+fieldValueDecoder : Decoder FieldValue
+fieldValueDecoder =
+    ("fieldType" := string) `andThen` fieldValueTypeDecoder
+
+
+fieldStatusDecoder : Decoder FieldStatus
+fieldStatusDecoder =
+    ("code" := string) `andThen` fieldStatusValueDecoder
+
+
+fieldDecoder : Decoder Field
+fieldDecoder =
+    object6 Field
+        ("code" := string)
+        ("display" := string)
+        ("required" := bool)
+        ("value" := fieldValueDecoder)
+        ("value" := fieldValueDecoder)
+        ("status" := fieldStatusDecoder)
+
+
+fieldSetDecoder =
+    object1 FieldSet
+        ("fields" := list fieldDecoder)
 
 
 string2machine : String -> Machine
