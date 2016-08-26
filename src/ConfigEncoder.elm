@@ -5,6 +5,16 @@ import List
 import ConfigTypes exposing (..)
 
 
+maybeInt : Maybe Int -> Value
+maybeInt value =
+    case value of
+        Just integer ->
+            int integer
+
+        Nothing ->
+            null
+
+
 encodeFieldValue : FieldValue -> Value
 encodeFieldValue fieldValue =
     let
@@ -17,7 +27,12 @@ encodeFieldValue fieldValue =
 
                 FieldPercentage value ->
                     [ ( "fieldType", string "percentage" )
-                    , ( "value", int value )
+                    , ( "value", maybeInt value )
+                    ]
+
+                FieldInteger value ->
+                    [ ( "fieldType", string "integer" )
+                    , ( "value", maybeInt value )
                     ]
     in
         Json.Encode.object list
@@ -29,7 +44,6 @@ encodeField field =
     Json.Encode.object
         [ ( "code", string field.code )
         , ( "display", string field.display )
-        , ( "required", bool field.required )
         , ( "value", encodeFieldValue field.value )
         ]
 

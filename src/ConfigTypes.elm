@@ -7,7 +7,6 @@ import String
 type alias Field =
     { code : String
     , display : String
-    , required : Bool
     , value : FieldValue
     , loadedValue : FieldValue
     , status : FieldStatus
@@ -16,7 +15,8 @@ type alias Field =
 
 type FieldValue
     = FieldString String
-    | FieldPercentage Int
+    | FieldPercentage (Maybe Int)
+    | FieldInteger (Maybe Int)
 
 
 type alias FieldSet =
@@ -68,5 +68,10 @@ updateFieldValue stringValue oldFieldValue =
 
         FieldPercentage oldPct ->
             String.toInt stringValue
-                |> Result.withDefault 0
+                |> Result.toMaybe
                 |> FieldPercentage
+
+        FieldInteger oldInt ->
+            String.toInt stringValue
+                |> Result.toMaybe
+                |> FieldInteger

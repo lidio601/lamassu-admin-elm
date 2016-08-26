@@ -1,9 +1,7 @@
 module ConfigGroup exposing (Msg, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import FieldSetTypes exposing (..)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (string2Crypto)
 import List
@@ -89,12 +87,12 @@ fieldComponent crypto machine field =
                 [ onInput (Input crypto machine field.code) ]
                 []
 
-        FieldPassword _ ->
+        FieldPercentage _ ->
             input
-                [ onInput (Input crypto machine field.code), type' "password" ]
+                [ onInput (Input crypto machine field.code) ]
                 []
 
-        FieldPercentage _ ->
+        FieldInteger _ ->
             input
                 [ onInput (Input crypto machine field.code) ]
                 []

@@ -6,6 +6,14 @@ import FieldSetDecoder exposing (fieldStatusDecoder, fieldStatusValueDecoder)
 import ConfigTypes exposing (..)
 
 
+nullOr : Decoder a -> Decoder (Maybe a)
+nullOr decoder =
+    oneOf
+        [ null Nothing
+        , map Just decoder
+        ]
+
+
 fieldValueTypeDecoder : String -> Decoder FieldValue
 fieldValueTypeDecoder fieldType =
     case fieldType of
@@ -13,7 +21,10 @@ fieldValueTypeDecoder fieldType =
             map FieldString ("value" := string)
 
         "percentage" ->
-            map FieldPercentage ("value" := int)
+            map FieldPercentage ("value" := nullOr int)
+
+        "integer" ->
+            map FieldInteger ("value" := nullOr int)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -31,10 +42,9 @@ fieldStatusDecoder =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    object6 Field
+    object5 Field
         ("code" := string)
         ("display" := string)
-        ("required" := bool)
         ("value" := fieldValueDecoder)
         ("value" := fieldValueDecoder)
         ("status" := fieldStatusDecoder)
