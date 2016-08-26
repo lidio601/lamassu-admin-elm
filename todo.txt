@@ -1,2 +1,1 @@
-- make crypto tabs clickable, do 2nd tier nav
 - fill out all current fields by loading via server

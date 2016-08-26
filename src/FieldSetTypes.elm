@@ -24,7 +24,6 @@ type alias Field =
 type FieldValue
     = FieldString String
     | FieldPassword (Maybe String)
-    | FieldPercentage Int
 
 
 type alias FieldSet =
@@ -40,8 +39,3 @@ updateFieldValue stringValue oldFieldValue =
 
         FieldPassword _ ->
             FieldPassword (Just stringValue)
-
-        FieldPercentage oldPct ->
-            String.toInt stringValue
-                |> Result.withDefault 0
-                |> FieldPercentage
