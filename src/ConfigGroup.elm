@@ -125,14 +125,38 @@ rowView crypto machineConfig =
         tr [] cells
 
 
+headerCell : Field -> Html Msg
+headerCell field =
+    td [] [ text field.display ]
+
+
+headerRowView : Maybe MachineConfig -> Html Msg
+headerRowView maybeMachineConfig =
+    let
+        cells =
+            case maybeMachineConfig of
+                Nothing ->
+                    [ td [] [ text "Error: No headers" ] ]
+
+                Just machineConfig ->
+                    List.map headerCell machineConfig.fieldSet.fields
+    in
+        tr [] cells
+
+
 tableView : CryptoConfig -> Html Msg
 tableView cryptoConfig =
     let
+        headerRow =
+            headerRowView (List.head cryptoConfig.machineConfigs)
+
         rows =
             List.map (rowView cryptoConfig.crypto) cryptoConfig.machineConfigs
     in
         table []
-            [ body [] rows ]
+            [ thead [] [ headerRow ]
+            , tbody [] rows
+            ]
 
 
 isCrypto : Crypto -> CryptoConfig -> Bool
