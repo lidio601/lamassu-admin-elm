@@ -18,7 +18,7 @@ fieldValueTypeDecoder : String -> Decoder FieldValue
 fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldString ("value" := string)
+            map FieldString ("value" := nullOr string)
 
         "percentage" ->
             map FieldPercentage ("value" := nullOr int)
@@ -102,10 +102,53 @@ cryptoDescriptorDecoder =
         ("display" := string)
 
 
+displayRecDecoder : Decoder DisplayRec
+displayRecDecoder =
+    object2 DisplayRec
+        ("code" := string)
+        ("display" := string)
+
+
+string2configScope : String -> Result String ConfigScope
+string2configScope s =
+    case s of
+        "global" ->
+            Ok Global
+
+        "specific" ->
+            Ok Specific
+
+        "both" ->
+            Ok Both
+
+        _ ->
+            Err ("No such ConfigScope " ++ s)
+
+
+configScopeDecoder : Decoder ConfigScope
+configScopeDecoder =
+    customDecoder string string2configScope
+
+
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
     object4 ConfigGroup
-        ("code" := string)
-        ("display" := string)
+        ("group" := displayRecDecoder)
+        ("cryptoScope" := configScopeDecoder)
+        ("machineScope" := configScopeDecoder)
         ("cryptoConfigs" := list cryptoConfigDecoder)
-        ("cryptos" := list cryptoDescriptorDecoder)
+
+
+configDataDecoder : Decoder ConfigData
+configDataDecoder =
+    object3 ConfigData
+        ("currencies" := list displayRecDecoder)
+        ("languages" := list displayRecDecoder)
+        ("accounts" := list displayRecDecoder)
+
+
+configDecoder : Decoder Config
+configDecoder =
+    object2 Config
+        ("groups" := list configGroupDecoder)
+        ("data" := configDataDecoder)

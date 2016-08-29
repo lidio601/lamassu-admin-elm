@@ -5,11 +5,11 @@ import List
 import ConfigTypes exposing (..)
 
 
-maybeInt : Maybe Int -> Value
-maybeInt value =
+maybe : Maybe a -> (a -> Value) -> Value
+maybe value encoder =
     case value of
-        Just integer ->
-            int integer
+        Just v ->
+            encoder v
 
         Nothing ->
             null
@@ -22,17 +22,17 @@ encodeFieldValue fieldValue =
             case fieldValue of
                 FieldString value ->
                     [ ( "fieldType", string "string" )
-                    , ( "value", string value )
+                    , ( "value", maybe value string )
                     ]
 
                 FieldPercentage value ->
                     [ ( "fieldType", string "percentage" )
-                    , ( "value", maybeInt value )
+                    , ( "value", maybe value int )
                     ]
 
                 FieldInteger value ->
                     [ ( "fieldType", string "integer" )
-                    , ( "value", maybeInt value )
+                    , ( "value", maybe value int )
                     ]
     in
         Json.Encode.object list
@@ -104,10 +104,32 @@ encodeCryptoConfig cryptoConfig =
         ]
 
 
+encodeDisplayRec : DisplayRec -> Value
+encodeDisplayRec displayRec =
+    object
+        [ ( "code", string displayRec.code )
+        , ( "display", string displayRec.display )
+        ]
+
+
+encodeConfigScope : ConfigScope -> Value
+encodeConfigScope configScope =
+    case configScope of
+        Global ->
+            string "global"
+
+        Specific ->
+            string "specific"
+
+        Both ->
+            string "both"
+
+
 encodeConfigGroup : ConfigGroup -> Value
 encodeConfigGroup configGroup =
     Json.Encode.object
-        [ ( "code", string configGroup.code )
-        , ( "display", string configGroup.display )
+        [ ( "group", encodeDisplayRec configGroup.group )
+        , ( "cryptoScope", encodeConfigScope configGroup.cryptoScope )
+        , ( "machineScope", encodeConfigScope configGroup.machineScope )
         , ( "cryptoConfigs", list (List.map encodeCryptoConfig configGroup.cryptoConfigs) )
         ]

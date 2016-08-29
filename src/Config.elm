@@ -130,7 +130,7 @@ view model cryptoCode =
             in
                 div []
                     [ div [] [ (cryptosView configGroup) ]
-                    , div [] [ text configGroup.display ]
+                    , div [] [ text configGroup.group.display ]
                     , Html.form [ onSubmit Submit ]
                         [ div [] [ configGroupView ]
                         , button [] [ text "Submit" ]

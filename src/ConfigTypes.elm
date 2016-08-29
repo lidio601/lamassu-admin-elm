@@ -4,6 +4,12 @@ import FieldSetTypes exposing (FieldStatus)
 import String
 
 
+type alias DisplayRec =
+    { code : String
+    , display : String
+    }
+
+
 type alias Field =
     { code : String
     , display : String
@@ -14,7 +20,7 @@ type alias Field =
 
 
 type FieldValue
-    = FieldString String
+    = FieldString (Maybe String)
     | FieldPercentage (Maybe Int)
     | FieldInteger (Maybe Int)
 
@@ -52,11 +58,30 @@ type alias CryptoDescriptor =
     }
 
 
+type ConfigScope
+    = Global
+    | Specific
+    | Both
+
+
 type alias ConfigGroup =
-    { code : String
-    , display : String
+    { group : DisplayRec
+    , cryptoScope : ConfigScope
+    , machineScope : ConfigScope
     , cryptoConfigs : List CryptoConfig
-    , cryptos : List CryptoDescriptor
+    }
+
+
+type alias ConfigData =
+    { currencies : List DisplayRec
+    , languages : List DisplayRec
+    , accounts : List DisplayRec
+    }
+
+
+type alias Config =
+    { groups : List ConfigGroup
+    , data : ConfigData
     }
 
 
@@ -64,7 +89,10 @@ updateFieldValue : String -> FieldValue -> FieldValue
 updateFieldValue stringValue oldFieldValue =
     case oldFieldValue of
         FieldString _ ->
-            FieldString stringValue
+            if (String.isEmpty stringValue) then
+                FieldString Nothing
+            else
+                FieldString (Just stringValue)
 
         FieldPercentage oldPct ->
             String.toInt stringValue
