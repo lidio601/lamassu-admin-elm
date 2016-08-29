@@ -36,7 +36,7 @@ pageParser location =
 type Page
     = AccountPage String
     | PairPage
-    | ConfigPage String
+    | ConfigPage String String
     | UnknownPage
 
 
@@ -45,7 +45,7 @@ desiredPage =
     oneOf
         [ format AccountPage (s "account" </> string)
         , format PairPage (s "pair")
-        , format ConfigPage (s "config" </> string)
+        , format ConfigPage (s "config" </> string </> string)
         ]
 
 
@@ -124,7 +124,7 @@ content model =
         AccountPage _ ->
             map AccountMsg (Account.view model.account)
 
-        ConfigPage cryptoCode ->
+        ConfigPage _ cryptoCode ->
             map ConfigMsg (Config.view model.config cryptoCode)
 
         UnknownPage ->
@@ -165,7 +165,7 @@ urlUpdate pageResult model =
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
-                    ConfigPage config ->
+                    ConfigPage config _ ->
                         let
                             ( configModel, cmd ) =
                                 Config.load config

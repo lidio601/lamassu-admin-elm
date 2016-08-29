@@ -89,8 +89,8 @@ update msg model =
                 RemoteData.update mapper model
 
 
-cryptoView : CryptoConfig -> Html Msg
-cryptoView cryptoConfig =
+cryptoView : String -> CryptoConfig -> Html Msg
+cryptoView code cryptoConfig =
     let
         cryptoString =
             case cryptoConfig.crypto of
@@ -98,17 +98,17 @@ cryptoView cryptoConfig =
                     s
 
                 GlobalCrypto ->
-                    "ALL"
+                    "global"
     in
         li []
-            [ a [ href ("/config/" ++ cryptoString) ]
+            [ a [ href ("/config/" ++ code ++ "/" ++ cryptoString) ]
                 [ text cryptoString ]
             ]
 
 
 cryptosView : ConfigGroup -> Html Msg
 cryptosView configGroup =
-    ul [] (List.map cryptoView configGroup.cryptoConfigs)
+    ul [] (List.map (cryptoView configGroup.group.code) configGroup.cryptoConfigs)
 
 
 view : Model -> String -> Html Msg

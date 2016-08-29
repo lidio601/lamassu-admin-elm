@@ -21,7 +21,7 @@ fieldValueTypeDecoder fieldType =
             map FieldString ("value" := nullOr string)
 
         "percentage" ->
-            map FieldPercentage ("value" := nullOr int)
+            map FieldPercentage ("value" := nullOr float)
 
         "integer" ->
             map FieldInteger ("value" := nullOr int)

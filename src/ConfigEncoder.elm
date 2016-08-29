@@ -27,7 +27,7 @@ encodeFieldValue fieldValue =
 
                 FieldPercentage value ->
                     [ ( "fieldType", string "percentage" )
-                    , ( "value", maybe value int )
+                    , ( "value", maybe value float )
                     ]
 
                 FieldInteger value ->

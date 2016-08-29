@@ -21,7 +21,7 @@ type alias Field =
 
 type FieldValue
     = FieldString (Maybe String)
-    | FieldPercentage (Maybe Int)
+    | FieldPercentage (Maybe Float)
     | FieldInteger (Maybe Int)
 
 
@@ -97,7 +97,7 @@ updateFieldValue stringValue oldFieldValue =
                 FieldString (Just stringValue)
 
         FieldPercentage oldPct ->
-            String.toInt stringValue
+            String.toFloat stringValue
                 |> Result.toMaybe
                 |> FieldPercentage
 

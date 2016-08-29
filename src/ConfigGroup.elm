@@ -2,6 +2,7 @@ module ConfigGroup exposing (Msg, update, view)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import Html.Attributes exposing (defaultValue)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (string2Crypto)
 import List
@@ -79,6 +80,16 @@ update (Input crypto machine fieldCode valueString) model =
 -- View
 
 
+maybeToString : Maybe x -> String
+maybeToString maybe =
+    case maybe of
+        Nothing ->
+            ""
+
+        Just x ->
+            Debug.log "DEBUG20" (toString x)
+
+
 fieldComponent : Crypto -> Machine -> Field -> Html Msg
 fieldComponent crypto machine field =
     case field.value of
@@ -87,9 +98,11 @@ fieldComponent crypto machine field =
                 [ onInput (Input crypto machine field.code) ]
                 []
 
-        FieldPercentage _ ->
+        FieldPercentage maybeVal ->
             input
-                [ onInput (Input crypto machine field.code) ]
+                [ onInput (Input crypto machine field.code)
+                , defaultValue (maybeToString maybeVal)
+                ]
                 []
 
         FieldInteger _ ->
