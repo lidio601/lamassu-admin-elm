@@ -73,10 +73,17 @@ type alias ConfigGroup =
     }
 
 
+type alias AccountRec =
+    { code : String
+    , display : String
+    , class : String
+    }
+
+
 type alias ConfigData =
     { currencies : List DisplayRec
     , languages : List DisplayRec
-    , accounts : List DisplayRec
+    , accounts : List AccountRec
     }
 
 

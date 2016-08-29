@@ -140,9 +140,17 @@ configGroupDecoder =
         ("data" := configDataDecoder)
 
 
+accountRecDecoder : Decoder AccountRec
+accountRecDecoder =
+    object3 AccountRec
+        ("code" := string)
+        ("display" := string)
+        ("class" := string)
+
+
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
     object3 ConfigData
         ("currencies" := list displayRecDecoder)
         ("languages" := list displayRecDecoder)
-        ("accounts" := list displayRecDecoder)
+        ("accounts" := list accountRecDecoder)
