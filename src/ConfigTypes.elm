@@ -69,6 +69,7 @@ type alias ConfigGroup =
     , cryptoScope : ConfigScope
     , machineScope : ConfigScope
     , cryptoConfigs : List CryptoConfig
+    , data : ConfigData
     }
 
 
@@ -76,12 +77,6 @@ type alias ConfigData =
     { currencies : List DisplayRec
     , languages : List DisplayRec
     , accounts : List DisplayRec
-    }
-
-
-type alias Config =
-    { groups : List ConfigGroup
-    , data : ConfigData
     }
 
 

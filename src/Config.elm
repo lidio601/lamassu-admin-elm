@@ -24,9 +24,9 @@ type alias Model =
     WebConfigGroup
 
 
-getForm : Cmd Msg
-getForm =
-    get ("http://localhost:8093/config")
+getForm : String -> Cmd Msg
+getForm code =
+    get ("http://localhost:8093/config/" ++ code)
         |> send (jsonReader configGroupDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -47,9 +47,9 @@ initModel =
     RemoteData.NotAsked
 
 
-load : ( Model, Cmd Msg )
-load =
-    ( RemoteData.Loading, getForm )
+load : String -> ( Model, Cmd Msg )
+load code =
+    ( RemoteData.Loading, getForm code )
 
 
 

@@ -39,5 +39,5 @@ view model =
     ul []
         [ li [] [ a [ href "/pair" ] [ text "Pairing" ] ]
         , li [] [ a [ href "/account/twilio" ] [ text "Accounts" ] ]
-        , li [] [ a [ href "/config" ] [ text "Config" ] ]
+        , li [] [ a [ href "/config/commissions" ] [ text "Commissions" ] ]
         ]

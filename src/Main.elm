@@ -73,35 +73,7 @@ init pageResult =
             , err = Nothing
             }
     in
-        case pageResult of
-            Ok page ->
-                case page of
-                    PairPage ->
-                        let
-                            ( pairModel, pairCmd ) =
-                                Pair.load
-                        in
-                            { initModel | pair = pairModel } ! [ Cmd.map PairMsg pairCmd ]
-
-                    AccountPage account ->
-                        let
-                            ( accountModel, accountCmd ) =
-                                Account.load (Debug.log "DEBUG14" account)
-                        in
-                            { initModel | account = accountModel } ! [ Cmd.map AccountMsg accountCmd ]
-
-                    ConfigPage _ ->
-                        let
-                            ( configModel, configCmd ) =
-                                Config.load
-                        in
-                            { initModel | config = configModel } ! [ Cmd.map ConfigMsg configCmd ]
-
-                    UnknownPage ->
-                        initModel ! [ Cmd.none ]
-
-            Err routeErr ->
-                { initModel | err = Just routeErr } ! []
+        urlUpdate pageResult initModel
 
 
 
@@ -193,10 +165,10 @@ urlUpdate pageResult model =
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
-                    ConfigPage _ ->
+                    ConfigPage config ->
                         let
                             ( configModel, cmd ) =
-                                Config.load
+                                Config.load config
                         in
                             { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 

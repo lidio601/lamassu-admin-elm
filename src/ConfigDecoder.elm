@@ -132,11 +132,12 @@ configScopeDecoder =
 
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    object4 ConfigGroup
+    object5 ConfigGroup
         ("group" := displayRecDecoder)
         ("cryptoScope" := configScopeDecoder)
         ("machineScope" := configScopeDecoder)
         ("cryptoConfigs" := list cryptoConfigDecoder)
+        ("data" := configDataDecoder)
 
 
 configDataDecoder : Decoder ConfigData
@@ -145,10 +146,3 @@ configDataDecoder =
         ("currencies" := list displayRecDecoder)
         ("languages" := list displayRecDecoder)
         ("accounts" := list displayRecDecoder)
-
-
-configDecoder : Decoder Config
-configDecoder =
-    object2 Config
-        ("groups" := list configGroupDecoder)
-        ("data" := configDataDecoder)
