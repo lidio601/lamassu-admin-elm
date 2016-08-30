@@ -22,13 +22,16 @@ fieldValueDecoder fieldType =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    object4 Field
+    object5 Field
         ("code" := string)
         ("crypto" := cryptoDecoder)
         ("machine" := machineDecoder)
         (("fieldType" := string)
             `andThen` fieldValueDecoder
         )
+        (map Just (("fieldType" := string)
+            `andThen` fieldValueDecoder
+        ))
 
 
 string2machine : String -> Machine

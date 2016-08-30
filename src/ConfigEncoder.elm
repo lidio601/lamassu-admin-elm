@@ -33,7 +33,11 @@ encodeFieldType fieldValue =
 
 isDirty : Field -> Bool
 isDirty field =
-    field.fieldValue /= field.loadedFieldValue
+    case field.loadedFieldValue of
+        Nothing ->
+            True
+        Just loadedFieldValue ->
+            field.fieldValue /= loadedFieldValue
 
 
 encodeCrypto : Crypto -> Value

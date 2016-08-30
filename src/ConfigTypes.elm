@@ -30,7 +30,7 @@ type alias Field =
     , crypto : Crypto
     , machine : Machine
     , fieldValue : FieldValue
-    , loadedFieldValue : FieldValue
+    , loadedFieldValue : Maybe FieldValue
     }
 
 
@@ -82,3 +82,31 @@ type alias ConfigData =
     , accounts : List AccountRec
     , machines : List Machine
     }
+
+
+fieldToString : Field -> String
+fieldToString field =
+    case field.fieldValue of
+        FieldStringValue v ->
+            v
+
+        FieldPercentageValue v ->
+            toString v
+
+        FieldIntegerValue v ->
+            toString v
+
+
+stringToFieldValue : FieldType -> String -> Result String FieldValue
+stringToFieldValue fieldType s =
+    case fieldType of
+        FieldStringType ->
+            Ok (FieldStringValue s)
+
+        FieldPercentageType ->
+            String.toFloat s
+                |> Result.map FieldPercentageValue
+
+        FieldIntegerType ->
+            String.toInt s
+                |> Result.map FieldIntegerValue

@@ -6,7 +6,7 @@ import Html.Attributes exposing (defaultValue, placeholder)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (stringToCrypto)
 import List
-import String
+import Maybe exposing (oneOf)
 
 
 type alias Model =
@@ -21,93 +21,72 @@ type Msg
     = Input Crypto Machine String String
 
 
-updateField : FieldSet -> String -> String -> Field -> Maybe Field
-updateField currentFieldSet newFieldCode fieldValueString currentTemplateField =
+isOfFieldClass : Crypto -> Machine -> String -> Field -> Bool
+isOfFieldClass crypto machine fieldCode field =
+    field.crypto
+        == crypto
+        && field.machine
+        == machine
+        && field.code
+        == fieldCode
+
+
+isFieldClass : Field -> Field -> Bool
+isFieldClass searchField field =
+    isOfFieldClass searchField.crypto searchField.machine searchField.code field
+
+
+isNotFieldClass : Field -> Field -> Bool
+isNotFieldClass searchField field =
+    not (isFieldClass searchField field)
+
+
+placeField : List Field -> Field -> List Field
+placeField fieldList field =
+    field :: (List.filter (isNotFieldClass field) fieldList)
+
+
+updateValues : Model -> Crypto -> Machine -> String -> String -> Model
+updateValues model crypto machine fieldCode valueString =
     let
-        maybeNewField =
-            List.filter (\f -> f.code == currentTemplateField.code) currentFieldSet.fields
+        maybeFieldDescriptor =
+            List.filter (\fd -> fd.code == fieldCode) model.schema.entries
                 |> List.head
     in
-        case maybeNewField of
+        case maybeFieldDescriptor of
+            Just fieldDescriptor ->
+                let
+                    fieldValueResult =
+                        stringToFieldValue fieldDescriptor.fieldType valueString
+                in
+                    case fieldValueResult of
+                        Err _ ->
+                            model
+
+                        Ok fieldValue ->
+                            let
+                                field =
+                                    { code = fieldCode
+                                    , crypto = crypto
+                                    , machine = machine
+                                    , fieldValue = fieldValue
+                                    , loadedFieldValue = Nothing
+                                    }
+
+                                values =
+                                    placeField model.values field
+                            in
+                                { model | values = values }
+
             Nothing ->
-                if (currentTemplateField.code == newFieldCode && not (String.isEmpty fieldValueString)) then
-                    Just { currentTemplateField | value = updateFieldValue fieldValueString currentTemplateField.value, loadedValue = NoFieldValue }
-                else
-                    Nothing
-
-            Just newField ->
-                if (newField.code == newFieldCode) then
-                    if (String.isEmpty fieldValueString) then
-                        Nothing
-                    else
-                        Just { newField | value = updateFieldValue fieldValueString newField.value }
-                else
-                    Just newField
-
-
-isNothing : Maybe x -> Bool
-isNothing maybe =
-    case maybe of
-        Nothing ->
-            True
-
-        Just _ ->
-            False
-
-
-updateFieldSet : Model -> String -> String -> FieldSet -> FieldSet
-updateFieldSet model fieldCode fieldValueString fieldSet =
-    let
-        maybeFieldSetTemplate =
-            maybePickFieldSet model
-
-        updatedFields =
-            case maybeFieldSetTemplate of
-                Nothing ->
-                    fieldSet.fields
-
-                Just fieldSetTemplate ->
-                    List.filterMap (updateField fieldSet fieldCode fieldValueString) fieldSetTemplate.fields
-    in
-        { fieldSet | fields = updatedFields }
-
-
-updateMachineConfig : Model -> Machine -> String -> String -> MachineConfig -> MachineConfig
-updateMachineConfig model machine fieldCode fieldValueString machineConfig =
-    if machineConfig.machine == machine then
-        { machineConfig | fieldSet = updateFieldSet model fieldCode fieldValueString machineConfig.fieldSet }
-    else
-        machineConfig
-
-
-updateMachineConfigs : Model -> Machine -> String -> String -> List MachineConfig -> List MachineConfig
-updateMachineConfigs model machine fieldCode fieldValueString machineConfigs =
-    List.map (updateMachineConfig model machine fieldCode fieldValueString) machineConfigs
-
-
-updateCryptoConfig : Model -> Crypto -> Machine -> String -> String -> CryptoConfig -> CryptoConfig
-updateCryptoConfig model crypto machine fieldCode fieldValueString cryptoConfig =
-    if cryptoConfig.crypto == crypto then
-        { cryptoConfig | machineConfigs = updateMachineConfigs model machine fieldCode fieldValueString cryptoConfig.machineConfigs }
-    else
-        cryptoConfig
-
-
-updateCryptoConfigs : Model -> Crypto -> Machine -> String -> String -> List CryptoConfig
-updateCryptoConfigs model crypto machine fieldCode fieldValueString =
-    List.map (updateCryptoConfig model crypto machine fieldCode fieldValueString) model.cryptoConfigs
-
-
-updateConfigGroup : Model -> Crypto -> Machine -> String -> String -> Model
-updateConfigGroup model crypto machine fieldCode fieldValueString =
-    { model | cryptoConfigs = updateCryptoConfigs model crypto machine fieldCode fieldValueString }
+                model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update (Input crypto machine fieldCode valueString) model =
     let
         newModel =
-            updateConfigGroup model crypto machine fieldCode valueString
+            updateValues model crypto machine fieldCode valueString
     in
         (Debug.log "DEBUG22" newModel) ! []
 
@@ -116,165 +95,104 @@ update (Input crypto machine fieldCode valueString) model =
 -- View
 
 
-maybePickMachineField : String -> MachineConfig -> Maybe Field
-maybePickMachineField fieldCode machineConfig =
-    List.filter (isField fieldCode) machineConfig.fieldSet.fields
-        |> List.head
-
-
-maybePickMachine : Machine -> Maybe CryptoConfig -> Maybe MachineConfig
-maybePickMachine machine maybeCryptoConfig =
-    let
-        machineMapper cryptoConfig =
-            List.filter (isMachine machine) cryptoConfig.machineConfigs
-                |> List.head
-    in
-        Maybe.andThen maybeCryptoConfig machineMapper
-
-
-fieldInput : Crypto -> Machine -> Field -> String -> String -> Html Msg
-fieldInput crypto machine field defaultString placeholderString =
-    case field.value of
-        FieldString _ ->
+fieldInput : Crypto -> Machine -> FieldDescriptor -> String -> String -> Html Msg
+fieldInput crypto machine fieldDescriptor defaultString placeholderString =
+    case fieldDescriptor.fieldType of
+        FieldStringType ->
             input
-                [ onInput (Input crypto machine field.code) ]
+                [ onInput (Input crypto machine fieldDescriptor.code) ]
                 []
 
-        FieldPercentage maybeVal ->
+        FieldPercentageType ->
             input
-                [ onInput (Input crypto machine field.code)
+                [ onInput (Input crypto machine fieldDescriptor.code)
                 , defaultValue defaultString
                 , placeholder placeholderString
                 ]
                 []
 
-        FieldInteger _ ->
+        FieldIntegerType ->
             input
-                [ onInput (Input crypto machine field.code) ]
+                [ onInput (Input crypto machine fieldDescriptor.code) ]
                 []
 
-        NoFieldValue ->
-            text "Error af763fa4-6eb8-11e6-93cb-df54e365bb1b"
+
+pickField : List Field -> Crypto -> Machine -> String -> Maybe Field
+pickField fields crypto machine fieldCode =
+    List.filter (isOfFieldClass crypto machine fieldCode) fields
+        |> List.head
 
 
-fieldComponent : Crypto -> Machine -> Model -> String -> Html Msg
-fieldComponent crypto machine model fieldCode =
+fieldComponent : Model -> Crypto -> Machine -> FieldDescriptor -> Html Msg
+fieldComponent model crypto machine fieldDescriptor =
     let
-        maybeCryptoConfig =
-            List.filter (isCrypto crypto) model.cryptoConfigs
-                |> List.head
+        fieldCode =
+            fieldDescriptor.code
 
-        maybeGlobalCryptoConfig =
-            List.filter (isCrypto GlobalCrypto) model.cryptoConfigs
-                |> List.head
+        fieldType =
+            fieldDescriptor.fieldType
 
-        maybeField =
-            maybePickMachine machine maybeCryptoConfig
-                `Maybe.andThen` (maybePickMachineField fieldCode)
+        fields =
+            model.values
 
-        maybeCryptoField =
-            maybePickMachine GlobalMachine maybeCryptoConfig
-                `Maybe.andThen` (maybePickMachineField fieldCode)
+        maybeGlobal =
+            pickField fields GlobalCrypto GlobalMachine fieldCode
 
-        maybeMachineField =
-            maybePickMachine machine maybeGlobalCryptoConfig
-                `Maybe.andThen` (maybePickMachineField fieldCode)
+        maybeGlobalCrypto =
+            pickField fields GlobalCrypto machine fieldCode
 
-        maybeGlobalField =
-            maybePickMachine GlobalMachine maybeGlobalCryptoConfig
-                `Maybe.andThen` (maybePickMachineField fieldCode)
+        maybeGlobalMachine =
+            pickField fields crypto GlobalMachine fieldCode
+
+        maybeSpecific =
+            pickField fields crypto machine fieldCode
+
+        maybeSpecificString =
+            Maybe.map fieldToString maybeSpecific
 
         maybeFallbackField =
-            Maybe.oneOf [ maybeField, maybeCryptoField, maybeMachineField, maybeGlobalField ]
+            oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
 
-        fallback =
-            case maybeFallbackField of
-                Nothing ->
-                    ""
+        maybeFallbackString =
+            Maybe.map fieldToString maybeFallbackField
 
-                Just fallbackField ->
-                    fieldToString fallbackField
+        defaultString =
+            Maybe.withDefault "" maybeSpecificString
+
+        fallbackString =
+            Maybe.withDefault "" maybeFallbackString
     in
-        case maybeField of
-            Nothing ->
-                case maybeFallbackField of
-                    Nothing ->
-                        div [] [ text "Error 9d2cdbae-6e96-11e6-80ee-3f4d113632d0" ]
-
-                    Just field ->
-                        fieldInput crypto machine field "" fallback
-
-            Just field ->
-                fieldInput crypto machine field (fieldToString field) fallback
+        fieldInput crypto machine fieldDescriptor defaultString fallbackString
 
 
-cellView : Model -> Crypto -> Machine -> String -> Html Msg
-cellView model crypto machine fieldCode =
-    td [] [ fieldComponent crypto machine model fieldCode ]
-
-
-maybePickFieldSet : Model -> Maybe FieldSet
-maybePickFieldSet model =
-    let
-        maybeMachineConfigs =
-            List.head model.cryptoConfigs
-                |> Maybe.map .machineConfigs
-    in
-        maybeMachineConfigs
-            `Maybe.andThen` List.head
-            |> Maybe.map .fieldSet
-
-
-maybePickFieldCodes : Model -> Maybe (List String)
-maybePickFieldCodes model =
-    maybePickFieldSet model
-        |> Maybe.map .fields
-        |> Maybe.map (List.map .code)
+cellView : Model -> Crypto -> Machine -> FieldDescriptor -> Html Msg
+cellView model crypto machine fieldDescriptor =
+    td [] [ fieldComponent model crypto machine fieldDescriptor ]
 
 
 rowView : Model -> Crypto -> Machine -> Html Msg
 rowView model crypto machine =
-    case (maybePickFieldCodes model) of
-        Nothing ->
-            tr [] [ text "Error bd646b26-6ea0-11e6-b4ff-8f79726e6904" ]
-
-        Just fieldCodes ->
-            tr [] (List.map (cellView model crypto machine) fieldCodes)
+    tr [] (List.map (cellView model crypto machine) model.schema.entries)
 
 
-headerCell : Field -> Html Msg
-headerCell field =
-    td [] [ text field.display ]
+headerCellView : FieldDescriptor -> Html Msg
+headerCellView fieldDescriptor =
+    td [] [ text fieldDescriptor.display ]
 
 
-headerRowView : Crypto -> Model -> Html Msg
-headerRowView crypto model =
-    let
-        maybeCryptoConfig =
-            List.head model.cryptoConfigs
-
-        maybeMachineConfig =
-            Maybe.andThen maybeCryptoConfig (\cryptoConfig -> List.head cryptoConfig.machineConfigs)
-
-        cells =
-            case maybeMachineConfig of
-                Nothing ->
-                    [ td [] [ text "Error: 8fd366a0-6e99-11e6-8fb9-df73b88e8b22" ] ]
-
-                Just machineConfig ->
-                    List.map headerCell machineConfig.fieldSet.fields
-    in
-        tr [] cells
+headerRowView : Model -> Crypto -> Html Msg
+headerRowView model crypto =
+    tr [] (List.map headerCellView model.schema.entries)
 
 
-tableView : Crypto -> Model -> Html Msg
-tableView crypto model =
+tableView : Model -> Crypto -> Html Msg
+tableView model crypto =
     let
         headerRow =
-            headerRowView crypto model
+            headerRowView model crypto
 
         machines =
-            if (model.machineScope == Specific) then
+            if (model.schema.machineScope == Specific) then
                 model.data.machines
             else
                 GlobalMachine :: model.data.machines
@@ -288,16 +206,6 @@ tableView crypto model =
             ]
 
 
-isCrypto : Crypto -> CryptoConfig -> Bool
-isCrypto crypto cryptoConfig =
-    cryptoConfig.crypto == crypto
-
-
-isMachine : Machine -> MachineConfig -> Bool
-isMachine machine machineConfig =
-    machineConfig.machine == machine
-
-
 isField : String -> Field -> Bool
 isField fieldCode field =
     field.code == fieldCode
@@ -309,4 +217,4 @@ view model cryptoCode =
         crypto =
             stringToCrypto cryptoCode
     in
-        tableView crypto model
+        tableView model crypto
