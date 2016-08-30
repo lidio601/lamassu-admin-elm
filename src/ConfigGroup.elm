@@ -6,6 +6,7 @@ import Html.Attributes exposing (defaultValue, placeholder)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (stringToCrypto)
 import List
+import String
 
 
 type alias Model =
@@ -20,7 +21,7 @@ type Msg
     = Input Crypto Machine String String
 
 
-updateField : FieldSet -> String -> String -> Field -> Field
+updateField : FieldSet -> String -> String -> Field -> Maybe Field
 updateField currentFieldSet newFieldCode fieldValueString currentTemplateField =
     let
         maybeNewField =
@@ -29,16 +30,29 @@ updateField currentFieldSet newFieldCode fieldValueString currentTemplateField =
     in
         case maybeNewField of
             Nothing ->
-                if (currentTemplateField.code == newFieldCode) then
-                    { currentTemplateField | value = updateFieldValue fieldValueString currentTemplateField.value, loadedValue = NoFieldValue }
+                if (currentTemplateField.code == newFieldCode && not (String.isEmpty fieldValueString)) then
+                    Just { currentTemplateField | value = updateFieldValue fieldValueString currentTemplateField.value, loadedValue = NoFieldValue }
                 else
-                    currentTemplateField
+                    Nothing
 
             Just newField ->
                 if (newField.code == newFieldCode) then
-                    { newField | value = updateFieldValue fieldValueString newField.value }
+                    if (String.isEmpty fieldValueString) then
+                        Nothing
+                    else
+                        Just { newField | value = updateFieldValue fieldValueString newField.value }
                 else
-                    newField
+                    Just newField
+
+
+isNothing : Maybe x -> Bool
+isNothing maybe =
+    case maybe of
+        Nothing ->
+            True
+
+        Just _ ->
+            False
 
 
 updateFieldSet : Model -> String -> String -> FieldSet -> FieldSet
@@ -53,7 +67,7 @@ updateFieldSet model fieldCode fieldValueString fieldSet =
                     fieldSet.fields
 
                 Just fieldSetTemplate ->
-                    List.map (updateField fieldSet fieldCode fieldValueString) fieldSetTemplate.fields
+                    List.filterMap (updateField fieldSet fieldCode fieldValueString) fieldSetTemplate.fields
     in
         { fieldSet | fields = updatedFields }
 
