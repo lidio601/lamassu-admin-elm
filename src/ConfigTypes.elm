@@ -78,6 +78,7 @@ type alias AccountRec =
 
 type alias ConfigData =
     { cryptos : List DisplayRec
+    , currencies : List DisplayRec
     , languages : List DisplayRec
     , accounts : List AccountRec
     , machines : List Machine

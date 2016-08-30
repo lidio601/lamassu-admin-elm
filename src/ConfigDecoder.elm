@@ -145,7 +145,8 @@ accountRecDecoder =
 
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
-    object4 ConfigData
+    object5 ConfigData
+        ("cryptos" := list displayRecDecoder)
         ("currencies" := list displayRecDecoder)
         ("languages" := list displayRecDecoder)
         ("accounts" := list accountRecDecoder)
