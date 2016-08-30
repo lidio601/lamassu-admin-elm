@@ -8,13 +8,13 @@ fieldValueDecoder : String -> Decoder FieldValue
 fieldValueDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldStringValue ("value" := string)
+            map FieldStringValue ("fieldValue" := string)
 
         "percentage" ->
-            map FieldPercentageValue ("value" := float)
+            map FieldPercentageValue ("fieldValue" := float)
 
         "integer" ->
-            map FieldIntegerValue ("value" := int)
+            map FieldIntegerValue ("fieldValue" := int)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
