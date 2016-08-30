@@ -89,7 +89,7 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "DEBUG10" msg of
+    case msg of
         PairMsg pairMsg ->
             let
                 ( pairModel, cmd ) =

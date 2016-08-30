@@ -81,6 +81,9 @@ update msg model =
                 mapper : ConfigGroup -> ( ConfigGroup, Cmd Msg )
                 mapper configGroup =
                     let
+                        _ =
+                            Debug.log "DEBUG23"
+
                         ( configGroupModel, configGroupCmd ) =
                             ConfigGroup.update configGroupMsg configGroup
                     in

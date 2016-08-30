@@ -73,7 +73,11 @@ updateConfigGroup crypto machine fieldCode fieldValueString configGroup =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update (Input crypto machine fieldCode valueString) model =
-    updateConfigGroup crypto machine fieldCode valueString model ! []
+    let
+        newModel =
+            updateConfigGroup crypto machine fieldCode valueString model
+    in
+        (Debug.log "DEBUG22" newModel) ! []
 
 
 
@@ -107,7 +111,7 @@ fieldInput crypto machine field defaultString placeholderString =
         FieldPercentage maybeVal ->
             input
                 [ onInput (Input crypto machine field.code)
-                , defaultValue (Debug.log "DEBUG20" defaultString)
+                , defaultValue defaultString
                 , placeholder placeholderString
                 ]
                 []
@@ -146,7 +150,7 @@ fieldComponent crypto machine model fieldCode =
                 `Maybe.andThen` (maybePickMachineField fieldCode)
 
         maybeFallbackField =
-            Maybe.oneOf (Debug.log "DEBUG21" [ maybeField, maybeCryptoField, maybeMachineField, maybeGlobalField ])
+            Maybe.oneOf [ maybeField, maybeCryptoField, maybeMachineField, maybeGlobalField ]
 
         fallback =
             case maybeFallbackField of
@@ -246,7 +250,7 @@ tableView crypto model =
 
 isCrypto : Crypto -> CryptoConfig -> Bool
 isCrypto crypto cryptoConfig =
-    (Debug.log "DEBUG12" cryptoConfig.crypto) == (Debug.log "DEBUG13" crypto)
+    cryptoConfig.crypto == crypto
 
 
 isMachine : Machine -> MachineConfig -> Bool
