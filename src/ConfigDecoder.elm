@@ -18,13 +18,13 @@ fieldValueTypeDecoder : String -> Decoder FieldValue
 fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldString ("value" := nullOr string)
+            map FieldStringValue ("value" := string)
 
         "percentage" ->
-            map FieldPercentage ("value" := nullOr float)
+            map FieldPercentageValue ("value" := float)
 
         "integer" ->
-            map FieldInteger ("value" := nullOr int)
+            map FieldIntegerValue ("value" := int)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -40,19 +40,36 @@ fieldStatusDecoder =
     ("code" := string) `andThen` fieldStatusValueDecoder
 
 
+machineFieldDecoder : Decoder MachineField
+machineFieldDecoder =
+    object2 MachineField
+        ("machine" := machineDecoder)
+        ("value" := fieldValueDecoder)
+
+
+cryptoFieldDecoder : Decoder CryptoField
+cryptoFieldDecoder =
+    object2 CryptoField
+        ("crypto" := cryptoDecoder)
+        ("value" := fieldValueDecoder)
+
+
+cryptoMachineFieldDecoder : Decoder CryptoMachineField
+cryptoMachineFieldDecoder =
+    object3 CryptoMachineField
+        ("crypto" := cryptoDecoder)
+        ("machine" := machineDecoder)
+        ("value" := fieldValueDecoder)
+
+
 fieldDecoder : Decoder Field
 fieldDecoder =
     object5 Field
         ("code" := string)
-        ("display" := string)
-        ("value" := fieldValueDecoder)
-        ("value" := fieldValueDecoder)
-        ("status" := fieldStatusDecoder)
-
-
-fieldSetDecoder =
-    object1 FieldSet
-        ("fields" := list fieldDecoder)
+        ("global" := nullOr fieldValueDecoder)
+        ("globalCrypto" := list machineFieldDecoder)
+        ("globalMachine" := list cryptoFieldDecoder)
+        ("specific" := list cryptoMachineFieldDecoder)
 
 
 string2machine : String -> Machine
@@ -68,13 +85,6 @@ machineDecoder =
     map string2machine string
 
 
-machineConfigDecoder : Decoder MachineConfig
-machineConfigDecoder =
-    object2 MachineConfig
-        ("machine" := machineDecoder)
-        ("fieldSet" := fieldSetDecoder)
-
-
 stringToCrypto : String -> Crypto
 stringToCrypto s =
     if s == "global" then
@@ -88,20 +98,6 @@ cryptoDecoder =
     map stringToCrypto string
 
 
-cryptoConfigDecoder : Decoder CryptoConfig
-cryptoConfigDecoder =
-    object2 CryptoConfig
-        ("crypto" := cryptoDecoder)
-        ("machineConfigs" := list machineConfigDecoder)
-
-
-cryptoDescriptorDecoder : Decoder CryptoDescriptor
-cryptoDescriptorDecoder =
-    object2 CryptoDescriptor
-        ("crypto" := cryptoDecoder)
-        ("display" := string)
-
-
 displayRecDecoder : Decoder DisplayRec
 displayRecDecoder =
     object2 DisplayRec
@@ -109,8 +105,8 @@ displayRecDecoder =
         ("display" := string)
 
 
-string2configScope : String -> Result String ConfigScope
-string2configScope s =
+string2ConfigScope : String -> Result String ConfigScope
+string2ConfigScope s =
     case s of
         "global" ->
             Ok Global
@@ -125,18 +121,55 @@ string2configScope s =
             Err ("No such ConfigScope " ++ s)
 
 
+string2FieldType : String -> Result String FieldType
+string2FieldType s =
+    case s of
+        "string" ->
+            Ok FieldStringType
+
+        "percentage" ->
+            Ok FieldPercentageType
+
+        "integer" ->
+            Ok FieldIntegerType
+
+        _ ->
+            Err ("No such FieldType " ++ s)
+
+
 configScopeDecoder : Decoder ConfigScope
 configScopeDecoder =
-    customDecoder string string2configScope
+    customDecoder string string2ConfigScope
+
+
+fieldTypeDecoder : Decoder FieldType
+fieldTypeDecoder =
+    customDecoder string string2FieldType
+
+
+fieldDescriptorDecoder : Decoder FieldDescriptor
+fieldDescriptorDecoder =
+    object3 FieldDescriptor
+        ("code" := string)
+        ("display" := string)
+        ("fieldType" := fieldTypeDecoder)
+
+
+configSchemaDecoder : Decoder ConfigSchema
+configSchemaDecoder =
+    object5 ConfigSchema
+        ("code" := string)
+        ("display" := string)
+        ("cryptoScope" := configScopeDecoder)
+        ("machineScope" := configScopeDecoder)
+        ("entries" := list fieldDescriptorDecoder)
 
 
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    object5 ConfigGroup
-        ("group" := displayRecDecoder)
-        ("cryptoScope" := configScopeDecoder)
-        ("machineScope" := configScopeDecoder)
-        ("cryptoConfigs" := list cryptoConfigDecoder)
+    object3 ConfigGroup
+        ("schema" := configSchemaDecoder)
+        ("values" := list fieldDecoder)
         ("data" := configDataDecoder)
 
 
