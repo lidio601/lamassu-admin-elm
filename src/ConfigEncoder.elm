@@ -78,5 +78,6 @@ encodeConfigGroup configGroup =
             List.filter isDirty configGroup.values
     in
         Json.Encode.object
-            [ ( "values", list (List.map encodeField dirtyFields) )
+            [ ("code", string configGroup.schema.code)
+            , ( "values", list (List.map encodeField dirtyFields) )
             ]

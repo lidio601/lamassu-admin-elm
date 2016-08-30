@@ -7,6 +7,7 @@ import ConfigTypes exposing (..)
 import ConfigDecoder exposing (stringToCrypto)
 import List
 import Maybe exposing (oneOf)
+import String
 
 
 type alias Model =
@@ -31,6 +32,10 @@ isOfFieldClass crypto machine fieldCode field =
         == fieldCode
 
 
+isNotOfFieldClass crypto machine fieldCode field =
+    not (isOfFieldClass crypto machine fieldCode field)
+
+
 isFieldClass : Field -> Field -> Bool
 isFieldClass searchField field =
     isOfFieldClass searchField.crypto searchField.machine searchField.code field
@@ -46,40 +51,48 @@ placeField fieldList field =
     field :: (List.filter (isNotFieldClass field) fieldList)
 
 
+removeField : List Field -> Crypto -> Machine -> String -> List Field
+removeField fieldList crypto machine fieldCode =
+    List.filter (isNotOfFieldClass crypto machine fieldCode) fieldList
+
+
 updateValues : Model -> Crypto -> Machine -> String -> String -> Model
 updateValues model crypto machine fieldCode valueString =
-    let
-        maybeFieldDescriptor =
-            List.filter (\fd -> fd.code == fieldCode) model.schema.entries
-                |> List.head
-    in
-        case maybeFieldDescriptor of
-            Just fieldDescriptor ->
-                let
-                    fieldValueResult =
-                        stringToFieldValue fieldDescriptor.fieldType valueString
-                in
-                    case fieldValueResult of
-                        Err _ ->
-                            model
+    if (String.isEmpty valueString) then
+        { model | values = removeField model.values crypto machine fieldCode }
+    else
+        let
+            maybeFieldDescriptor =
+                List.filter (\fd -> fd.code == fieldCode) model.schema.entries
+                    |> List.head
+        in
+            case maybeFieldDescriptor of
+                Just fieldDescriptor ->
+                    let
+                        fieldValueResult =
+                            stringToFieldValue fieldDescriptor.fieldType valueString
+                    in
+                        case fieldValueResult of
+                            Err _ ->
+                                model
 
-                        Ok fieldValue ->
-                            let
-                                field =
-                                    { code = fieldCode
-                                    , crypto = crypto
-                                    , machine = machine
-                                    , fieldValue = fieldValue
-                                    , loadedFieldValue = Nothing
-                                    }
+                            Ok fieldValue ->
+                                let
+                                    field =
+                                        { code = fieldCode
+                                        , crypto = crypto
+                                        , machine = machine
+                                        , fieldValue = fieldValue
+                                        , loadedFieldValue = Nothing
+                                        }
 
-                                values =
-                                    placeField model.values field
-                            in
-                                { model | values = values }
+                                    values =
+                                        placeField model.values field
+                                in
+                                    { model | values = values }
 
-            Nothing ->
-                model
+                Nothing ->
+                    model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
