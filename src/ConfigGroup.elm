@@ -146,7 +146,7 @@ fieldComponent crypto machine model fieldCode =
                 `Maybe.andThen` (maybePickMachineField fieldCode)
 
         maybeFallbackField =
-            Maybe.oneOf [ maybeField, maybeCryptoField, maybeMachineField, maybeGlobalField ]
+            Maybe.oneOf (Debug.log "DEBUG21" [ maybeField, maybeCryptoField, maybeMachineField, maybeGlobalField ])
 
         fallback =
             case maybeFallbackField of
@@ -174,12 +174,11 @@ cellView model crypto machine fieldCode =
     td [] [ fieldComponent crypto machine model fieldCode ]
 
 
-maybePickFieldCodes : Model -> Crypto -> Maybe (List String)
-maybePickFieldCodes model crypto =
+maybePickFieldCodes : Model -> Maybe (List String)
+maybePickFieldCodes model =
     let
         maybeMachineConfigs =
-            List.filter (isCrypto crypto) model.cryptoConfigs
-                |> List.head
+            List.head model.cryptoConfigs
                 |> Maybe.map .machineConfigs
     in
         maybeMachineConfigs
@@ -191,7 +190,7 @@ maybePickFieldCodes model crypto =
 
 rowView : Model -> Crypto -> Machine -> Html Msg
 rowView model crypto machine =
-    case (maybePickFieldCodes model crypto) of
+    case (maybePickFieldCodes model) of
         Nothing ->
             tr [] [ text "Error bd646b26-6ea0-11e6-b4ff-8f79726e6904" ]
 
@@ -208,8 +207,7 @@ headerRowView : Crypto -> Model -> Html Msg
 headerRowView crypto model =
     let
         maybeCryptoConfig =
-            List.filter (isCrypto crypto) model.cryptoConfigs
-                |> List.head
+            List.head model.cryptoConfigs
 
         maybeMachineConfig =
             Maybe.andThen maybeCryptoConfig (\cryptoConfig -> List.head cryptoConfig.machineConfigs)
