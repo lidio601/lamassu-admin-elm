@@ -107,7 +107,7 @@ fieldInput crypto machine field defaultString placeholderString =
         FieldPercentage maybeVal ->
             input
                 [ onInput (Input crypto machine field.code)
-                , defaultValue defaultString
+                , defaultValue (Debug.log "DEBUG20" defaultString)
                 , placeholder placeholderString
                 ]
                 []
@@ -145,16 +145,20 @@ fieldComponent crypto machine model fieldCode =
             maybePickMachine GlobalMachine maybeGlobalCryptoConfig
                 `Maybe.andThen` (maybePickMachineField fieldCode)
 
-        fallbackField =
+        maybeFallbackField =
             Maybe.oneOf [ maybeField, maybeCryptoField, maybeMachineField, maybeGlobalField ]
 
         fallback =
-            Maybe.map fieldToString fallbackField
-                |> maybeToString
+            case maybeFallbackField of
+                Nothing ->
+                    ""
+
+                Just fallbackField ->
+                    fieldToString fallbackField
     in
         case maybeField of
             Nothing ->
-                case fallbackField of
+                case maybeFallbackField of
                     Nothing ->
                         div [] [ text "Error 9d2cdbae-6e96-11e6-80ee-3f4d113632d0" ]
 

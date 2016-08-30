@@ -105,12 +105,10 @@ fieldToString field =
             maybeToString v
 
         FieldPercentage v ->
-            Maybe.map toString v
-                |> maybeToString
+            maybeToString v
 
         FieldInteger v ->
-            Maybe.map toString v
-                |> maybeToString
+            maybeToString v
 
 
 updateFieldValue : String -> FieldValue -> FieldValue
