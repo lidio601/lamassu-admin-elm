@@ -20,62 +20,80 @@ type Msg
     = Input Crypto Machine String String
 
 
-updateField : String -> String -> Field -> Field
-updateField fieldCode fieldValueString field =
-    if .code field == fieldCode then
-        { field | value = updateFieldValue fieldValueString field.value }
-    else
-        field
-
-
-updateFieldSet : String -> String -> FieldSet -> FieldSet
-updateFieldSet fieldCode fieldValueString fieldSet =
+updateField : FieldSet -> String -> String -> Field -> Field
+updateField currentFieldSet newFieldCode fieldValueString currentTemplateField =
     let
-        fields =
-            fieldSet.fields
+        maybeNewField =
+            List.filter (\f -> f.code == currentTemplateField.code) currentFieldSet.fields
+                |> List.head
+    in
+        case maybeNewField of
+            Nothing ->
+                if (currentTemplateField.code == newFieldCode) then
+                    { currentTemplateField | value = updateFieldValue fieldValueString currentTemplateField.value, loadedValue = NoFieldValue }
+                else
+                    currentTemplateField
+
+            Just newField ->
+                if (newField.code == newFieldCode) then
+                    { newField | value = updateFieldValue fieldValueString newField.value }
+                else
+                    newField
+
+
+updateFieldSet : Model -> String -> String -> FieldSet -> FieldSet
+updateFieldSet model fieldCode fieldValueString fieldSet =
+    let
+        maybeFieldSetTemplate =
+            maybePickFieldSet model
 
         updatedFields =
-            List.map (updateField fieldCode fieldValueString) fields
+            case maybeFieldSetTemplate of
+                Nothing ->
+                    fieldSet.fields
+
+                Just fieldSetTemplate ->
+                    List.map (updateField fieldSet fieldCode fieldValueString) fieldSetTemplate.fields
     in
         { fieldSet | fields = updatedFields }
 
 
-updateMachineConfig : Machine -> String -> String -> MachineConfig -> MachineConfig
-updateMachineConfig machine fieldCode fieldValueString machineConfig =
+updateMachineConfig : Model -> Machine -> String -> String -> MachineConfig -> MachineConfig
+updateMachineConfig model machine fieldCode fieldValueString machineConfig =
     if machineConfig.machine == machine then
-        { machineConfig | fieldSet = updateFieldSet fieldCode fieldValueString machineConfig.fieldSet }
+        { machineConfig | fieldSet = updateFieldSet model fieldCode fieldValueString machineConfig.fieldSet }
     else
         machineConfig
 
 
-updateMachineConfigs : Machine -> String -> String -> List MachineConfig -> List MachineConfig
-updateMachineConfigs machine fieldCode fieldValueString machineConfigs =
-    List.map (updateMachineConfig machine fieldCode fieldValueString) machineConfigs
+updateMachineConfigs : Model -> Machine -> String -> String -> List MachineConfig -> List MachineConfig
+updateMachineConfigs model machine fieldCode fieldValueString machineConfigs =
+    List.map (updateMachineConfig model machine fieldCode fieldValueString) machineConfigs
 
 
-updateCryptoConfig : Crypto -> Machine -> String -> String -> CryptoConfig -> CryptoConfig
-updateCryptoConfig crypto machine fieldCode fieldValueString cryptoConfig =
+updateCryptoConfig : Model -> Crypto -> Machine -> String -> String -> CryptoConfig -> CryptoConfig
+updateCryptoConfig model crypto machine fieldCode fieldValueString cryptoConfig =
     if cryptoConfig.crypto == crypto then
-        { cryptoConfig | machineConfigs = updateMachineConfigs machine fieldCode fieldValueString cryptoConfig.machineConfigs }
+        { cryptoConfig | machineConfigs = updateMachineConfigs model machine fieldCode fieldValueString cryptoConfig.machineConfigs }
     else
         cryptoConfig
 
 
-updateCryptoConfigs : Crypto -> Machine -> String -> String -> List CryptoConfig -> List CryptoConfig
-updateCryptoConfigs crypto machine fieldCode fieldValueString cryptoConfigs =
-    List.map (updateCryptoConfig crypto machine fieldCode fieldValueString) cryptoConfigs
+updateCryptoConfigs : Model -> Crypto -> Machine -> String -> String -> List CryptoConfig
+updateCryptoConfigs model crypto machine fieldCode fieldValueString =
+    List.map (updateCryptoConfig model crypto machine fieldCode fieldValueString) model.cryptoConfigs
 
 
-updateConfigGroup : Crypto -> Machine -> String -> String -> ConfigGroup -> ConfigGroup
-updateConfigGroup crypto machine fieldCode fieldValueString configGroup =
-    { configGroup | cryptoConfigs = updateCryptoConfigs crypto machine fieldCode fieldValueString configGroup.cryptoConfigs }
+updateConfigGroup : Model -> Crypto -> Machine -> String -> String -> Model
+updateConfigGroup model crypto machine fieldCode fieldValueString =
+    { model | cryptoConfigs = updateCryptoConfigs model crypto machine fieldCode fieldValueString }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update (Input crypto machine fieldCode valueString) model =
     let
         newModel =
-            updateConfigGroup crypto machine fieldCode valueString model
+            updateConfigGroup model crypto machine fieldCode valueString
     in
         (Debug.log "DEBUG22" newModel) ! []
 
@@ -120,6 +138,9 @@ fieldInput crypto machine field defaultString placeholderString =
             input
                 [ onInput (Input crypto machine field.code) ]
                 []
+
+        NoFieldValue ->
+            text "Error af763fa4-6eb8-11e6-93cb-df54e365bb1b"
 
 
 fieldComponent : Crypto -> Machine -> Model -> String -> Html Msg
@@ -178,8 +199,8 @@ cellView model crypto machine fieldCode =
     td [] [ fieldComponent crypto machine model fieldCode ]
 
 
-maybePickFieldCodes : Model -> Maybe (List String)
-maybePickFieldCodes model =
+maybePickFieldSet : Model -> Maybe FieldSet
+maybePickFieldSet model =
     let
         maybeMachineConfigs =
             List.head model.cryptoConfigs
@@ -188,8 +209,13 @@ maybePickFieldCodes model =
         maybeMachineConfigs
             `Maybe.andThen` List.head
             |> Maybe.map .fieldSet
-            |> Maybe.map .fields
-            |> Maybe.map (List.map .code)
+
+
+maybePickFieldCodes : Model -> Maybe (List String)
+maybePickFieldCodes model =
+    maybePickFieldSet model
+        |> Maybe.map .fields
+        |> Maybe.map (List.map .code)
 
 
 rowView : Model -> Crypto -> Machine -> Html Msg

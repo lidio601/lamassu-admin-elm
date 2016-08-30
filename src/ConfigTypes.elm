@@ -23,6 +23,7 @@ type FieldValue
     = FieldString (Maybe String)
     | FieldPercentage (Maybe Float)
     | FieldInteger (Maybe Int)
+    | NoFieldValue
 
 
 type alias FieldSet =
@@ -110,6 +111,9 @@ fieldToString field =
         FieldInteger v ->
             maybeToString v
 
+        NoFieldValue ->
+            ""
+
 
 updateFieldValue : String -> FieldValue -> FieldValue
 updateFieldValue stringValue oldFieldValue =
@@ -129,3 +133,6 @@ updateFieldValue stringValue oldFieldValue =
             String.toInt stringValue
                 |> Result.toMaybe
                 |> FieldInteger
+
+        NoFieldValue ->
+            NoFieldValue

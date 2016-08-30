@@ -34,6 +34,9 @@ encodeFieldValue fieldValue =
                     [ ( "fieldType", string "integer" )
                     , ( "value", maybe value int )
                     ]
+
+                NoFieldValue ->
+                    [ ( "fieldType", string "none" ) ]
     in
         Json.Encode.object list
 
