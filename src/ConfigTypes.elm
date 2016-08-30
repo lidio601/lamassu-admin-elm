@@ -46,7 +46,7 @@ type alias CryptoMachineField =
 
 type alias Field =
     { code : String
-    , globalGlobal : Maybe FieldValue
+    , global : Maybe FieldValue
     , globalCrypto : List MachineField
     , globalMachine : List CryptoField
     , specific : List CryptoMachineField

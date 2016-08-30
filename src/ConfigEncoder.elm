@@ -128,11 +128,18 @@ encodeConfigScope configScope =
             string "both"
 
 
+encodeField : Field -> Value
+encodeField field =
+    Json.Encode.object
+        [ ( "code", string field.code )
+        , ( "global", maybe encodeFieldValue field.global )
+        , ( "globalCrypto", list (List.map encodeMachineField configGroup.globalCrypto) )
+        , ( "globalMachine", list (List.map encodeMachineField configGroup.globalCrypto) )
+        ]
+
+
 encodeConfigGroup : ConfigGroup -> Value
 encodeConfigGroup configGroup =
     Json.Encode.object
-        [ ( "group", encodeDisplayRec configGroup.group )
-        , ( "cryptoScope", encodeConfigScope configGroup.cryptoScope )
-        , ( "machineScope", encodeConfigScope configGroup.machineScope )
-        , ( "cryptoConfigs", list (List.map encodeCryptoConfig configGroup.cryptoConfigs) )
+        [ ( "values", list (List.map encodeField configGroup.values) )
         ]
