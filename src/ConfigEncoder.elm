@@ -5,70 +5,35 @@ import List
 import ConfigTypes exposing (..)
 
 
-maybe : Maybe a -> (a -> Value) -> Value
-maybe value encoder =
-    case value of
-        Just v ->
-            encoder v
-
-        Nothing ->
-            null
-
-
 encodeFieldValue : FieldValue -> Value
 encodeFieldValue fieldValue =
-    let
-        list =
-            case fieldValue of
-                FieldString value ->
-                    [ ( "fieldType", string "string" )
-                    , ( "value", maybe value string )
-                    ]
+    case fieldValue of
+        FieldStringValue value ->
+            string value
 
-                FieldPercentage value ->
-                    [ ( "fieldType", string "percentage" )
-                    , ( "value", maybe value float )
-                    ]
+        FieldPercentageValue value ->
+            float value
 
-                FieldInteger value ->
-                    [ ( "fieldType", string "integer" )
-                    , ( "value", maybe value int )
-                    ]
-
-                NoFieldValue ->
-                    [ ( "fieldType", string "none" ) ]
-    in
-        Json.Encode.object list
+        FieldIntegerValue value ->
+            int value
 
 
-encodeField : Field -> Value
-encodeField field =
-    -- No need to encode status or loadedValue field, they're for client-side only
-    Json.Encode.object
-        [ ( "code", string field.code )
-        , ( "display", string field.display )
-        , ( "value", encodeFieldValue field.value )
-        ]
+encodeFieldType : FieldValue -> Value
+encodeFieldType fieldValue =
+    case fieldValue of
+        FieldStringValue _ ->
+            string "string"
+
+        FieldPercentageValue _ ->
+            string "percentage"
+
+        FieldIntegerValue _ ->
+            string "integer"
 
 
 isDirty : Field -> Bool
 isDirty field =
-    field.value /= field.loadedValue
-
-
-
--- Encodes only changed fields
-
-
-encodeFieldSet : FieldSet -> Value
-encodeFieldSet fieldSet =
-    let
-        fieldValues =
-            List.filter isDirty fieldSet.fields
-                |> List.map encodeField
-    in
-        Json.Encode.object
-            [ ( "fields", list fieldValues ) ]
+    field.fieldValue /= field.loadedFieldValue
 
 
 encodeCrypto : Crypto -> Value
@@ -91,55 +56,23 @@ encodeMachine machine =
             string "global"
 
 
-encodeMachineConfig : MachineConfig -> Value
-encodeMachineConfig machineConfig =
-    object
-        [ ( "machine", encodeMachine machineConfig.machine )
-        , ( "fieldSet", encodeFieldSet machineConfig.fieldSet )
-        ]
-
-
-encodeCryptoConfig : CryptoConfig -> Value
-encodeCryptoConfig cryptoConfig =
-    object
-        [ ( "cryptoCode", encodeCrypto cryptoConfig.crypto )
-        , ( "machineConfigs", list (List.map encodeMachineConfig cryptoConfig.machineConfigs) )
-        ]
-
-
-encodeDisplayRec : DisplayRec -> Value
-encodeDisplayRec displayRec =
-    object
-        [ ( "code", string displayRec.code )
-        , ( "display", string displayRec.display )
-        ]
-
-
-encodeConfigScope : ConfigScope -> Value
-encodeConfigScope configScope =
-    case configScope of
-        Global ->
-            string "global"
-
-        Specific ->
-            string "specific"
-
-        Both ->
-            string "both"
-
-
 encodeField : Field -> Value
 encodeField field =
     Json.Encode.object
         [ ( "code", string field.code )
-        , ( "global", maybe encodeFieldValue field.global )
-        , ( "globalCrypto", list (List.map encodeMachineField configGroup.globalCrypto) )
-        , ( "globalMachine", list (List.map encodeMachineField configGroup.globalCrypto) )
+        , ( "crypto", encodeCrypto field.crypto )
+        , ( "machine", encodeMachine field.machine )
+        , ( "fieldValue", encodeFieldValue field.fieldValue )
+        , ( "fieldType", encodeFieldType field.fieldValue )
         ]
 
 
 encodeConfigGroup : ConfigGroup -> Value
 encodeConfigGroup configGroup =
-    Json.Encode.object
-        [ ( "values", list (List.map encodeField configGroup.values) )
-        ]
+    let
+        dirtyFields =
+            List.filter isDirty configGroup.values
+    in
+        Json.Encode.object
+            [ ( "values", list (List.map encodeField dirtyFields) )
+            ]

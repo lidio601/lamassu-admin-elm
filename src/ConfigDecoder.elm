@@ -1,21 +1,11 @@
 module ConfigDecoder exposing (..)
 
 import Json.Decode exposing (..)
-import FieldSetTypes exposing (FieldStatus)
-import FieldSetDecoder exposing (fieldStatusDecoder, fieldStatusValueDecoder)
 import ConfigTypes exposing (..)
 
 
-nullOr : Decoder a -> Decoder (Maybe a)
-nullOr decoder =
-    oneOf
-        [ null Nothing
-        , map Just decoder
-        ]
-
-
-fieldValueTypeDecoder : String -> Decoder FieldValue
-fieldValueTypeDecoder fieldType =
+fieldValueDecoder : String -> Decoder FieldValue
+fieldValueDecoder fieldType =
     case fieldType of
         "string" ->
             map FieldStringValue ("value" := string)
@@ -30,46 +20,15 @@ fieldValueTypeDecoder fieldType =
             fail ("Unsupported field type: " ++ fieldType)
 
 
-fieldValueDecoder : Decoder FieldValue
-fieldValueDecoder =
-    ("fieldType" := string) `andThen` fieldValueTypeDecoder
-
-
-fieldStatusDecoder : Decoder FieldStatus
-fieldStatusDecoder =
-    ("code" := string) `andThen` fieldStatusValueDecoder
-
-
-machineFieldDecoder : Decoder MachineField
-machineFieldDecoder =
-    object2 MachineField
-        ("machine" := machineDecoder)
-        ("value" := fieldValueDecoder)
-
-
-cryptoFieldDecoder : Decoder CryptoField
-cryptoFieldDecoder =
-    object2 CryptoField
-        ("crypto" := cryptoDecoder)
-        ("value" := fieldValueDecoder)
-
-
-cryptoMachineFieldDecoder : Decoder CryptoMachineField
-cryptoMachineFieldDecoder =
-    object3 CryptoMachineField
-        ("crypto" := cryptoDecoder)
-        ("machine" := machineDecoder)
-        ("value" := fieldValueDecoder)
-
-
 fieldDecoder : Decoder Field
 fieldDecoder =
-    object5 Field
+    object4 Field
         ("code" := string)
-        ("global" := nullOr fieldValueDecoder)
-        ("globalCrypto" := list machineFieldDecoder)
-        ("globalMachine" := list cryptoFieldDecoder)
-        ("specific" := list cryptoMachineFieldDecoder)
+        ("crypto" := cryptoDecoder)
+        ("machine" := machineDecoder)
+        (("fieldType" := string)
+            `andThen` fieldValueDecoder
+        )
 
 
 string2machine : String -> Machine

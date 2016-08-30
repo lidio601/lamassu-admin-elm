@@ -25,31 +25,12 @@ type ConfigScope
     | Both
 
 
-type alias MachineField =
-    { machine : Machine
-    , value : FieldValue
-    }
-
-
-type alias CryptoField =
-    { crypto : Crypto
-    , value : FieldValue
-    }
-
-
-type alias CryptoMachineField =
-    { crypto : Crypto
-    , machine : Machine
-    , value : FieldValue
-    }
-
-
 type alias Field =
     { code : String
-    , global : Maybe FieldValue
-    , globalCrypto : List MachineField
-    , globalMachine : List CryptoField
-    , specific : List CryptoMachineField
+    , crypto : Crypto
+    , machine : Machine
+    , fieldValue : FieldValue
+    , loadedFieldValue : FieldValue
     }
 
 
