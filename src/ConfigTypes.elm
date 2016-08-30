@@ -84,7 +84,33 @@ type alias ConfigData =
     { currencies : List DisplayRec
     , languages : List DisplayRec
     , accounts : List AccountRec
+    , machines : List Machine
     }
+
+
+maybeToString : Maybe x -> String
+maybeToString maybe =
+    case maybe of
+        Nothing ->
+            ""
+
+        Just x ->
+            toString x
+
+
+fieldToString : Field -> String
+fieldToString field =
+    case field.value of
+        FieldString v ->
+            maybeToString v
+
+        FieldPercentage v ->
+            Maybe.map toString v
+                |> maybeToString
+
+        FieldInteger v ->
+            Maybe.map toString v
+                |> maybeToString
 
 
 updateFieldValue : String -> FieldValue -> FieldValue

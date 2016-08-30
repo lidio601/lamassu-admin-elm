@@ -75,8 +75,8 @@ machineConfigDecoder =
         ("fieldSet" := fieldSetDecoder)
 
 
-string2Crypto : String -> Crypto
-string2Crypto s =
+stringToCrypto : String -> Crypto
+stringToCrypto s =
     if s == "global" then
         GlobalCrypto
     else
@@ -85,7 +85,7 @@ string2Crypto s =
 
 cryptoDecoder : Decoder Crypto
 cryptoDecoder =
-    map string2Crypto string
+    map stringToCrypto string
 
 
 cryptoConfigDecoder : Decoder CryptoConfig
@@ -150,7 +150,8 @@ accountRecDecoder =
 
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
-    object3 ConfigData
+    object4 ConfigData
         ("currencies" := list displayRecDecoder)
         ("languages" := list displayRecDecoder)
         ("accounts" := list accountRecDecoder)
+        ("machines" := list machineDecoder)
