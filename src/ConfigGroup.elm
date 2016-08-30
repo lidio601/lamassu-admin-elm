@@ -20,8 +20,23 @@ type Msg
     = Input Crypto Machine String String
 
 
-updateField : String -> String -> Field -> Field
-updateField fieldCode fieldValueString field =
+updateField : Crypto -> Machine -> String -> String -> Model -> Field
+updateField crypto machine fieldCode fieldValueString model =
+    let
+        maybeCryptoConfig =
+            List.filter (isCrypto crypto) model.cryptoConfigs
+                |> List.head
+
+        machineMapper cryptoConfig = List.filter (isMachine machine) cryptoConfig.machineConfigs
+
+        maybeMachineConfig = Maybe.map machineMapper maybeCryptoConfig
+
+        fieldMapper machineConfig = List.filter (isField fieldCode) machineConfig.fieldSet
+
+        maybeField = Maybe.map fieldMapper maybeMachineConfig
+
+
+
     if .code field == fieldCode then
         { field | value = updateFieldValue fieldValueString field.value }
     else
@@ -116,7 +131,7 @@ cellView crypto machine field =
     td [] [ fieldComponent crypto machine field ]
 
 
-rowView : Crypto -> MachineConfig -> Html Msg
+rowView : Crypto -> Model -> Html Msg
 rowView crypto machineConfig =
     let
         cells =
@@ -144,14 +159,30 @@ headerRowView maybeMachineConfig =
         tr [] cells
 
 
-tableView : CryptoConfig -> Html Msg
-tableView cryptoConfig =
+machineIds : Crypto -> Model -> Maybe (List Machine)
+machineIds crypto model =
+    let
+        maybeCryptoConfig =
+            List.filter (isCrypto crypto) model.cryptoConfigs
+                |> List.head
+
+        mapper cryptoConfig =
+            List.map .machine cryptoConfig.machineConfigs
+
+        maybeMachineIds =
+            Maybe.map mapper maybeCryptoConfig
+    in
+        Maybe.map mapper maybeCryptoConfig
+
+
+tableView : Crypto -> Model -> Html Msg
+tableView crypto model =
     let
         headerRow =
-            headerRowView (List.head cryptoConfig.machineConfigs)
+            headerRowView crypto model
 
         rows =
-            List.map (rowView cryptoConfig.crypto) cryptoConfig.machineConfigs
+            List.map (rowView crypto model) (machineIds crypto model)
     in
         table []
             [ thead [] [ headerRow ]
@@ -169,14 +200,5 @@ view model cryptoCode =
     let
         crypto =
             string2Crypto cryptoCode
-
-        maybeCryptoConfig =
-            List.filter (isCrypto crypto) (Debug.log "DEBUG14" model.cryptoConfigs)
-                |> List.head
     in
-        case maybeCryptoConfig of
-            Just cryptoConfig ->
-                tableView cryptoConfig
-
-            Nothing ->
-                div [] [ text "No such cryptocurrency" ]
+        tableView model crypto
