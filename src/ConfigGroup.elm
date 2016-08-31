@@ -182,9 +182,9 @@ cellView model crypto machine fieldDescriptor =
     td [] [ fieldComponent model crypto machine fieldDescriptor ]
 
 
-rowView : Model -> Crypto -> Machine -> Html Msg
-rowView model crypto machine =
-    tr [] ((td [] [ text (machineToString machine) ]) :: (List.map (cellView model crypto machine) model.schema.entries))
+rowView : Model -> Crypto -> MachineDisplay -> Html Msg
+rowView model crypto machineDisplay =
+    tr [] ((td [] [ text (machineDisplay.display) ]) :: (List.map (cellView model crypto machineDisplay.machine) model.schema.entries))
 
 
 headerCellView : FieldDescriptor -> Html Msg
@@ -207,7 +207,7 @@ tableView model crypto =
             if (model.schema.machineScope == Specific) then
                 model.data.machines
             else
-                GlobalMachine :: model.data.machines
+                globalMachineDisplay :: model.data.machines
 
         rows =
             List.map (rowView model crypto) machines

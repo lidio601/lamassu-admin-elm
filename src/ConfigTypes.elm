@@ -19,6 +19,18 @@ type Machine
     | GlobalMachine
 
 
+type alias MachineDisplay =
+    { machine : Machine
+    , display : String
+    }
+
+
+type alias CryptoDisplay =
+    { crypto : Crypto
+    , display : String
+    }
+
+
 type ConfigScope
     = Global
     | Specific
@@ -94,11 +106,25 @@ type alias AccountRec =
 
 
 type alias ConfigData =
-    { cryptos : List DisplayRec
+    { cryptos : List CryptoDisplay
     , currencies : List DisplayRec
     , languages : List DisplayRec
     , accounts : List AccountRec
-    , machines : List Machine
+    , machines : List MachineDisplay
+    }
+
+
+globalCryptoDisplay : CryptoDisplay
+globalCryptoDisplay =
+    { crypto = GlobalCrypto
+    , display = "Global"
+    }
+
+
+globalMachineDisplay : MachineDisplay
+globalMachineDisplay =
+    { machine = GlobalMachine
+    , display = "Global"
     }
 
 

@@ -26,12 +26,16 @@ fieldDecoder =
         ("code" := string)
         ("crypto" := cryptoDecoder)
         ("machine" := machineDecoder)
-        (map (Ok << Just) (("fieldType" := string)
-            `andThen` fieldValueDecoder
-        ))
-        (map Just (("fieldType" := string)
-            `andThen` fieldValueDecoder
-        ))
+        (map (Ok << Just)
+            (("fieldType" := string)
+                `andThen` fieldValueDecoder
+            )
+        )
+        (map Just
+            (("fieldType" := string)
+                `andThen` fieldValueDecoder
+            )
+        )
 
 
 string2machine : String -> Machine
@@ -64,6 +68,20 @@ displayRecDecoder : Decoder DisplayRec
 displayRecDecoder =
     object2 DisplayRec
         ("code" := string)
+        ("display" := string)
+
+
+machineDisplayDecoder : Decoder MachineDisplay
+machineDisplayDecoder =
+    object2 MachineDisplay
+        ("machine" := machineDecoder)
+        ("display" := string)
+
+
+cryptoDisplayDecoder : Decoder CryptoDisplay
+cryptoDisplayDecoder =
+    object2 CryptoDisplay
+        ("crypto" := cryptoDecoder)
         ("display" := string)
 
 
@@ -146,8 +164,8 @@ accountRecDecoder =
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
     object5 ConfigData
-        ("cryptos" := list displayRecDecoder)
+        ("cryptos" := list cryptoDisplayDecoder)
         ("currencies" := list displayRecDecoder)
         ("languages" := list displayRecDecoder)
         ("accounts" := list accountRecDecoder)
-        ("machines" := list machineDecoder)
+        ("machines" := list machineDisplayDecoder)

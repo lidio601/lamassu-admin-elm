@@ -92,11 +92,11 @@ update msg model =
                 RemoteData.update mapper model
 
 
-cryptoView : String -> Crypto -> Html Msg
-cryptoView code crypto =
+cryptoView : String -> CryptoDisplay -> Html Msg
+cryptoView code cryptoDisplay =
     let
-        cryptoString =
-            case crypto of
+        cryptoCodeString =
+            case cryptoDisplay.crypto of
                 CryptoCode s ->
                     s
 
@@ -104,22 +104,19 @@ cryptoView code crypto =
                     "global"
     in
         li []
-            [ a [ href ("/config/" ++ code ++ "/" ++ cryptoString) ]
-                [ text cryptoString ]
+            [ a [ href ("/config/" ++ code ++ "/" ++ cryptoCodeString) ]
+                [ text cryptoDisplay.display ]
             ]
 
 
 cryptosView : ConfigGroup -> Html Msg
 cryptosView configGroup =
     let
-        rawCryptos =
-            List.map (.code >> CryptoCode) configGroup.data.cryptos
-
         cryptos =
             if (configGroup.schema.cryptoScope == Specific) then
-                rawCryptos
+                configGroup.data.cryptos
             else
-                GlobalCrypto :: rawCryptos
+                globalCryptoDisplay :: configGroup.data.cryptos
     in
         ul [] (List.map (cryptoView configGroup.schema.code) cryptos)
 
