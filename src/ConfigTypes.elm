@@ -103,6 +103,16 @@ fieldToString field =
                     toString v
 
 
+machineToString : Machine -> String
+machineToString machine =
+    case machine of
+        GlobalMachine ->
+            "global"
+
+        MachineId machineId ->
+            machineId
+
+
 stringToFieldValue : FieldType -> String -> Result String (Maybe FieldValue)
 stringToFieldValue fieldType s =
     if (String.isEmpty s) then

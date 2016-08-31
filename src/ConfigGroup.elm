@@ -183,7 +183,7 @@ cellView model crypto machine fieldDescriptor =
 
 rowView : Model -> Crypto -> Machine -> Html Msg
 rowView model crypto machine =
-    tr [] (List.map (cellView model crypto machine) model.schema.entries)
+    tr [] ((td [] [ text (machineToString machine) ]) :: (List.map (cellView model crypto machine) model.schema.entries))
 
 
 headerCellView : FieldDescriptor -> Html Msg
@@ -193,7 +193,7 @@ headerCellView fieldDescriptor =
 
 headerRowView : Model -> Crypto -> Html Msg
 headerRowView model crypto =
-    tr [] (List.map headerCellView model.schema.entries)
+    tr [] ((td [] [ text "Machine" ]) :: List.map headerCellView model.schema.entries)
 
 
 tableView : Model -> Crypto -> Html Msg
