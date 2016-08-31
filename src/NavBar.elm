@@ -1,9 +1,11 @@
-module NavBar exposing (Page(..), view, Msg)
+module NavBar exposing (Page(..), view, update, Msg)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
-import Html.Attributes exposing (href)
+import Html.Events exposing (onClick)
 import Html.CssHelpers
 import AdminCss
+import Navigation exposing (newUrl)
+import VirtualDom
 
 
 { id, class, classList } =
@@ -40,15 +42,30 @@ load =
 -- UPDATE
 
 
-type alias Msg =
-    ()
+type Msg
+    = NewPage Page
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
+update (NewPage page) model =
+    case page of
+        PairPage ->
+            model ! [ newUrl "/pair" ]
+
+        AccountPage account ->
+            model ! [ newUrl ("/account/" ++ account) ]
+
+        CryptoConfigPage configGroup crypto ->
+            model ! [ newUrl ("/config/" ++ configGroup ++ "/" ++ crypto) ]
+
+        ConfigPage configGroup ->
+            model ! [ newUrl ("/config/" ++ configGroup) ]
+
+        UnknownPage ->
+            model ! []
 
 
+activePage : Page -> Page -> VirtualDom.Property a
 activePage linkPage page =
     if (linkPage == page) then
         class [ AdminCss.NavBarItemActive ]
@@ -59,8 +76,8 @@ activePage linkPage page =
 view : Page -> Html Msg
 view page =
     nav [ class [ AdminCss.NavBar ] ]
-        [ div [] [ a [ activePage PairPage page, href "/pair" ] [ text "Pairing" ] ]
-        , div [] [ a [ activePage (AccountPage "twilio") page, href "/account/twilio" ] [ text "Accounts" ] ]
-        , div [] [ a [ activePage (CryptoConfigPage "commissions" "global") page, href "/config/commissions/global" ] [ text "Commissions" ] ]
-        , div [] [ a [ activePage (ConfigPage "limits") page, href "/config/limits" ] [ text "Limits" ] ]
+        [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
+        , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
+        , div [ onClick (NewPage (CryptoConfigPage "commissions" "global")), activePage (CryptoConfigPage "commissions" "global") page ] [ text "Commissions" ]
+        , div [ onClick (NewPage (ConfigPage "limits")), activePage (ConfigPage "limits") page ] [ text "Limits" ]
         ]

@@ -82,24 +82,21 @@ css =
             , fontSize (px 18)
             , children
                 [ div
-                    [ children
-                        [ a
-                            [ color navItemColor
-                            , height (px 60)
-                            , display block
-                            , lineHeight (px 60)
-                            , padding2 (px 0) (px 20)
-                            , textDecoration none
-                            , fontWeight bold
-                            , hover
-                                [ backgroundColor navItemActiveBackgroundColor
-                                , color navItemActiveColor
-                                ]
-                            , withClass NavBarItemActive
-                                [ color navItemActiveColor
-                                ]
-                            ]
+                    [ color navItemColor
+                    , height (px 60)
+                    , display block
+                    , lineHeight (px 60)
+                    , padding2 (px 0) (px 20)
+                    , textDecoration none
+                    , fontWeight bold
+                    , hover
+                        [ backgroundColor navItemActiveBackgroundColor
+                        , color navItemActiveColor
                         ]
+                    , withClass NavBarItemActive
+                        [ color navItemActiveColor
+                        ]
+                    , cursor pointer
                     ]
                 ]
             ]

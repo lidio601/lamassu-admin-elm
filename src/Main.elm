@@ -106,7 +106,11 @@ update msg model =
                 { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
         NavBarMsg navBarMsg ->
-            ( model, Cmd.none )
+            let
+                ( navModel, cmd ) =
+                    NavBar.update navBarMsg ()
+            in
+                ( model, Cmd.map NavBarMsg cmd )
 
 
 content : Model -> Html Msg
