@@ -13,13 +13,16 @@ encodeFieldValue maybeFieldValue =
             case fieldValue of
                 FieldStringValue value ->
                     string value
-
                 FieldPercentageValue value ->
                     float value
-
                 FieldIntegerValue value ->
                     int value
-
+                FieldOnOffValue value ->
+                    bool value
+                FieldAccountValue value ->
+                    string value
+                FieldCurrencyValue value ->
+                    string value
 
 
 encodeFieldType : Maybe FieldValue -> Value
@@ -30,12 +33,16 @@ encodeFieldType maybeFieldValue =
             case fieldValue of
                 FieldStringValue _ ->
                     string "string"
-
                 FieldPercentageValue _ ->
                     string "percentage"
-
                 FieldIntegerValue _ ->
                     string "integer"
+                FieldOnOffValue _ ->
+                    string "onOff"
+                FieldAccountValue _ ->
+                    string "account"
+                FieldCurrencyValue _ ->
+                    string "currency"
 
 
 dirtyValue : Field -> Maybe ValidDirtyField

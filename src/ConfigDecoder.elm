@@ -16,6 +16,15 @@ fieldValueDecoder fieldType =
         "integer" ->
             map FieldIntegerValue ("fieldValue" := int)
 
+        "onOff" ->
+            map FieldOnOffValue ("fieldValue" := bool)
+
+        "account" ->
+            map FieldAccountValue ("fieldValue" := string)
+
+        "currency" ->
+            map FieldCurrencyValue ("fieldValue" := string)
+
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
 
@@ -112,6 +121,15 @@ string2FieldType s =
 
         "integer" ->
             Ok FieldIntegerType
+
+        "onOff" ->
+            Ok FieldOnOffType
+
+        "account" ->
+            Ok FieldAccountType
+
+        "currency" ->
+            Ok FieldCurrencyType
 
         _ ->
             Err ("No such FieldType " ++ s)

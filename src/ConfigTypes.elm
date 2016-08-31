@@ -67,12 +67,18 @@ type FieldType
     = FieldStringType
     | FieldPercentageType
     | FieldIntegerType
+    | FieldOnOffType
+    | FieldAccountType
+    | FieldCurrencyType
 
 
 type FieldValue
     = FieldStringValue String
     | FieldPercentageValue Float
     | FieldIntegerValue Int
+    | FieldOnOffValue Bool
+    | FieldAccountValue String
+    | FieldCurrencyValue String
 
 
 type alias FieldDescriptor =
@@ -140,6 +146,18 @@ fieldValueToString fieldValue =
         FieldIntegerValue v ->
             toString v
 
+        FieldOnOffValue v ->
+            if v then
+                "on"
+            else
+                "off"
+
+        FieldAccountValue v ->
+            v
+
+        FieldCurrencyValue v ->
+            v
+
 
 machineToString : Machine -> String
 machineToString machine =
@@ -171,3 +189,20 @@ stringToFieldValue fieldType s =
                     |> Result.map FieldIntegerValue
                     |> Result.map Just
                     |> Result.formatError FieldParsingError
+
+            FieldOnOffType ->
+                case s of
+                    "on" ->
+                        Ok (Just (FieldOnOffValue True))
+
+                    "off" ->
+                        Ok (Just (FieldOnOffValue False))
+
+                    _ ->
+                        Err (FieldParsingError ("Unsupported value for OnOff: " ++ s))
+
+            FieldAccountType ->
+                Ok (Just (FieldAccountValue s))
+
+            FieldCurrencyType ->
+                Ok (Just (FieldCurrencyValue s))

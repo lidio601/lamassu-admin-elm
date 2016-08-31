@@ -2,7 +2,7 @@ module ConfigGroup exposing (Msg, update, view)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (defaultValue, placeholder)
+import Html.Attributes exposing (defaultValue, placeholder, checked, type')
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (stringToCrypto)
 import List
@@ -107,32 +107,51 @@ update (Input crypto machine fieldCode valueString) model =
 -- View
 
 
-fieldInput : Crypto -> Machine -> FieldDescriptor -> String -> String -> Html Msg
-fieldInput crypto machine fieldDescriptor defaultString placeholderString =
+textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue =
+    let
+        maybeSpecificString =
+            Maybe.map fieldValueToString maybeFieldValue
+
+        maybeFallbackString =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+
+        defaultString =
+            Maybe.withDefault "" maybeSpecificString
+
+        fallbackString =
+            Maybe.withDefault "" maybeFallbackString
+    in
+        input
+            [ onInput (Input crypto machine fieldDescriptor.code)
+            , defaultValue defaultString
+            , placeholder fallbackString
+            ]
+            []
+
+
+fieldInput : Crypto -> Machine -> FieldDescriptor -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+fieldInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue =
     case fieldDescriptor.fieldType of
         FieldStringType ->
-            input
-                [ onInput (Input crypto machine fieldDescriptor.code)
-                , defaultValue defaultString
-                , placeholder placeholderString
-                ]
-                []
+            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
 
         FieldPercentageType ->
-            input
-                [ onInput (Input crypto machine fieldDescriptor.code)
-                , defaultValue defaultString
-                , placeholder placeholderString
-                ]
-                []
+            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
 
         FieldIntegerType ->
-            input
-                [ onInput (Input crypto machine fieldDescriptor.code)
-                , defaultValue defaultString
-                , placeholder placeholderString
-                ]
-                []
+            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+
+        FieldOnOffType ->
+            -- TODO: Need to make a 3-state custom component
+            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+
+        FieldAccountType ->
+            -- TODO: Need to turn into smart search field
+            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+
+        FieldCurrencyType ->
+            -- TODO: Need to turn into smart search field
+            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
 
 
 fieldComponent : Model -> Crypto -> Machine -> FieldDescriptor -> Html Msg
@@ -159,22 +178,10 @@ fieldComponent model crypto machine fieldDescriptor =
         maybeSpecific =
             pickField fields crypto machine fieldCode
 
-        maybeSpecificString =
-            Maybe.map fieldValueToString maybeSpecific
-
-        maybeFallbackField =
+        maybeFallbackFieldValue =
             oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
-
-        maybeFallbackString =
-            Maybe.map fieldValueToString maybeFallbackField
-
-        defaultString =
-            Maybe.withDefault "" maybeSpecificString
-
-        fallbackString =
-            Maybe.withDefault "" maybeFallbackString
     in
-        fieldInput crypto machine fieldDescriptor defaultString fallbackString
+        fieldInput crypto machine fieldDescriptor maybeSpecific maybeFallbackFieldValue
 
 
 cellView : Model -> Crypto -> Machine -> FieldDescriptor -> Html Msg
