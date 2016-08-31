@@ -4,31 +4,37 @@ import Json.Encode exposing (..)
 import List
 import ConfigTypes exposing (..)
 
+encodeFieldValue : Maybe FieldValue -> Value
+encodeFieldValue maybeFieldValue =
+    case maybeFieldValue of
+        Nothing ->
+            null
+        Just fieldValue ->
+            case fieldValue of
+                FieldStringValue value ->
+                    string value
 
-encodeFieldValue : FieldValue -> Value
-encodeFieldValue fieldValue =
-    case fieldValue of
-        FieldStringValue value ->
-            string value
+                FieldPercentageValue value ->
+                    float value
 
-        FieldPercentageValue value ->
-            float value
-
-        FieldIntegerValue value ->
-            int value
+                FieldIntegerValue value ->
+                    int value
 
 
-encodeFieldType : FieldValue -> Value
-encodeFieldType fieldValue =
-    case fieldValue of
-        FieldStringValue _ ->
-            string "string"
+encodeFieldType : Maybe FieldValue -> Value
+encodeFieldType maybeFieldValue =
+    case maybeFieldValue of
+        Nothing -> null
+        Just fieldValue ->
+            case fieldValue of
+                FieldStringValue _ ->
+                    string "string"
 
-        FieldPercentageValue _ ->
-            string "percentage"
+                FieldPercentageValue _ ->
+                    string "percentage"
 
-        FieldIntegerValue _ ->
-            string "integer"
+                FieldIntegerValue _ ->
+                    string "integer"
 
 
 isDirty : Field -> Bool
@@ -37,7 +43,10 @@ isDirty field =
         Nothing ->
             True
         Just loadedFieldValue ->
-            field.fieldValue /= loadedFieldValue
+            case field.fieldValue of
+                Nothing -> True
+                Just fieldValue ->
+                    fieldValue /= loadedFieldValue
 
 
 encodeCrypto : Crypto -> Value
