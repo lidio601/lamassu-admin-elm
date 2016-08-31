@@ -21,6 +21,7 @@ encodeFieldValue maybeFieldValue =
                     int value
 
 
+
 encodeFieldType : Maybe FieldValue -> Value
 encodeFieldType maybeFieldValue =
     case maybeFieldValue of
@@ -37,16 +38,34 @@ encodeFieldType maybeFieldValue =
                     string "integer"
 
 
-isDirty : Field -> Bool
-isDirty field =
-    case field.loadedFieldValue of
-        Nothing ->
-            True
-        Just loadedFieldValue ->
-            case field.fieldValue of
-                Nothing -> True
-                Just fieldValue ->
-                    fieldValue /= loadedFieldValue
+dirtyValue : Field -> Maybe ValidDirtyField
+dirtyValue field =
+    let
+        maybeMaybeFieldValue = case field.fieldValue of
+            Err _ -> Nothing
+            Ok maybeFieldValue ->
+                case field.loadedFieldValue of
+                    Nothing ->
+                        Just maybeFieldValue
+                    Just loadedFieldValue ->
+                        case maybeFieldValue of
+                            Nothing ->
+                                Just maybeFieldValue
+                            Just fieldValue ->
+                                if (fieldValue /= loadedFieldValue) then
+                                    Just maybeFieldValue
+                                else
+                                    Nothing
+        toValidDirtyField maybeFieldValue =
+            { code = field.code
+            , crypto = field.crypto
+            , machine = field.machine
+            , fieldValue = maybeFieldValue
+            }
+    in
+        Maybe.map toValidDirtyField maybeMaybeFieldValue
+
+
 
 
 encodeCrypto : Crypto -> Value
@@ -69,7 +88,7 @@ encodeMachine machine =
             string "global"
 
 
-encodeField : Field -> Value
+encodeField : ValidDirtyField -> Value
 encodeField field =
     Json.Encode.object
         [ ( "code", string field.code )
@@ -84,7 +103,7 @@ encodeConfigGroup : ConfigGroup -> Value
 encodeConfigGroup configGroup =
     let
         dirtyFields =
-            List.filter isDirty configGroup.values
+            List.filterMap dirtyValue configGroup.values
     in
         Json.Encode.object
             [ ("code", string configGroup.schema.code)

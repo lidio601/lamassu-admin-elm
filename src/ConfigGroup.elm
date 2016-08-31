@@ -7,7 +7,6 @@ import ConfigTypes exposing (..)
 import ConfigDecoder exposing (stringToCrypto)
 import List
 import Maybe exposing (oneOf)
-import String
 
 
 type alias Model =
@@ -22,6 +21,29 @@ type Msg
     = Input Crypto Machine String String
 
 
+toMatchedFieldValue : Crypto -> Machine -> String -> Field -> Maybe FieldValue
+toMatchedFieldValue crypto machine fieldCode field =
+    let
+        maybeFieldValue =
+            case field.fieldValue of
+                Err _ ->
+                    field.loadedFieldValue
+
+                Ok originalMaybeFieldValue ->
+                    originalMaybeFieldValue
+    in
+        if (isOfFieldClass crypto machine fieldCode field) then
+            maybeFieldValue
+        else
+            Nothing
+
+
+pickField : List Field -> Crypto -> Machine -> String -> Maybe FieldValue
+pickField fields crypto machine fieldCode =
+    List.filterMap (toMatchedFieldValue crypto machine fieldCode) fields
+        |> List.head
+
+
 isOfFieldClass : Crypto -> Machine -> String -> Field -> Bool
 isOfFieldClass crypto machine fieldCode field =
     field.crypto
@@ -32,18 +54,9 @@ isOfFieldClass crypto machine fieldCode field =
         == fieldCode
 
 
-isNotOfFieldClass crypto machine fieldCode field =
-    not (isOfFieldClass crypto machine fieldCode field)
-
-
-isFieldClass : Field -> Field -> Bool
-isFieldClass searchField field =
-    isOfFieldClass searchField.crypto searchField.machine searchField.code field
-
-
 isNotFieldClass : Field -> Field -> Bool
 isNotFieldClass searchField field =
-    not (isFieldClass searchField field)
+    not (isOfFieldClass searchField.crypto searchField.machine searchField.code field)
 
 
 placeField : List Field -> Field -> List Field
@@ -74,7 +87,7 @@ updateValues model crypto machine fieldCode valueString =
                                     { code = fieldCode
                                     , crypto = crypto
                                     , machine = machine
-                                    , fieldValue = fieldValue
+                                    , fieldValue = Ok fieldValue
                                     , loadedFieldValue = Nothing
                                     }
 
@@ -128,12 +141,6 @@ fieldInput crypto machine fieldDescriptor defaultString placeholderString =
                 []
 
 
-pickField : List Field -> Crypto -> Machine -> String -> Maybe Field
-pickField fields crypto machine fieldCode =
-    List.filter (isOfFieldClass crypto machine fieldCode) fields
-        |> List.head
-
-
 fieldComponent : Model -> Crypto -> Machine -> FieldDescriptor -> Html Msg
 fieldComponent model crypto machine fieldDescriptor =
     let
@@ -159,13 +166,13 @@ fieldComponent model crypto machine fieldDescriptor =
             pickField fields crypto machine fieldCode
 
         maybeSpecificString =
-            Maybe.map fieldToString maybeSpecific
+            Maybe.map fieldValueToString maybeSpecific
 
         maybeFallbackField =
             oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
 
         maybeFallbackString =
-            Maybe.map fieldToString maybeFallbackField
+            Maybe.map fieldValueToString maybeFallbackField
 
         defaultString =
             Maybe.withDefault "" maybeSpecificString

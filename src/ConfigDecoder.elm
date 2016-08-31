@@ -26,7 +26,7 @@ fieldDecoder =
         ("code" := string)
         ("crypto" := cryptoDecoder)
         ("machine" := machineDecoder)
-        (map Just (("fieldType" := string)
+        (map (Ok << Just) (("fieldType" := string)
             `andThen` fieldValueDecoder
         ))
         (map Just (("fieldType" := string)

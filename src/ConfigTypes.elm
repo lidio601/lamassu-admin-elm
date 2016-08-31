@@ -25,12 +25,29 @@ type ConfigScope
     | Both
 
 
+type FieldError
+    = Parsing String
+    | Validation String
+
+
+type alias FieldHolder =
+    Result FieldError (Maybe FieldValue)
+
+
 type alias Field =
     { code : String
     , crypto : Crypto
     , machine : Machine
-    , fieldValue : Maybe FieldValue
+    , fieldValue : FieldHolder
     , loadedFieldValue : Maybe FieldValue
+    }
+
+
+type alias ValidDirtyField =
+    { code : String
+    , crypto : Crypto
+    , machine : Machine
+    , fieldValue : Maybe FieldValue
     }
 
 
@@ -85,22 +102,17 @@ type alias ConfigData =
     }
 
 
-fieldToString : Field -> String
-fieldToString field =
-    case field.fieldValue of
-        Nothing ->
-            ""
+fieldValueToString : FieldValue -> String
+fieldValueToString fieldValue =
+    case fieldValue of
+        FieldStringValue v ->
+            v
 
-        Just fieldValue ->
-            case fieldValue of
-                FieldStringValue v ->
-                    v
+        FieldPercentageValue v ->
+            toString v
 
-                FieldPercentageValue v ->
-                    toString v
-
-                FieldIntegerValue v ->
-                    toString v
+        FieldIntegerValue v ->
+            toString v
 
 
 machineToString : Machine -> String
