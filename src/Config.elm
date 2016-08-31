@@ -124,8 +124,8 @@ cryptosView configGroup =
         ul [] (List.map (cryptoView configGroup.schema.code) cryptos)
 
 
-view : Model -> String -> Html Msg
-view model cryptoCode =
+view : Model -> Maybe String -> Html Msg
+view model maybeCryptoCode =
     case model of
         NotAsked ->
             div [] []
@@ -139,13 +139,22 @@ view model cryptoCode =
         Success configGroup ->
             let
                 configGroupView =
-                    Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup cryptoCode)
+                    Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup maybeCryptoCode)
             in
-                div []
-                    [ div [] [ (cryptosView configGroup) ]
-                    , div [] [ text configGroup.schema.display ]
-                    , Html.form [ onSubmit Submit ]
-                        [ div [] [ configGroupView ]
-                        , button [] [ text "Submit" ]
+                if (configGroup.schema.cryptoScope == Global) then
+                    div []
+                        [ div [] [ text configGroup.schema.display ]
+                        , Html.form [ onSubmit Submit ]
+                            [ div [] [ configGroupView ]
+                            , button [] [ text "Submit" ]
+                            ]
                         ]
-                    ]
+                else
+                    div []
+                        [ div [] [ (cryptosView configGroup) ]
+                        , div [] [ text configGroup.schema.display ]
+                        , Html.form [ onSubmit Submit ]
+                            [ div [] [ configGroupView ]
+                            , button [] [ text "Submit" ]
+                            ]
+                        ]

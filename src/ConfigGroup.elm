@@ -113,7 +113,10 @@ fieldInput crypto machine fieldDescriptor defaultString placeholderString =
     case fieldDescriptor.fieldType of
         FieldStringType ->
             input
-                [ onInput (Input crypto machine fieldDescriptor.code) ]
+                [ onInput (Input crypto machine fieldDescriptor.code)
+                , defaultValue defaultString
+                , placeholder placeholderString
+                ]
                 []
 
         FieldPercentageType ->
@@ -126,7 +129,10 @@ fieldInput crypto machine fieldDescriptor defaultString placeholderString =
 
         FieldIntegerType ->
             input
-                [ onInput (Input crypto machine fieldDescriptor.code) ]
+                [ onInput (Input crypto machine fieldDescriptor.code)
+                , defaultValue defaultString
+                , placeholder placeholderString
+                ]
                 []
 
 
@@ -224,10 +230,11 @@ isField fieldCode field =
     field.code == fieldCode
 
 
-view : Model -> String -> Html Msg
-view model cryptoCode =
+view : Model -> Maybe String -> Html Msg
+view model maybeCryptoCode =
     let
         crypto =
-            stringToCrypto cryptoCode
+            Maybe.map stringToCrypto maybeCryptoCode
+                |> Maybe.withDefault GlobalCrypto
     in
         tableView model crypto

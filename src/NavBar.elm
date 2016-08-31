@@ -40,4 +40,5 @@ view model =
         [ li [] [ a [ href "/pair" ] [ text "Pairing" ] ]
         , li [] [ a [ href "/account/twilio" ] [ text "Accounts" ] ]
         , li [] [ a [ href "/config/commissions/global" ] [ text "Commissions" ] ]
+        , li [] [ a [ href "/config/limits" ] [ text "Limits" ] ]
         ]
