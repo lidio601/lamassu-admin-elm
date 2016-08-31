@@ -10,8 +10,12 @@ import ConfigTypes exposing (..)
 import ConfigDecoder exposing (..)
 import ConfigEncoder exposing (..)
 import ConfigGroup
+import Html.CssHelpers
+import AdminCss
 
 
+{ id, class, classList } =
+    Html.CssHelpers.withNamespace "lamassuAdmin"
 type alias ConfigGroupResponse =
     RemoteData (Error String) (Response ConfigGroup)
 
@@ -140,7 +144,7 @@ view model maybeCryptoCode =
             in
                 if (configGroup.schema.cryptoScope == Global) then
                     div []
-                        [ div [] [ text configGroup.schema.display ]
+                        [ div [ class [ AdminCss.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
                         , Html.form [ onSubmit Submit ]
                             [ div [] [ configGroupView ]
                             , button [] [ text "Submit" ]
@@ -148,8 +152,8 @@ view model maybeCryptoCode =
                         ]
                 else
                     div []
-                        [ div [] [ (cryptosView configGroup) ]
-                        , div [] [ text configGroup.schema.display ]
+                        [ div [ class [ AdminCss.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        , div [] [ (cryptosView configGroup) ]
                         , Html.form [ onSubmit Submit ]
                             [ div [] [ configGroupView ]
                             , button [] [ text "Submit" ]

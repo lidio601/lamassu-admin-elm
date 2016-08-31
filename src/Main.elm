@@ -2,15 +2,15 @@ module Main exposing (..)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.App exposing (map)
-import Html.Attributes exposing (class)
 import Navigation
 import Pair
 import Account
 import Config
-import NavBar
+import NavBar exposing (..)
 import UrlParser exposing (..)
 import Result exposing (withDefault)
 import String
+import Html.Attributes exposing (class)
 
 
 main : Program Never
@@ -31,14 +31,6 @@ main =
 pageParser : Navigation.Location -> Result String Page
 pageParser location =
     UrlParser.parse identity desiredPage (String.dropLeft 1 location.pathname)
-
-
-type Page
-    = AccountPage String
-    | PairPage
-    | CryptoConfigPage String String
-    | ConfigPage String
-    | UnknownPage
 
 
 desiredPage : Parser (Page -> a) a
@@ -139,8 +131,14 @@ content model =
 view : Model -> Html Msg
 view model =
     div []
-        [ map NavBarMsg (NavBar.view ())
-        , div [ class "nav" ] [ content model ]
+        [ div [ class "grid" ]
+            [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
+                [ map NavBarMsg (NavBar.view model.page) ]
+            , div [ class "unit three-quarters lamassuAdminMainRight" ]
+                [ div [ class "lamassuAdminContent" ]
+                    [ content model ]
+                ]
+            ]
         ]
 
 

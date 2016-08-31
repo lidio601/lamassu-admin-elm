@@ -2,3 +2,5 @@ node_modules
 elm-stuff
 dist
 build
+
+styles.css

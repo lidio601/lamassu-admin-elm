@@ -1,10 +1,25 @@
-module NavBar exposing (..)
+module NavBar exposing (Page(..), view, Msg)
 
-import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li)
+import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
 import Html.Attributes exposing (href)
+import Html.CssHelpers
+import AdminCss
+
+
+{ id, class, classList } =
+    Html.CssHelpers.withNamespace "lamassuAdmin"
+
 
 
 -- MODEL
+
+
+type Page
+    = AccountPage String
+    | PairPage
+    | CryptoConfigPage String String
+    | ConfigPage String
+    | UnknownPage
 
 
 type alias Model =
@@ -34,11 +49,18 @@ update msg model =
     ( model, Cmd.none )
 
 
-view : Model -> Html Msg
-view model =
-    ul []
-        [ li [] [ a [ href "/pair" ] [ text "Pairing" ] ]
-        , li [] [ a [ href "/account/twilio" ] [ text "Accounts" ] ]
-        , li [] [ a [ href "/config/commissions/global" ] [ text "Commissions" ] ]
-        , li [] [ a [ href "/config/limits" ] [ text "Limits" ] ]
+activePage linkPage page =
+    if (linkPage == page) then
+        class [ AdminCss.NavBarItemActive ]
+    else
+        class []
+
+
+view : Page -> Html Msg
+view page =
+    nav [ class [ AdminCss.NavBar ] ]
+        [ div [] [ a [ activePage PairPage page, href "/pair" ] [ text "Pairing" ] ]
+        , div [] [ a [ activePage (AccountPage "twilio") page, href "/account/twilio" ] [ text "Accounts" ] ]
+        , div [] [ a [ activePage (CryptoConfigPage "commissions" "global") page, href "/config/commissions/global" ] [ text "Commissions" ] ]
+        , div [] [ a [ activePage (ConfigPage "limits") page, href "/config/limits" ] [ text "Limits" ] ]
         ]

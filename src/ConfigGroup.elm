@@ -7,8 +7,12 @@ import ConfigTypes exposing (..)
 import ConfigDecoder exposing (stringToCrypto)
 import List
 import Maybe exposing (oneOf)
+import Html.CssHelpers
+import AdminCss
 
 
+{ id, class, classList } =
+    Html.CssHelpers.withNamespace "lamassuAdmin"
 type alias Model =
     ConfigGroup
 
@@ -219,7 +223,7 @@ tableView model crypto =
         rows =
             List.map (rowView model crypto) machines
     in
-        table []
+        table [ class [ AdminCss.ConfigTable ] ]
             [ thead [] [ headerRow ]
             , tbody [] rows
             ]
