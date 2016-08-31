@@ -26,8 +26,8 @@ type ConfigScope
 
 
 type FieldError
-    = Parsing String
-    | Validation String
+    = FieldParsingError String
+    | FieldValidationError String
 
 
 type alias FieldHolder =
@@ -125,7 +125,7 @@ machineToString machine =
             machineId
 
 
-stringToFieldValue : FieldType -> String -> Result String (Maybe FieldValue)
+stringToFieldValue : FieldType -> String -> FieldHolder
 stringToFieldValue fieldType s =
     if (String.isEmpty s) then
         Ok Nothing
@@ -138,8 +138,10 @@ stringToFieldValue fieldType s =
                 String.toFloat s
                     |> Result.map FieldPercentageValue
                     |> Result.map Just
+                    |> Result.formatError FieldParsingError
 
             FieldIntegerType ->
                 String.toInt s
                     |> Result.map FieldIntegerValue
                     |> Result.map Just
+                    |> Result.formatError FieldParsingError

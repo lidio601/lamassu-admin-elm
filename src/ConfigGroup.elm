@@ -74,27 +74,21 @@ updateValues model crypto machine fieldCode valueString =
         case maybeFieldDescriptor of
             Just fieldDescriptor ->
                 let
-                    fieldValueResult =
+                    fieldValueHolder =
                         stringToFieldValue fieldDescriptor.fieldType valueString
+
+                    field =
+                        { code = fieldCode
+                        , crypto = crypto
+                        , machine = machine
+                        , fieldValue = fieldValueHolder
+                        , loadedFieldValue = Nothing
+                        }
+
+                    values =
+                        placeField model.values field
                 in
-                    case fieldValueResult of
-                        Err _ ->
-                            model
-
-                        Ok fieldValue ->
-                            let
-                                field =
-                                    { code = fieldCode
-                                    , crypto = crypto
-                                    , machine = machine
-                                    , fieldValue = Ok fieldValue
-                                    , loadedFieldValue = Nothing
-                                    }
-
-                                values =
-                                    placeField model.values field
-                            in
-                                { model | values = values }
+                    { model | values = values }
 
             Nothing ->
                 model
