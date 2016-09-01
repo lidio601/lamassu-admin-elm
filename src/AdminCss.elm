@@ -1,16 +1,20 @@
 module AdminCss exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, thead, tbody, input)
+import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button)
 import Css.Namespace exposing (namespace)
+import Colors
 
 
 type CssClasses
-    = NavBar
+    = Button
+    | NavBar
     | MainLeft
     | MainRight
     | NavBarItemActive
     | Content
+    | CryptoTabs
+    | CryptoTabsActive
     | ConfigGroupLabel
     | ConfigTable
     | ConfigTableGlobalRow
@@ -22,27 +26,43 @@ type CssIds
 
 
 mainBackgroundColor =
-    hex "f6f6f4"
+    Colors.lightGrey
 
 
 contentBackgroundColor =
-    hex "ffffff"
+    Colors.white
 
 
 navBackgroundColor =
-    hex "2d2d2d"
+    Colors.darkGrey
 
 
 navItemActiveBackgroundColor =
-    hex "282828"
+    Colors.darkerGrey
 
 
 navItemActiveColor =
-    hex "56e7d7"
+    Colors.amazonite
 
 
 navItemColor =
-    hex "5f5f56"
+    Colors.sandstone
+
+
+cryptoTabsBackgroundColor =
+    Colors.cobalt
+
+
+cryptoTabsHoverBackgroundColor =
+    Colors.darkCobalt
+
+
+cryptoTabsColor =
+    Colors.white
+
+
+cryptoTabsActiveColor =
+    Colors.amazonite
 
 
 css =
@@ -50,6 +70,12 @@ css =
         [ body
             [ fontFamilies [ "Brandon Text" ]
             , margin zero
+            ]
+        , (.) Button
+            [ backgroundColor Colors.cobalt
+            , color Colors.white
+            , padding (px 10)
+            , display inlineBlock
             ]
         , (.) MainLeft
             [ backgroundColor navBackgroundColor
@@ -64,6 +90,29 @@ css =
             , backgroundColor contentBackgroundColor
             , padding (px 40)
             , borderRadius (px 5)
+            ]
+        , (.) CryptoTabs
+            [ displayFlex
+            , children
+                [ div
+                    [ padding2 (px 10) (px 15)
+                    , backgroundColor cryptoTabsBackgroundColor
+                    , color cryptoTabsColor
+                    , cursor pointer
+                    , fontWeight bold
+                    , hover
+                        [ backgroundColor cryptoTabsHoverBackgroundColor ]
+                    , firstChild
+                        [ borderRadius4 (px 5) (px 0) (px 0) (px 5)
+                        ]
+                    , lastChild
+                        [ borderRadius4 (px 0) (px 5) (px 5) (px 0)
+                        ]
+                    , withClass CryptoTabsActive
+                        [ color cryptoTabsActiveColor
+                        ]
+                    ]
+                ]
             ]
         , (.) ConfigGroupLabel
             [ fontWeight bold

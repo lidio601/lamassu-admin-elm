@@ -237,7 +237,7 @@ headerCellView fieldDescriptor =
 
 headerRowView : Model -> Crypto -> Html Msg
 headerRowView model crypto =
-    tr [] ((td [] [ text "Machine" ]) :: List.map headerCellView model.schema.entries)
+    tr [] ((td [] []) :: List.map headerCellView model.schema.entries)
 
 
 tableView : Model -> Crypto -> Html Msg

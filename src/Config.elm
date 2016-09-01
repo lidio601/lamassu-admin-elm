@@ -115,22 +115,25 @@ update msg model =
                     model ! []
 
 
-cryptoView : String -> CryptoDisplay -> Html Msg
-cryptoView code cryptoDisplay =
+cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg
+cryptoView maybeActiveCrypto cryptoDisplay =
     let
-        cryptoCodeString =
-            case cryptoDisplay.crypto of
-                CryptoCode s ->
-                    s
+        activeClass =
+            case maybeActiveCrypto of
+                Nothing ->
+                    class []
 
-                GlobalCrypto ->
-                    "global"
+                Just activeCrypto ->
+                    if (activeCrypto == cryptoDisplay.crypto) then
+                        class [ AdminCss.CryptoTabsActive ]
+                    else
+                        class []
     in
-        div [ onClick (CryptoSwitch cryptoDisplay.crypto) ] [ text cryptoDisplay.display ]
+        div [ activeClass, onClick (CryptoSwitch cryptoDisplay.crypto) ] [ text cryptoDisplay.display ]
 
 
-cryptosView : ConfigGroup -> Html Msg
-cryptosView configGroup =
+cryptosView : Maybe Crypto -> ConfigGroup -> Html Msg
+cryptosView activeCrypto configGroup =
     let
         cryptos =
             if (configGroup.schema.cryptoScope == Specific) then
@@ -138,7 +141,7 @@ cryptosView configGroup =
             else
                 globalCryptoDisplay :: configGroup.data.cryptos
     in
-        nav [] (List.map (cryptoView configGroup.schema.code) cryptos)
+        nav [ class [ AdminCss.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
 
 
 view : Model -> Html Msg
@@ -161,17 +164,17 @@ view model =
                 if (configGroup.schema.cryptoScope == Global) then
                     div []
                         [ div [ class [ AdminCss.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
-                        , Html.form [ onSubmit Submit ]
+                        , Html.form []
                             [ div [] [ configGroupView ]
-                            , button [] [ text "Submit" ]
+                            , div [ onClick Submit, class [ AdminCss.Button ] ] [ text "Submit" ]
                             ]
                         ]
                 else
                     div []
                         [ div [ class [ AdminCss.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
-                        , div [] [ (cryptosView configGroup) ]
-                        , Html.form [ onSubmit Submit ]
+                        , div [] [ (cryptosView model.crypto configGroup) ]
+                        , Html.form []
                             [ div [] [ configGroupView ]
-                            , button [] [ text "Submit" ]
+                            , div [ onClick Submit, class [ AdminCss.Button ] ] [ text "Submit" ]
                             ]
                         ]
