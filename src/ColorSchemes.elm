@@ -21,6 +21,14 @@ darkGreyScheme =
     }
 
 
+lightGreyScheme =
+    { bg = Colors.lightGrey
+    , fg = Colors.sandstone
+    , bgHover = Colors.darkerLightGrey
+    , fgActive = Colors.sandstone
+    }
+
+
 cobaltScheme =
     { bg = Colors.cobalt
     , fg = Colors.white

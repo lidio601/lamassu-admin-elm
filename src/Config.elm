@@ -12,7 +12,6 @@ import ConfigDecoder exposing (..)
 import ConfigEncoder exposing (..)
 import ConfigGroup
 import Html.CssHelpers
-import AdminCss
 import CssClasses
 
 
@@ -55,9 +54,13 @@ initModel =
     { webConfigGroup = RemoteData.NotAsked, crypto = Nothing }
 
 
-load : Model -> String -> ( Model, Cmd Msg )
-load model code =
-    ( model, getForm code )
+load : Model -> String -> Maybe String -> ( Model, Cmd Msg )
+load model code maybeCryptoCodeString =
+    let
+        crypto =
+            Maybe.map stringToCrypto maybeCryptoCodeString
+    in
+        ( { model | crypto = crypto }, getForm code )
 
 
 

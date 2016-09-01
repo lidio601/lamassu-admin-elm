@@ -101,12 +101,12 @@ css =
             , children
                 [ div
                     [ padding2 (px 10) (px 15)
-                    , colorize darkGreyScheme
+                    , colorize lightGreyScheme
                     , firstChild
-                        [ borderRadius4 (px 5) (px 0) (px 0) (px 5)
+                        [ borderRadius4 (px 5) (px 0) (px 0) (px 0)
                         ]
                     , lastChild
-                        [ borderRadius4 (px 0) (px 5) (px 5) (px 0)
+                        [ borderRadius4 (px 0) (px 5) (px 0) (px 0)
                         ]
                     ]
                 ]
@@ -118,9 +118,9 @@ css =
             ]
         , (.) ConfigTableContainer
             [ padding (px 10)
-            , borderRadius (px 7)
+            , borderRadius4 (px 0) (px 7) (px 7) (px 7)
             , backgroundColor mainBackgroundColor
-            , margin2 (px 10) zero
+            , margin3 zero zero (px 10)
             ]
         , (.) ConfigTable
             [ fontSize (px 14)

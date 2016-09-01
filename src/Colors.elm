@@ -27,6 +27,10 @@ lightGrey =
     hex "f6f6f4"
 
 
+darkerLightGrey =
+    hex "E6E6E3"
+
+
 darkGrey =
     hex "2d2d2d"
 

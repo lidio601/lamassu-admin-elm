@@ -179,6 +179,16 @@ cryptoToString crypto =
             code
 
 
+stringToCrypto : String -> Crypto
+stringToCrypto string =
+    case string of
+        "global" ->
+            GlobalCrypto
+
+        _ ->
+            CryptoCode string
+
+
 stringToFieldValue : FieldType -> String -> FieldHolder
 stringToFieldValue fieldType s =
     if (String.isEmpty s) then

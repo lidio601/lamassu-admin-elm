@@ -66,12 +66,25 @@ update (NewPage page) model =
             model ! []
 
 
+
+-- Bit hacky, but we have to match only first parameter of page
+
+
 activePage : Page -> Page -> VirtualDom.Property a
 activePage linkPage page =
-    if (linkPage == page) then
-        class [ CssClasses.Active ]
-    else
-        class []
+    let
+        active =
+            case page of
+                CryptoConfigPage config _ ->
+                    linkPage == CryptoConfigPage config "global"
+
+                _ ->
+                    linkPage == page
+    in
+        if (active) then
+            class [ CssClasses.Active ]
+        else
+            class []
 
 
 view : Page -> Html Msg

@@ -60,14 +60,6 @@ machineDecoder =
     map string2machine string
 
 
-stringToCrypto : String -> Crypto
-stringToCrypto s =
-    if s == "global" then
-        GlobalCrypto
-    else
-        CryptoCode s
-
-
 cryptoDecoder : Decoder Crypto
 cryptoDecoder =
     map stringToCrypto string
