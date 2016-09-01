@@ -9,6 +9,7 @@ import Maybe exposing (oneOf)
 import Html.CssHelpers
 import Html.Keyed
 import AdminCss
+import CssClasses
 import VirtualDom
 
 
@@ -214,7 +215,7 @@ globalRowClass : Machine -> VirtualDom.Property a
 globalRowClass machine =
     case machine of
         GlobalMachine ->
-            class [ AdminCss.ConfigTableGlobalRow ]
+            class [ CssClasses.ConfigTableGlobalRow ]
 
         _ ->
             class []
@@ -255,7 +256,7 @@ tableView model crypto =
         rows =
             List.map (rowView model crypto) machines
     in
-        table [ class [ AdminCss.ConfigTable ] ]
+        table [ class [ CssClasses.ConfigTable ] ]
             [ thead [] [ headerRow ]
             , tbody [] rows
             ]
@@ -272,5 +273,5 @@ view model maybeCrypto =
         crypto =
             Maybe.withDefault GlobalCrypto maybeCrypto
     in
-        div [ class [ AdminCss.ConfigTableContainer ] ]
+        div [ class [ CssClasses.ConfigTableContainer ] ]
             [ tableView model crypto ]

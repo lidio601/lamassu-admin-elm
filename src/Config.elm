@@ -13,6 +13,7 @@ import ConfigEncoder exposing (..)
 import ConfigGroup
 import Html.CssHelpers
 import AdminCss
+import CssClasses
 
 
 { id, class, classList } =
@@ -125,7 +126,7 @@ cryptoView maybeActiveCrypto cryptoDisplay =
 
                 Just activeCrypto ->
                     if (activeCrypto == cryptoDisplay.crypto) then
-                        class [ AdminCss.CryptoTabsActive ]
+                        class [ CssClasses.Active ]
                     else
                         class []
     in
@@ -141,7 +142,7 @@ cryptosView activeCrypto configGroup =
             else
                 globalCryptoDisplay :: configGroup.data.cryptos
     in
-        nav [ class [ AdminCss.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
+        nav [ class [ CssClasses.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
 
 
 view : Model -> Html Msg
@@ -160,21 +161,22 @@ view model =
             let
                 configGroupView =
                     Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup model.crypto)
+
+                form =
+                    Html.form []
+                        [ div [] [ configGroupView ]
+                        , div [ class [ CssClasses.ConfigButtonRow ] ]
+                            [ div [ onClick Submit, class [ CssClasses.ConfigButton ] ] [ text "Submit" ] ]
+                        ]
             in
                 if (configGroup.schema.cryptoScope == Global) then
                     div []
-                        [ div [ class [ AdminCss.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
-                        , Html.form []
-                            [ div [] [ configGroupView ]
-                            , div [ onClick Submit, class [ AdminCss.Button ] ] [ text "Submit" ]
-                            ]
+                        [ div [ class [ CssClasses.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        , form
                         ]
                 else
                     div []
-                        [ div [ class [ AdminCss.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ CssClasses.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
                         , div [] [ (cryptosView model.crypto configGroup) ]
-                        , Html.form []
-                            [ div [] [ configGroupView ]
-                            , div [ onClick Submit, class [ AdminCss.Button ] ] [ text "Submit" ]
-                            ]
+                        , form
                         ]

@@ -172,7 +172,7 @@ urlUpdate pageResult model =
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
-                    CryptoConfigPage config _ ->
+                    CryptoConfigPage config cryptoCode ->
                         let
                             ( configModel, cmd ) =
                                 Config.load pagedModel.config config

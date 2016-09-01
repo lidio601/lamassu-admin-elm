@@ -4,6 +4,7 @@ import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, na
 import Html.Events exposing (onClick)
 import Html.CssHelpers
 import AdminCss
+import CssClasses
 import Navigation exposing (newUrl)
 import VirtualDom
 
@@ -68,14 +69,14 @@ update (NewPage page) model =
 activePage : Page -> Page -> VirtualDom.Property a
 activePage linkPage page =
     if (linkPage == page) then
-        class [ AdminCss.NavBarItemActive ]
+        class [ CssClasses.Active ]
     else
         class []
 
 
 view : Page -> Html Msg
 view page =
-    nav [ class [ AdminCss.NavBar ] ]
+    nav [ class [ CssClasses.NavBar ] ]
         [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
         , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
         , div [ onClick (NewPage (CryptoConfigPage "commissions" "global")), activePage (CryptoConfigPage "commissions" "global") page ] [ text "Commissions" ]

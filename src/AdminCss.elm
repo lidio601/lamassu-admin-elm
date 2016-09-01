@@ -4,21 +4,8 @@ import Css exposing (..)
 import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button)
 import Css.Namespace exposing (namespace)
 import Colors
-
-
-type CssClasses
-    = Button
-    | NavBar
-    | MainLeft
-    | MainRight
-    | NavBarItemActive
-    | Content
-    | CryptoTabs
-    | CryptoTabsActive
-    | ConfigGroupLabel
-    | ConfigTable
-    | ConfigTableGlobalRow
-    | ConfigTableContainer
+import ColorSchemes exposing (..)
+import CssClasses exposing (..)
 
 
 type CssIds
@@ -65,17 +52,35 @@ cryptoTabsActiveColor =
     Colors.amazonite
 
 
+cobaltBG =
+    Colors.cobalt
+
+
+cobaltHoverBG =
+    Colors.darkCobalt
+
+
+cobaltColor =
+    Colors.white
+
+
+cobaltActiveColor =
+    Colors.amazonite
+
+
 css =
     (stylesheet << namespace "lamassuAdmin")
         [ body
             [ fontFamilies [ "Brandon Text" ]
             , margin zero
             ]
-        , (.) Button
-            [ backgroundColor Colors.cobalt
-            , color Colors.white
-            , padding (px 10)
+        , (.) ConfigButtonRow
+            [ textAlign right ]
+        , (.) ConfigButton
+            [ colorize cobaltScheme
+            , padding2 (px 10) (px 15)
             , display inlineBlock
+            , borderRadius (px 5)
             ]
         , (.) MainLeft
             [ backgroundColor navBackgroundColor
@@ -96,20 +101,12 @@ css =
             , children
                 [ div
                     [ padding2 (px 10) (px 15)
-                    , backgroundColor cryptoTabsBackgroundColor
-                    , color cryptoTabsColor
-                    , cursor pointer
-                    , fontWeight bold
-                    , hover
-                        [ backgroundColor cryptoTabsHoverBackgroundColor ]
+                    , colorize darkGreyScheme
                     , firstChild
                         [ borderRadius4 (px 5) (px 0) (px 0) (px 5)
                         ]
                     , lastChild
                         [ borderRadius4 (px 0) (px 5) (px 5) (px 0)
-                        ]
-                    , withClass CryptoTabsActive
-                        [ color cryptoTabsActiveColor
                         ]
                     ]
                 ]
@@ -167,26 +164,12 @@ css =
             , fontSize (px 18)
             , children
                 [ div
-                    [ color navItemColor
-                    , height (px 60)
+                    [ height (px 60)
                     , display block
                     , lineHeight (px 60)
                     , padding2 (px 0) (px 20)
-                    , textDecoration none
-                    , fontWeight bold
-                    , hover
-                        [ backgroundColor navItemActiveBackgroundColor
-                        , color navItemActiveColor
-                        ]
-                    , withClass NavBarItemActive
-                        [ color navItemActiveColor
-                        ]
-                    , cursor pointer
+                    , colorize darkGreyScheme
                     ]
                 ]
             ]
         ]
-
-
-primaryAccentColor =
-    hex "ccffaa"
