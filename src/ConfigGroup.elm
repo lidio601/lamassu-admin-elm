@@ -9,6 +9,7 @@ import List
 import Maybe exposing (oneOf)
 import Html.CssHelpers
 import AdminCss
+import VirtualDom
 
 
 { id, class, classList } =
@@ -193,9 +194,19 @@ cellView model crypto machine fieldDescriptor =
     td [] [ fieldComponent model crypto machine fieldDescriptor ]
 
 
+globalRowClass : Machine -> VirtualDom.Property a
+globalRowClass machine =
+    case machine of
+        GlobalMachine ->
+            class [ AdminCss.ConfigTableGlobalRow ]
+
+        _ ->
+            class []
+
+
 rowView : Model -> Crypto -> MachineDisplay -> Html Msg
 rowView model crypto machineDisplay =
-    tr [] ((td [] [ text (machineDisplay.display) ]) :: (List.map (cellView model crypto machineDisplay.machine) model.schema.entries))
+    tr [ globalRowClass machineDisplay.machine ] ((td [] [ text (machineDisplay.display) ]) :: (List.map (cellView model crypto machineDisplay.machine) model.schema.entries))
 
 
 headerCellView : FieldDescriptor -> Html Msg
@@ -241,4 +252,5 @@ view model maybeCryptoCode =
             Maybe.map stringToCrypto maybeCryptoCode
                 |> Maybe.withDefault GlobalCrypto
     in
-        tableView model crypto
+        div [ class [ AdminCss.ConfigTableContainer ] ]
+            [ tableView model crypto ]
