@@ -206,7 +206,12 @@ globalRowClass machine =
 
 rowView : Model -> Crypto -> MachineDisplay -> Html Msg
 rowView model crypto machineDisplay =
-    tr [ globalRowClass machineDisplay.machine ] ((td [] [ text (machineDisplay.display) ]) :: (List.map (cellView model crypto machineDisplay.machine) model.schema.entries))
+    tr [ globalRowClass machineDisplay.machine ]
+        ((td [] [ text (machineDisplay.display) ])
+            :: (List.map (cellView model crypto machineDisplay.machine)
+                    model.schema.entries
+               )
+        )
 
 
 headerCellView : FieldDescriptor -> Html Msg
@@ -245,12 +250,11 @@ isField fieldCode field =
     field.code == fieldCode
 
 
-view : Model -> Maybe String -> Html Msg
-view model maybeCryptoCode =
+view : Model -> Maybe Crypto -> Html Msg
+view model maybeCrypto =
     let
         crypto =
-            Maybe.map stringToCrypto maybeCryptoCode
-                |> Maybe.withDefault GlobalCrypto
+            Maybe.withDefault GlobalCrypto maybeCrypto
     in
         div [ class [ AdminCss.ConfigTableContainer ] ]
             [ tableView model crypto ]

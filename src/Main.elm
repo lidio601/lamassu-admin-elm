@@ -115,7 +115,7 @@ update msg model =
 
 content : Model -> Html Msg
 content model =
-    case Debug.log "DEBUG7" model.page of
+    case model.page of
         PairPage ->
             map PairMsg (Pair.view model.pair)
 
@@ -123,10 +123,10 @@ content model =
             map AccountMsg (Account.view model.account)
 
         CryptoConfigPage _ cryptoCode ->
-            map ConfigMsg (Config.view model.config (Just cryptoCode))
+            map ConfigMsg (Config.view model.config)
 
         ConfigPage _ ->
-            map ConfigMsg (Config.view model.config Nothing)
+            map ConfigMsg (Config.view model.config)
 
         UnknownPage ->
             div [] [ text ("No such page") ]
