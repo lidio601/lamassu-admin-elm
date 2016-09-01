@@ -1,1 +1,9 @@
-- fill out all current fields by loading via server
+- error page for non-existent crypto url
+- 404 page
+
+- advanced types, get all config screens working
+
+- convert l-s to work with new config from db
+- fix up pairing and login, get ready for release
+
+- transactions screen

@@ -8,7 +8,6 @@ import List
 import Maybe exposing (oneOf)
 import Html.CssHelpers
 import Html.Keyed
-import AdminCss
 import CssClasses
 import VirtualDom
 
@@ -60,14 +59,27 @@ isOfFieldClass crypto machine fieldCode field =
         == fieldCode
 
 
-isNotFieldClass : Field -> Field -> Bool
-isNotFieldClass searchField field =
-    not (isOfFieldClass searchField.crypto searchField.machine searchField.code field)
+isFieldClass : Field -> Field -> Bool
+isFieldClass searchField field =
+    isOfFieldClass searchField.crypto searchField.machine searchField.code field
 
 
 placeField : List Field -> Field -> List Field
 placeField fieldList field =
-    field :: (List.filter (isNotFieldClass field) fieldList)
+    let
+        maybeOldField =
+            List.filter (isFieldClass field) fieldList
+                |> List.head
+
+        newField =
+            case maybeOldField of
+                Nothing ->
+                    field
+
+                Just oldField ->
+                    { oldField | fieldValue = field.fieldValue }
+    in
+        newField :: (List.filter (not << (isFieldClass field)) fieldList)
 
 
 updateValues : Model -> Crypto -> Machine -> String -> String -> Model
