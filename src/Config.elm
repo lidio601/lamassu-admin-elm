@@ -25,9 +25,17 @@ type alias WebConfigGroup =
     RemoteData (Error String) ConfigGroup
 
 
+type SavingStatus
+    = Saving
+    | Saved
+    | Editing
+    | NotSaving
+
+
 type alias Model =
     { webConfigGroup : WebConfigGroup
     , crypto : Maybe Crypto
+    , status : SavingStatus
     }
 
 
@@ -51,7 +59,7 @@ postForm configGroup =
 
 initModel : Model
 initModel =
-    { webConfigGroup = RemoteData.NotAsked, crypto = Nothing }
+    { webConfigGroup = RemoteData.NotAsked, crypto = Nothing, status = NotSaving }
 
 
 load : Model -> String -> Maybe String -> ( Model, Cmd Msg )
@@ -78,12 +86,24 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load configGroupResponse ->
-            ( { model | webConfigGroup = RemoteData.map .data configGroupResponse }, Cmd.none )
+            let
+                status =
+                    if model.status == Saving then
+                        Saved
+                    else
+                        model.status
+            in
+                ( { model
+                    | webConfigGroup = RemoteData.map .data configGroupResponse
+                    , status = status
+                  }
+                , Cmd.none
+                )
 
         Submit ->
             case model.webConfigGroup of
                 Success configGroup ->
-                    Debug.log "DEBUG1" model ! [ postForm configGroup ]
+                    { model | status = Saving } ! [ postForm configGroup ]
 
                 _ ->
                     model ! []
@@ -98,7 +118,11 @@ update msg model =
                         webConfigGroup =
                             Success configGroupModel
                     in
-                        { model | webConfigGroup = webConfigGroup } ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
+                        { model
+                            | webConfigGroup = webConfigGroup
+                            , status = Editing
+                        }
+                            ! [ Cmd.map ConfigGroupMsg configGroupCmd ]
 
                 _ ->
                     model ! []
@@ -165,11 +189,21 @@ view model =
                 configGroupView =
                     Html.App.map ConfigGroupMsg (ConfigGroup.view configGroup model.crypto)
 
+                statusString =
+                    case model.status of
+                        Saved ->
+                            "Saved"
+
+                        _ ->
+                            ""
+
                 form =
                     Html.form []
                         [ div [] [ configGroupView ]
                         , div [ class [ CssClasses.ConfigButtonRow ] ]
-                            [ div [ onClick Submit, class [ CssClasses.ConfigButton ] ] [ text "Submit" ] ]
+                            [ div [ onClick Submit, class [ CssClasses.ConfigButton ] ] [ text "Submit" ]
+                            , div [] [ text statusString ]
+                            ]
                         ]
             in
                 if (configGroup.schema.cryptoScope == Global) then
