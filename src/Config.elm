@@ -54,9 +54,9 @@ initModel =
     { webConfigGroup = RemoteData.NotAsked, crypto = Nothing }
 
 
-load : String -> ( Model, Cmd Msg )
-load code =
-    ( { webConfigGroup = RemoteData.Loading, crypto = Nothing }, getForm code )
+load : Model -> String -> ( Model, Cmd Msg )
+load model code =
+    ( model, getForm code )
 
 
 
@@ -104,12 +104,7 @@ update msg model =
                 Success configGroup ->
                     let
                         cryptoCode =
-                            case crypto of
-                                GlobalCrypto ->
-                                    "global"
-
-                                CryptoCode code ->
-                                    code
+                            cryptoToString crypto
 
                         url =
                             "/config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode

@@ -2,12 +2,12 @@ module ConfigGroup exposing (Msg, update, view)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (defaultValue, placeholder, checked, type')
+import Html.Attributes exposing (defaultValue, placeholder, checked, type', name)
 import ConfigTypes exposing (..)
-import ConfigDecoder exposing (stringToCrypto)
 import List
 import Maybe exposing (oneOf)
 import Html.CssHelpers
+import Html.Keyed
 import AdminCss
 import VirtualDom
 
@@ -125,6 +125,12 @@ textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
 
         fallbackString =
             Maybe.withDefault "" maybeFallbackString
+
+        cryptoString =
+            cryptoToString crypto
+
+        machineString =
+            machineToString machine
     in
         input
             [ onInput (Input crypto machine fieldDescriptor.code)
@@ -191,7 +197,17 @@ fieldComponent model crypto machine fieldDescriptor =
 
 cellView : Model -> Crypto -> Machine -> FieldDescriptor -> Html Msg
 cellView model crypto machine fieldDescriptor =
-    td [] [ fieldComponent model crypto machine fieldDescriptor ]
+    -- Note: keying here is needed to clear out fields when switching cryptos
+    Html.Keyed.node "td"
+        []
+        [ ( (cryptoToString crypto)
+                ++ "-"
+                ++ (machineToString machine)
+                ++ "-"
+                ++ fieldDescriptor.code
+          , fieldComponent model crypto machine fieldDescriptor
+          )
+        ]
 
 
 globalRowClass : Machine -> VirtualDom.Property a

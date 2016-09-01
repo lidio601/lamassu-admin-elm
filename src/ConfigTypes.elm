@@ -169,6 +169,16 @@ machineToString machine =
             machineId
 
 
+cryptoToString : Crypto -> String
+cryptoToString crypto =
+    case crypto of
+        GlobalCrypto ->
+            "global"
+
+        CryptoCode code ->
+            code
+
+
 stringToFieldValue : FieldType -> String -> FieldHolder
 stringToFieldValue fieldType s =
     if (String.isEmpty s) then

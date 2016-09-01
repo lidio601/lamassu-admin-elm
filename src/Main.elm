@@ -175,14 +175,14 @@ urlUpdate pageResult model =
                     CryptoConfigPage config _ ->
                         let
                             ( configModel, cmd ) =
-                                Config.load config
+                                Config.load pagedModel.config config
                         in
                             { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
                     ConfigPage config ->
                         let
                             ( configModel, cmd ) =
-                                Config.load config
+                                Config.load pagedModel.config config
                         in
                             { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
