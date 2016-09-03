@@ -46,6 +46,12 @@ type alias FieldHolder =
     Result FieldError (Maybe FieldValue)
 
 
+type alias FieldScope =
+    { crypto : Crypto
+    , machine : Machine
+    }
+
+
 type alias Field =
     { code : String
     , crypto : Crypto
@@ -177,6 +183,47 @@ cryptoToString crypto =
 
         CryptoCode code ->
             code
+
+
+listMachines : ConfigGroup -> List MachineDisplay
+listMachines configGroup =
+    case configGroup.schema.machineScope of
+        Specific ->
+            configGroup.data.machines
+
+        Global ->
+            [ globalMachineDisplay ]
+
+        Both ->
+            globalMachineDisplay :: configGroup.data.machines
+
+
+listCryptos : ConfigGroup -> List CryptoDisplay
+listCryptos configGroup =
+    case configGroup.schema.cryptoScope of
+        Specific ->
+            configGroup.data.cryptos
+
+        Global ->
+            [ globalCryptoDisplay ]
+
+        Both ->
+            globalCryptoDisplay :: configGroup.data.cryptos
+
+
+fieldScopes : ConfigGroup -> List FieldScope
+fieldScopes configGroup =
+    let
+        machines =
+            List.map .machine (listMachines configGroup)
+
+        cryptos =
+            List.map .crypto (listCryptos configGroup)
+
+        cryptoScopes crypto =
+            List.map (\machine -> { machine = machine, crypto = crypto }) machines
+    in
+        List.concatMap cryptoScopes cryptos
 
 
 stringToCrypto : String -> Crypto

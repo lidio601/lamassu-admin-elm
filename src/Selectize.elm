@@ -64,10 +64,10 @@ type alias Model x =
     }
 
 
-init : Int -> Items x -> Items x -> ( Model x, Cmd Msg )
-init maxItems initialItems availableItems =
+init : Int -> Items x -> ( Model x, Cmd Msg )
+init maxItems availableItems =
     { availableItems = availableItems
-    , selectedItems = initialItems
+    , selectedItems = []
     , boxItems = []
     , boxLength = 5
     , boxPosition = 0
@@ -82,10 +82,11 @@ init maxItems initialItems availableItems =
 -- UPDATE
 
 
-type Msg
+type Msg x
     = Input String
     | KeyDown Int
     | KeyUp Int
+    | Selected (List (Item x))
 
 
 clean : String -> String

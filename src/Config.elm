@@ -13,6 +13,7 @@ import ConfigEncoder exposing (..)
 import ConfigGroup
 import Html.CssHelpers
 import CssClasses
+import Selectize
 
 
 { id, class, classList } =
@@ -32,8 +33,25 @@ type SavingStatus
     | NotSaving
 
 
+type ItemRec
+    = ItemValue String
+
+
+type SelectizeItem
+    = Selectize.Item ItemRec
+
+
+type alias SelectizeModel =
+    Selectize.Model ItemRec
+
+
+type alias Selectizer =
+    ( FieldLocator, SelectizeModel )
+
+
 type alias Model =
     { webConfigGroup : WebConfigGroup
+    , selectizers : List Selectizer
     , crypto : Maybe Crypto
     , status : SavingStatus
     }
@@ -59,7 +77,11 @@ postForm configGroup =
 
 initModel : Model
 initModel =
-    { webConfigGroup = RemoteData.NotAsked, crypto = Nothing, status = NotSaving }
+    { webConfigGroup = RemoteData.NotAsked
+    , selectizers = []
+    , crypto = Nothing
+    , status = NotSaving
+    }
 
 
 load : Model -> String -> Maybe String -> ( Model, Cmd Msg )
@@ -82,6 +104,52 @@ type Msg
     | CryptoSwitch Crypto
 
 
+selectizeItem : DisplayRec -> SelectizeItem
+selectizeItem displayRec =
+    let
+        code =
+            displayRec.code
+
+        itemRec =
+            ItemValue code
+    in
+        Selectize.selectizeItem itemRec code displayRec.display []
+
+
+buildAccountSelectizers : ConfigGroup -> FieldDescriptor -> List Selectizer
+buildAccountSelectizers configGroup fieldDescriptor =
+    let
+        machines = listMachines configGroup
+        cryptos = listCryptos configGroup
+
+
+buildSelectizers : ConfigGroup -> FieldDescriptor -> Maybe (List Selectizer)
+buildSelectizers configGroup fieldDescriptor =
+    case fieldDescriptor.fieldType of
+        FieldStringType ->
+            Nothing
+
+        FieldPercentageType ->
+            Nothing
+
+        FieldIntegerType ->
+            Nothing
+
+        FieldOnOffType ->
+            Nothing
+
+        FieldAccountType ->
+            Just (buildAccountSelectizer configGroup fieldDescriptor)
+
+        FieldCurrencyType ->
+            Just (buildCurrencySelectizer configGroup fieldDescriptor)
+
+
+populateSelectizers : ConfigGroupResponse -> List SelectizeModel
+populateSelectizers configGroup =
+    List.map (buildSelectizers configGroup) configGroup.schema.entries
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -92,9 +160,16 @@ update msg model =
                         Saved
                     else
                         model.status
+
+                webConfigGroup =
+                    RemoteData.map .data configGroupResponse
+
+                selectizers =
+                    RemoteData.map populateSelectizers webConfigGroup
+                        |> RemoteData.withDefault []
             in
                 ( { model
-                    | webConfigGroup = RemoteData.map .data configGroupResponse
+                    | webConfigGroup = webConfigGroup
                     , status = status
                   }
                 , Cmd.none
@@ -163,11 +238,7 @@ cryptoView maybeActiveCrypto cryptoDisplay =
 cryptosView : Maybe Crypto -> ConfigGroup -> Html Msg
 cryptosView activeCrypto configGroup =
     let
-        cryptos =
-            if (configGroup.schema.cryptoScope == Specific) then
-                configGroup.data.cryptos
-            else
-                globalCryptoDisplay :: configGroup.data.cryptos
+        cryptos = listCryptos configGroup
     in
         nav [ class [ CssClasses.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
 

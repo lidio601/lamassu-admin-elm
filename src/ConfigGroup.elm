@@ -261,10 +261,7 @@ tableView model crypto =
             headerRowView model crypto
 
         machines =
-            if (model.schema.machineScope == Specific) then
-                model.data.machines
-            else
-                globalMachineDisplay :: model.data.machines
+            listMachines model
 
         rows =
             List.map (rowView model crypto) machines
