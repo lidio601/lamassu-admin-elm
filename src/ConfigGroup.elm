@@ -125,6 +125,7 @@ update (Input crypto machine fieldCode valueString) model =
 -- View
 
 
+textInput : Crypto -> Machine -> FieldDescriptor -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue =
     let
         maybeSpecificString =
