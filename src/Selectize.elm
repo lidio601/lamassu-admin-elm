@@ -8,7 +8,6 @@ module Selectize
         , Msg
         , Item
         , keyDown
-        , keyUp
         )
 
 import Html exposing (..)
@@ -32,10 +31,6 @@ type Status
     = Initial
     | Editing
     | Cleared
-
-
-type alias HtmlClasses =
-    {}
 
 
 selectizeItem : String -> String -> List String -> Item
@@ -83,7 +78,7 @@ init maxItems availableItems =
 type Msg
     = Input String
     | KeyDown Int
-    | KeyUp Int
+    | SelectedItems (List Item)
 
 
 clean : String -> String
@@ -189,7 +184,10 @@ updateKey keyCode model =
                 model ! []
 
         _ ->
-            model ! []
+            if model.status == Cleared then
+                { model | status = Initial } ! []
+            else
+                model ! []
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -201,11 +199,14 @@ update msg model =
         KeyDown code ->
             updateKey code model
 
-        KeyUp code ->
-            if model.status == Cleared && code == 13 then
-                { model | status = Initial } ! []
-            else
-                model ! []
+        SelectedItems items ->
+            { model
+                | selectedItems = items
+                , boxItems = []
+                , boxPosition = 0
+                , status = Cleared
+            }
+                ! []
 
 
 
@@ -261,11 +262,6 @@ view model =
                 ]
             , boxView model
             ]
-
-
-keyUp : Int -> Msg
-keyUp code =
-    KeyUp code
 
 
 keyDown : Int -> Msg
