@@ -38,12 +38,8 @@ type ItemRec
     = ItemValue String
 
 
-type alias SelectizeModel =
-    Selectize.Model
-
-
 type alias Selectizer =
-    ( FieldScope, SelectizeModel )
+    ( FieldScope, Selectize.Model )
 
 
 type alias Model =
@@ -229,7 +225,7 @@ fieldInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValu
             -- TODO: Need to make a 3-state custom component
             textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
 
-        FieldAccountType ->
+        FieldAccountType _ ->
             -- TODO: Need to turn into smart search field
             textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
 
@@ -354,36 +350,63 @@ selectizeItem displayRec =
         Selectize.selectizeItem code displayRec.display []
 
 
+initCurrencySelectizer : FieldDescriptor -> ConfigGroup -> FieldScope -> Selectizer
+initCurrencySelectizer fieldDescriptor configGroup fieldScope =
+    let
+        availableItems =
+            List.map selectizeItem configGroup.data.currencies
 
--- buildAccountSelectizer : ConfigGroup -> FieldDescriptor -> FieldScope -> Selectizer
--- buildAccountSelectizer configGroup fieldDescriptor fieldScope =
---
---
--- buildSelectizers : ConfigGroup -> FieldDescriptor -> Maybe (List Selectizer)
--- buildSelectizers configGroup fieldDescriptor =
---     case fieldDescriptor.fieldType of
---         FieldStringType ->
---             Nothing
---
---         FieldPercentageType ->
---             Nothing
---
---         FieldIntegerType ->
---             Nothing
---
---         FieldOnOffType ->
---             Nothing
---
---         FieldAccountType ->
---             Just (buildAccountSelectizer configGroup fieldDescriptor)
---
---         FieldCurrencyType ->
---             Just (buildCurrencySelectizer configGroup fieldDescriptor)
---
---
--- populateSelectizers : ConfigGroupResponse -> List SelectizeModel
--- populateSelectizers configGroup =
---     List.map (buildSelectizers configGroup) configGroup.schema.entries
+        selectizeModel =
+            Selectize.init 1 availableItems
+    in
+        ( fieldScope, selectizeModel )
+
+
+initAccountSelectizer : String -> FieldDescriptor -> ConfigGroup -> FieldScope -> Selectizer
+initAccountSelectizer accountClass fieldDescriptor configGroup fieldScope =
+    let
+        toDisplayRec accountRec =
+            if (accountClass == accountRec.class) then
+                Just { code = accountRec.code, display = accountRec.display }
+            else
+                Nothing
+
+        availableItems =
+            List.filterMap toDisplayRec configGroup.data.accounts
+                |> List.map selectizeItem
+
+        selectizeModel =
+            Selectize.init 1 availableItems
+    in
+        ( fieldScope, selectizeModel )
+
+
+initSelectizersPerSchemaEntry : ConfigGroup -> FieldDescriptor -> Maybe (List Selectizer)
+initSelectizersPerSchemaEntry configGroup fieldDescriptor =
+    case fieldDescriptor.fieldType of
+        FieldStringType ->
+            Nothing
+
+        FieldPercentageType ->
+            Nothing
+
+        FieldIntegerType ->
+            Nothing
+
+        FieldOnOffType ->
+            Nothing
+
+        FieldAccountType accountCode ->
+            Just ((List.map (initAccountSelectizer accountCode fieldDescriptor configGroup) (fieldScopes configGroup)))
+
+        FieldCurrencyType ->
+            Just ((List.map (initCurrencySelectizer fieldDescriptor configGroup) (fieldScopes configGroup)))
+
+
+initSelectizers : ConfigGroup -> List Selectizer
+initSelectizers configGroup =
+    List.filterMap (initSelectizersPerSchemaEntry configGroup) configGroup.schema.entries
+        |> List.concat
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -401,10 +424,12 @@ update msg model =
                     RemoteData.map .data configGroupResponse
 
                 selectizers =
-                    []
+                    case webConfigGroup of
+                        Success configGroup ->
+                            initSelectizers configGroup
 
-                -- RemoteData.map populateSelectizers webConfigGroup
-                --     |> RemoteData.withDefault []
+                        _ ->
+                            []
             in
                 ( { model
                     | webConfigGroup = webConfigGroup

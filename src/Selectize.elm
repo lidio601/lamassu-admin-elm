@@ -57,7 +57,7 @@ type alias Model =
     }
 
 
-init : Int -> Items -> ( Model, Cmd Msg )
+init : Int -> Items -> Model
 init maxItems availableItems =
     { availableItems = availableItems
     , selectedItems = []
@@ -68,7 +68,6 @@ init maxItems availableItems =
     , maxItems = maxItems
     , status = Initial
     }
-        ! []
 
 
 
