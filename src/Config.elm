@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (defaultValue, placeholder)
+import Html.App
 import Html.Keyed
 import Navigation
 import RemoteData exposing (..)
@@ -47,6 +48,21 @@ type alias Model =
     , selectizers : List Selectizer
     , crypto : Maybe Crypto
     , status : SavingStatus
+    }
+
+
+type alias ResolvedModel =
+    { configGroup : ConfigGroup
+    , selectizers : List Selectizer
+    , crypto : Crypto
+    }
+
+
+toResolvedModel : ConfigGroup -> List Selectizer -> Maybe Crypto -> ResolvedModel
+toResolvedModel configGroup selectizers maybeCrypto =
+    { configGroup = configGroup
+    , selectizers = selectizers
+    , crypto = Maybe.withDefault GlobalCrypto maybeCrypto
     }
 
 
@@ -180,9 +196,15 @@ updateValues configGroup crypto machine fieldCode valueString =
 -- View
 
 
-textInput : Crypto -> Machine -> FieldDescriptor -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue =
+textInput : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
     let
+        crypto =
+            fieldLocator.crypto
+
+        machine =
+            fieldLocator.machine
+
         maybeSpecificString =
             Maybe.map fieldValueToString maybeFieldValue
 
@@ -202,85 +224,99 @@ textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
             machineToString machine
     in
         input
-            [ onInput (Input crypto machine fieldDescriptor.code)
+            [ onInput (Input crypto machine fieldLocator.code)
             , defaultValue defaultString
             , placeholder fallbackString
             ]
             []
 
 
-fieldInput : Crypto -> Machine -> FieldDescriptor -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-fieldInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue =
-    case fieldDescriptor.fieldType of
+pluckSelectizeModel : List Selectizer -> FieldLocator -> Maybe Selectize.Model
+pluckSelectizeModel selectizers fieldLocator =
+    List.filter (((==) fieldLocator) << fst) selectizers
+        |> List.head
+
+
+fieldInput : ResolvedModel -> FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+fieldInput model fieldLocator maybeFieldValue maybeFallbackFieldValue =
+    case fieldLocator.fieldType of
         FieldStringType ->
-            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
 
         FieldPercentageType ->
-            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
 
         FieldIntegerType ->
-            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
 
         FieldOnOffType ->
             -- TODO: Need to make a 3-state custom component
-            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
 
-        FieldAccountType _ ->
+        FieldAccountType accountClass ->
             -- TODO: Need to turn into smart search field
-            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+            let
+                selectizeModel =
+                    pluckSelectizeModel model.selectizers fieldLocator
+            in
+                Html.App.map (SelectizeMsg fieldLocator) (Selectize.view selectizeModel)
 
         FieldCurrencyType ->
             -- TODO: Need to turn into smart search field
-            textInput crypto machine fieldDescriptor maybeFieldValue maybeFallbackFieldValue
+            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
 
 
-fieldComponent : ConfigGroup -> Crypto -> Machine -> FieldDescriptor -> Html Msg
-fieldComponent configGroup crypto machine fieldDescriptor =
+fieldComponent : ResolvedModel -> FieldLocator -> Html Msg
+fieldComponent model fieldLocator =
     let
         fieldCode =
-            fieldDescriptor.code
+            fieldLocator.code
 
-        fieldType =
-            fieldDescriptor.fieldType
-
-        fields =
-            configGroup.values
+        values =
+            model.values
 
         maybeGlobal =
-            pickField fields GlobalCrypto GlobalMachine fieldCode
+            pickField values GlobalCrypto GlobalMachine fieldCode
 
         maybeGlobalCrypto =
-            pickField fields GlobalCrypto machine fieldCode
+            pickField values GlobalCrypto fieldLocator.machine fieldCode
 
         maybeGlobalMachine =
-            pickField fields crypto GlobalMachine fieldCode
+            pickField values fieldLocator.crypto GlobalMachine fieldCode
 
         maybeSpecific =
-            pickField fields crypto machine fieldCode
+            pickField values fieldLocator.crypto fieldLocator.machine fieldCode
 
         maybeFallbackFieldValue =
             oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
     in
-        fieldInput crypto machine fieldDescriptor maybeSpecific maybeFallbackFieldValue
+        fieldInput model fieldLocator maybeSpecific maybeFallbackFieldValue
 
 
-cellView : ConfigGroup -> Crypto -> Machine -> FieldDescriptor -> Html Msg
-cellView configGroup crypto machine fieldDescriptor =
+cellView : ResolvedModel -> FieldLocator -> Html Msg
+cellView model fieldLocator =
     -- Note: keying here is needed to clear out fields when switching cryptos
-    Html.Keyed.node "td"
-        []
-        [ ( (cryptoToString crypto)
-                ++ "-"
-                ++ (machineToString machine)
-                ++ "-"
-                ++ fieldDescriptor.code
-          , fieldComponent configGroup crypto machine fieldDescriptor
-          )
-        ]
+    let
+        machine =
+            fieldLocator.machine
+
+        crypto =
+            fieldLocator.crypto
+    in
+        Html.Keyed.node "td"
+            []
+            [ ( (cryptoToString crypto)
+                    ++ "-"
+                    ++ (machineToString machine)
+                    ++ "-"
+                    ++ fieldLocator.code
+              , fieldComponent model fieldLocator
+              )
+            ]
 
 
-rowView : ConfigGroup -> Crypto -> MachineDisplay -> Html Msg
-rowView configGroup crypto machineDisplay =
+rowView : ResolvedModel -> MachineDisplay -> Html Msg
+rowView model machineDisplay =
     let
         globalRowClass machine =
             case machine of
@@ -289,11 +325,21 @@ rowView configGroup crypto machineDisplay =
 
                 _ ->
                     class []
+
+        toFieldLocator entry =
+            { crypto = model.crypto
+            , machine = machineDisplay.machine
+            , code = entry.code
+            , fieldType = entry.fieldType
+            }
+
+        fieldLocators =
+            List.map toFieldLocator model.configGroup.schema.entries
     in
         tr [ globalRowClass machineDisplay.machine ]
             ((td [] [ text (machineDisplay.display) ])
-                :: (List.map (cellView configGroup crypto machineDisplay.machine)
-                        configGroup.schema.entries
+                :: (List.map (cellView model)
+                        fieldLocators
                    )
             )
 
@@ -308,9 +354,15 @@ headerRowView configGroup crypto =
     tr [] ((td [] []) :: List.map headerCellView configGroup.schema.entries)
 
 
-tableView : ConfigGroup -> Crypto -> Html Msg
-tableView configGroup crypto =
+tableView : ResolvedModel -> Html Msg
+tableView model =
     let
+        configGroup =
+            model.configGroup
+
+        crypto =
+            model.crypto
+
         headerRow =
             headerRowView configGroup crypto
 
@@ -318,7 +370,7 @@ tableView configGroup crypto =
             listMachines configGroup
 
         rows =
-            List.map (rowView configGroup crypto) machines
+            List.map (rowView model) machines
     in
         table [ class [ CssClasses.ConfigTable ] ]
             [ thead [] [ headerRow ]
@@ -336,6 +388,7 @@ type Msg
     | Submit
     | Input Crypto Machine String String
     | CryptoSwitch Crypto
+    | SelectizeMsg FieldLocator Selectize.Msg
 
 
 selectizeItem : DisplayRec -> Selectize.Item
@@ -521,12 +574,12 @@ view model =
 
         Success configGroup ->
             let
-                crypto =
-                    Maybe.withDefault GlobalCrypto model.crypto
+                resolvedModel =
+                    toResolvedModel configGroup model.selectizers model.crypto
 
                 configGroupView =
                     div [ class [ CssClasses.ConfigTableContainer ] ]
-                        [ tableView configGroup crypto ]
+                        [ tableView resolvedModel ]
 
                 statusString =
                     case model.status of

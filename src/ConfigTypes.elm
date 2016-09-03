@@ -1,6 +1,7 @@
 module ConfigTypes exposing (..)
 
 import String
+import Selectize
 
 
 type alias DisplayRec =
@@ -49,6 +50,23 @@ type alias FieldHolder =
 type alias FieldScope =
     { crypto : Crypto
     , machine : Machine
+    }
+
+
+type FieldComponent
+    = FieldStringComponent
+    | FieldPercentageComponent
+    | FieldIntegerComponent
+    | FieldOnOffComponent
+    | FieldAccountComponent String Selectize.Model
+    | FieldCurrencyComponent Selectize.Model
+
+
+type alias FieldInstance =
+    { crypto : Crypto
+    , machine : Machine
+    , code : String
+    , component : FieldComponent
     }
 
 
