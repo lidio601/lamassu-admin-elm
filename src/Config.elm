@@ -464,15 +464,37 @@ initFieldInstances configGroup =
     List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
 
 
+updateSelectize : FieldLocator -> Selectize.Msg -> Model -> ( Model, Cmd Msg )
+updateSelectize fieldLocator selectizeMsg model =
+    let
+        sameLocation fieldLocator' fieldInstance =
+            fieldInstance.fieldLocator == fieldLocator'
 
--- TODO: Need to do this for lensing into the right Selectize model
--- updateSelectize : Selectize.Model -> Selectize.Msg -> ( Model, Cmd Msg )
--- updateSelectize selectizeModel selectizeMsg =
---     let
---         ( newSelectizeModel, selectizeCmd ) =
---             Selectize.update selectizeMsg selectizeModel
---     in
---         { selectizeModel | selectize = selectizeModel } ! [ Cmd.map SelectizeMsg selectizeCmd ]
+        maybeFieldInstance =
+            List.filter (sameLocation fieldLocator) model.fieldInstances
+                |> List.head
+    in
+        case maybeFieldInstance of
+            Nothing ->
+                model ! []
+
+            Just fieldInstance ->
+                case fieldInstance.component of
+                    SelectizeComponent fieldType selectizeModel ->
+                        let
+                            ( newSelectizeModel, selectizeCmd ) =
+                                Selectize.update selectizeMsg selectizeModel
+
+                            modifyInstance currentFieldInstance =
+                                if currentFieldInstance.fieldLocator == fieldLocator then
+                                    { currentFieldInstance | component = SelectizeComponent fieldType newSelectizeModel }
+                                else
+                                    currentFieldInstance
+                        in
+                            { model | fieldInstances = List.map modifyInstance model.fieldInstances } ! []
+
+                    _ ->
+                        model ! []
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -547,6 +569,9 @@ update msg model =
 
                 _ ->
                     model ! []
+
+        SelectizeMsg fieldLocator selectizeMsg ->
+            updateSelectize fieldLocator selectizeMsg model
 
 
 cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg
