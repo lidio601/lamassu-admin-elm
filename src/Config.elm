@@ -460,15 +460,16 @@ initSelectizers configGroup =
     List.filterMap (initSelectizersPerSchemaEntry configGroup) configGroup.schema.entries
         |> List.concat
 
-initFieldInstances : ConfigGroup -> List FieldInstance
-initFieldInstances configGroup =
-
--- type alias FieldInstance =
---     { crypto : Crypto
---     , machine : Machine
---     , code : String
---     , component : FieldComponent
---     }
+initFieldInstance : ConfigGroup -> FieldType -> FieldScope -> FieldInstance
+initFieldInstance configGroup fieldType fieldScope =
+    let
+        component = buildFieldComponent configGroup fieldType fieldScope
+    in
+        { crypto =
+        , machine : Machine
+        , code : String
+        , component : FieldComponent
+        }
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =

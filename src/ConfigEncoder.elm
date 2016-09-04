@@ -4,23 +4,30 @@ import Json.Encode exposing (..)
 import List
 import ConfigTypes exposing (..)
 
+
 encodeFieldValue : Maybe FieldValue -> Value
 encodeFieldValue maybeFieldValue =
     case maybeFieldValue of
         Nothing ->
             null
+
         Just fieldValue ->
             case fieldValue of
                 FieldStringValue value ->
                     string value
+
                 FieldPercentageValue value ->
                     float value
+
                 FieldIntegerValue value ->
                     int value
+
                 FieldOnOffValue value ->
                     bool value
+
                 FieldAccountValue value ->
                     string value
+
                 FieldCurrencyValue value ->
                     string value
 
@@ -28,19 +35,26 @@ encodeFieldValue maybeFieldValue =
 encodeFieldType : Maybe FieldValue -> Value
 encodeFieldType maybeFieldValue =
     case maybeFieldValue of
-        Nothing -> null
+        Nothing ->
+            null
+
         Just fieldValue ->
             case fieldValue of
                 FieldStringValue _ ->
                     string "string"
+
                 FieldPercentageValue _ ->
                     string "percentage"
+
                 FieldIntegerValue _ ->
                     string "integer"
+
                 FieldOnOffValue _ ->
                     string "onOff"
+
                 FieldAccountValue _ ->
                     string "account"
+
                 FieldCurrencyValue _ ->
                     string "currency"
 
@@ -48,21 +62,27 @@ encodeFieldType maybeFieldValue =
 dirtyValue : Field -> Maybe ValidDirtyField
 dirtyValue field =
     let
-        maybeMaybeFieldValue = case field.fieldValue of
-            Err _ -> Nothing
-            Ok maybeFieldValue ->
-                case field.loadedFieldValue of
-                    Nothing ->
-                        Just maybeFieldValue
-                    Just loadedFieldValue ->
-                        case maybeFieldValue of
-                            Nothing ->
-                                Just maybeFieldValue
-                            Just fieldValue ->
-                                if (fieldValue /= loadedFieldValue) then
+        maybeMaybeFieldValue =
+            case field.fieldValue of
+                Err _ ->
+                    Nothing
+
+                Ok maybeFieldValue ->
+                    case field.loadedFieldValue of
+                        Nothing ->
+                            Just maybeFieldValue
+
+                        Just loadedFieldValue ->
+                            case maybeFieldValue of
+                                Nothing ->
                                     Just maybeFieldValue
-                                else
-                                    Nothing
+
+                                Just fieldValue ->
+                                    if (fieldValue /= loadedFieldValue) then
+                                        Just maybeFieldValue
+                                    else
+                                        Nothing
+
         toValidDirtyField maybeFieldValue =
             { code = field.code
             , crypto = field.crypto
@@ -71,8 +91,6 @@ dirtyValue field =
             }
     in
         Maybe.map toValidDirtyField maybeMaybeFieldValue
-
-
 
 
 encodeCrypto : Crypto -> Value
@@ -113,6 +131,6 @@ encodeConfigGroup configGroup =
             List.filterMap dirtyValue configGroup.values
     in
         Json.Encode.object
-            [ ("code", string configGroup.schema.code)
+            [ ( "code", string configGroup.schema.code )
             , ( "values", list (List.map encodeField dirtyFields) )
             ]

@@ -97,7 +97,7 @@ type FieldValue
     | FieldPercentageValue Float
     | FieldIntegerValue Int
     | FieldOnOffValue Bool
-    | FieldAccountValue String String
+    | FieldAccountValue String
     | FieldCurrencyValue String
 
 
@@ -172,7 +172,7 @@ fieldValueToString fieldValue =
             else
                 "off"
 
-        FieldAccountValue _ v ->
+        FieldAccountValue v ->
             v
 
         FieldCurrencyValue v ->
@@ -282,8 +282,8 @@ stringToFieldValue fieldType s =
                     _ ->
                         Err (FieldParsingError ("Unsupported value for OnOff: " ++ s))
 
-            FieldAccountType accountCode ->
-                Ok (Just (FieldAccountValue accountCode s))
+            FieldAccountType _ ->
+                Ok (Just (FieldAccountValue s))
 
             FieldCurrencyType ->
                 Ok (Just (FieldCurrencyValue s))

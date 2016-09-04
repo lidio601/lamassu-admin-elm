@@ -19,9 +19,6 @@ fieldValueDecoder fieldType =
         "onOff" ->
             map FieldOnOffValue ("fieldValue" := bool)
 
-        "account" ->
-            map FieldAccountValue ("fieldValue" := string)
-
         "currency" ->
             map FieldCurrencyValue ("fieldValue" := string)
 
@@ -117,9 +114,6 @@ string2FieldType s =
         "onOff" ->
             Ok FieldOnOffType
 
-        "account" ->
-            Ok FieldAccountType
-
         "currency" ->
             Ok FieldCurrencyType
 
@@ -132,8 +126,18 @@ configScopeDecoder =
     customDecoder string string2ConfigScope
 
 
-fieldTypeDecoder : Decoder FieldType
-fieldTypeDecoder =
+fieldTypeDecoder : String -> Decoder FieldType
+fieldTypeDecoder fieldType =
+    case fieldType of
+        "account" ->
+            map FieldAccountType ("accountClass" := string)
+
+        _ ->
+            basicFieldTypeDecoder
+
+
+basicFieldTypeDecoder : Decoder FieldType
+basicFieldTypeDecoder =
     customDecoder string string2FieldType
 
 
@@ -142,7 +146,7 @@ fieldDescriptorDecoder =
     object3 FieldDescriptor
         ("code" := string)
         ("display" := string)
-        ("fieldType" := fieldTypeDecoder)
+        (("fieldType" := string) `andThen` fieldTypeDecoder)
 
 
 configSchemaDecoder : Decoder ConfigSchema
