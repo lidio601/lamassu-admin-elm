@@ -45,7 +45,7 @@ type alias Selectizer =
 
 type alias Model =
     { webConfigGroup : WebConfigGroup
-    , selectizers : List Selectizer
+    , fieldInstances : List FieldInstance
     , crypto : Maybe Crypto
     , status : SavingStatus
     }
@@ -256,7 +256,7 @@ fieldInput model fieldLocator maybeFieldValue maybeFallbackFieldValue =
         FieldAccountType accountClass ->
             -- TODO: Need to turn into smart search field
             let
-                selectizeModel =
+                maybeSelectizeModel =
                     pluckSelectizeModel model.selectizers fieldLocator
             in
                 Html.App.map (SelectizeMsg fieldLocator) (Selectize.view selectizeModel)
@@ -415,8 +415,8 @@ initCurrencySelectizer fieldDescriptor configGroup fieldScope =
         ( fieldScope, selectizeModel )
 
 
-initAccountSelectizer : String -> FieldDescriptor -> ConfigGroup -> FieldScope -> Selectizer
-initAccountSelectizer accountClass fieldDescriptor configGroup fieldScope =
+initAccountSelectizer : ConfigGroup -> String -> FieldScope -> Selectize.Model
+initAccountSelectizer configGroup accountClass fieldScope =
     let
         toDisplayRec accountRec =
             if (accountClass == accountRec.class) then
@@ -428,32 +428,31 @@ initAccountSelectizer accountClass fieldDescriptor configGroup fieldScope =
             List.filterMap toDisplayRec configGroup.data.accounts
                 |> List.map selectizeItem
 
-        selectizeModel =
-            Selectize.init 1 availableItems
     in
-        ( fieldScope, selectizeModel )
+        Selectize.init 1 availableItems
 
 
-initSelectizersPerSchemaEntry : ConfigGroup -> FieldDescriptor -> Maybe (List Selectizer)
-initSelectizersPerSchemaEntry configGroup fieldDescriptor =
-    case fieldDescriptor.fieldType of
+buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> FieldComponent
+buildFieldComponent configGroup fieldType fieldScope =
+    case fieldType of
         FieldStringType ->
-            Nothing
+            InputBoxComponent fieldType
 
         FieldPercentageType ->
-            Nothing
+            InputBoxComponent fieldType
 
         FieldIntegerType ->
-            Nothing
+            InputBoxComponent fieldType
 
         FieldOnOffType ->
-            Nothing
+            InputBoxComponent fieldType
 
-        FieldAccountType accountCode ->
-            Just ((List.map (initAccountSelectizer accountCode fieldDescriptor configGroup) (fieldScopes configGroup)))
+        FieldAccountType accountClass ->
+            SelectizeComponent fieldType
+            (initAccountSelectize configGroup  accountClass fieldScope)
 
         FieldCurrencyType ->
-            Just ((List.map (initCurrencySelectizer fieldDescriptor configGroup) (fieldScopes configGroup)))
+            SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope)
 
 
 initSelectizers : ConfigGroup -> List Selectizer
@@ -461,6 +460,15 @@ initSelectizers configGroup =
     List.filterMap (initSelectizersPerSchemaEntry configGroup) configGroup.schema.entries
         |> List.concat
 
+initFieldInstances : ConfigGroup -> List FieldInstance
+initFieldInstances configGroup =
+
+-- type alias FieldInstance =
+--     { crypto : Crypto
+--     , machine : Machine
+--     , code : String
+--     , component : FieldComponent
+--     }
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -476,16 +484,17 @@ update msg model =
                 webConfigGroup =
                     RemoteData.map .data configGroupResponse
 
-                selectizers =
+                fieldInstances =
                     case webConfigGroup of
                         Success configGroup ->
-                            initSelectizers configGroup
+                            initFieldInstances configGroup
 
                         _ ->
                             []
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
+                    , fieldInstances = fieldInstances
                     , status = status
                   }
                 , Cmd.none

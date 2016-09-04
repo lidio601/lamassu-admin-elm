@@ -54,12 +54,8 @@ type alias FieldScope =
 
 
 type FieldComponent
-    = FieldStringComponent
-    | FieldPercentageComponent
-    | FieldIntegerComponent
-    | FieldOnOffComponent
-    | FieldAccountComponent String Selectize.Model
-    | FieldCurrencyComponent Selectize.Model
+    = InputBoxComponent FieldType
+    | SelectizeComponent FieldType Selectize.Model
 
 
 type alias FieldInstance =
