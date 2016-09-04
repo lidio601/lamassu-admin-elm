@@ -78,9 +78,7 @@ type alias Field =
 
 
 type alias ValidDirtyField =
-    { code : String
-    , crypto : Crypto
-    , machine : Machine
+    { fieldLocator : FieldLocator
     , fieldValue : Maybe FieldValue
     }
 

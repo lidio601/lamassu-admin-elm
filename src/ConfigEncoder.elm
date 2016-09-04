@@ -84,9 +84,7 @@ dirtyValue field =
                                         Nothing
 
         toValidDirtyField maybeFieldValue =
-            { code = field.code
-            , crypto = field.crypto
-            , machine = field.machine
+            { fieldLocator = field.fieldLocator
             , fieldValue = maybeFieldValue
             }
     in
@@ -113,12 +111,26 @@ encodeMachine machine =
             string "global"
 
 
+encodeFieldScope : FieldScope -> Value
+encodeFieldScope fieldScope =
+    Json.Encode.object
+        [ ( "crypto", encodeCrypto fieldScope.crypto )
+        , ( "machine", encodeMachine fieldScope.machine )
+        ]
+
+
+encodeFieldLocator : FieldLocator -> Value
+encodeFieldLocator fieldLocator =
+    Json.Encode.object
+        [ ( "fieldScope", encodeFieldScope fieldLocator.fieldScope )
+        , ( "code", string fieldLocator.code )
+        ]
+
+
 encodeField : ValidDirtyField -> Value
 encodeField field =
     Json.Encode.object
-        [ ( "code", string field.code )
-        , ( "crypto", encodeCrypto field.crypto )
-        , ( "machine", encodeMachine field.machine )
+        [ ( "fieldLocator", encodeFieldLocator field.fieldLocator )
         , ( "fieldValue", encodeFieldValue field.fieldValue )
         , ( "fieldType", encodeFieldType field.fieldValue )
         ]

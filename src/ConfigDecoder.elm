@@ -26,12 +26,24 @@ fieldValueDecoder fieldType =
             fail ("Unsupported field type: " ++ fieldType)
 
 
-fieldDecoder : Decoder Field
-fieldDecoder =
-    object5 Field
-        ("code" := string)
+fieldScopeDecoder : Decoder FieldScope
+fieldScopeDecoder =
+    object2 FieldScope
         ("crypto" := cryptoDecoder)
         ("machine" := machineDecoder)
+
+
+fieldLocatorDecoder : Decoder FieldLocator
+fieldLocatorDecoder =
+    object2 FieldLocator
+        ("scope" := fieldScopeDecoder)
+        ("code" := string)
+
+
+fieldDecoder : Decoder Field
+fieldDecoder =
+    object3 Field
+        ("locator" := fieldLocatorDecoder)
         (map (Ok << Just)
             (("fieldType" := string)
                 `andThen` fieldValueDecoder

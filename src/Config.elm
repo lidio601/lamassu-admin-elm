@@ -39,10 +39,6 @@ type ItemRec
     = ItemValue String
 
 
-type alias Selectizer =
-    ( FieldScope, Selectize.Model )
-
-
 type alias Model =
     { webConfigGroup : WebConfigGroup
     , fieldInstances : List FieldInstance
@@ -89,7 +85,7 @@ postForm configGroup =
 init : Model
 init =
     { webConfigGroup = RemoteData.NotAsked
-    , selectizers = []
+    , fieldInstances = []
     , crypto = Nothing
     , status = NotSaving
     }
@@ -108,8 +104,8 @@ load model code maybeCryptoCodeString =
 -- UPDATE
 
 
-toMatchedFieldValue : Crypto -> Machine -> String -> Field -> Maybe FieldValue
-toMatchedFieldValue crypto machine fieldCode field =
+toMatchedFieldValue : FieldLocator -> Field -> Maybe FieldValue
+toMatchedFieldValue fieldLocator field =
     let
         maybeFieldValue =
             case field.fieldValue of
@@ -119,7 +115,7 @@ toMatchedFieldValue crypto machine fieldCode field =
                 Ok originalMaybeFieldValue ->
                     originalMaybeFieldValue
     in
-        if (isOfFieldClass crypto machine fieldCode field) then
+        if field.fieldLocator == fieldLocator then
             maybeFieldValue
         else
             Nothing
@@ -127,30 +123,27 @@ toMatchedFieldValue crypto machine fieldCode field =
 
 pickField : List Field -> Crypto -> Machine -> String -> Maybe FieldValue
 pickField fields crypto machine fieldCode =
-    List.filterMap (toMatchedFieldValue crypto machine fieldCode) fields
-        |> List.head
+    let
+        fieldScope =
+            { crypto = crypto, machine = machine }
+
+        fieldLocator =
+            { fieldScope = fieldScope, code = fieldCode }
+    in
+        List.filterMap (toMatchedFieldValue fieldLocator) fields
+            |> List.head
 
 
-isOfFieldClass : Crypto -> Machine -> String -> Field -> Bool
-isOfFieldClass crypto machine fieldCode field =
-    field.crypto
-        == crypto
-        && field.machine
-        == machine
-        && field.code
-        == fieldCode
-
-
-isFieldClass : Field -> Field -> Bool
-isFieldClass searchField field =
-    isOfFieldClass searchField.crypto searchField.machine searchField.code field
+similar : (x -> y) -> x -> x -> Bool
+similar mapper a b =
+    (==) (mapper a) (mapper b)
 
 
 placeField : List Field -> Field -> List Field
 placeField fieldList field =
     let
         maybeOldField =
-            List.filter (isFieldClass field) fieldList
+            List.filter (similar .fieldLocator field) fieldList
                 |> List.head
 
         newField =
@@ -161,7 +154,7 @@ placeField fieldList field =
                 Just oldField ->
                     { oldField | fieldValue = field.fieldValue }
     in
-        newField :: (List.filter (not << (isFieldClass field)) fieldList)
+        newField :: (List.filter (not << (similar .fieldLocator field)) fieldList)
 
 
 updateValues : ConfigGroup -> FieldLocator -> String -> ConfigGroup
@@ -229,42 +222,54 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
             Html.App.map (SelectizeMsg fieldInstance.fieldLocator) (Selectize.view selectizeModel)
 
 
-fieldComponent : ResolvedModel -> FieldLocator -> Html Msg
-fieldComponent model fieldLocator =
+fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
+fieldComponent model fieldInstance =
     let
+        fieldLocator =
+            fieldInstance.fieldLocator
+
+        fieldScope =
+            fieldLocator.fieldScope
+
         fieldCode =
             fieldLocator.code
 
         values =
-            model.values
+            model.configGroup.values
 
         maybeGlobal =
             pickField values GlobalCrypto GlobalMachine fieldCode
 
         maybeGlobalCrypto =
-            pickField values GlobalCrypto fieldLocator.machine fieldCode
+            pickField values GlobalCrypto fieldScope.machine fieldCode
 
         maybeGlobalMachine =
-            pickField values fieldLocator.crypto GlobalMachine fieldCode
+            pickField values fieldScope.crypto GlobalMachine fieldCode
 
         maybeSpecific =
-            pickField values fieldLocator.crypto fieldLocator.machine fieldCode
+            pickField values fieldScope.crypto fieldScope.machine fieldCode
 
         maybeFallbackFieldValue =
             oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
     in
-        fieldInput model fieldLocator maybeSpecific maybeFallbackFieldValue
+        fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue
 
 
-cellView : ResolvedModel -> FieldLocator -> Html Msg
-cellView model fieldLocator =
+cellView : ResolvedModel -> FieldInstance -> Html Msg
+cellView model fieldInstance =
     -- Note: keying here is needed to clear out fields when switching cryptos
     let
+        fieldLocator =
+            fieldInstance.fieldLocator
+
+        fieldScope =
+            fieldLocator.fieldScope
+
         machine =
-            fieldLocator.fieldScope.machine
+            fieldScope.machine
 
         crypto =
-            fieldLocator.fieldScope.crypto
+            fieldScope.crypto
     in
         Html.Keyed.node "td"
             []
@@ -273,15 +278,18 @@ cellView model fieldLocator =
                     ++ (machineToString machine)
                     ++ "-"
                     ++ fieldLocator.code
-              , fieldComponent model fieldLocator
+              , fieldComponent model fieldInstance
               )
             ]
 
 
-rowView : ResolvedModel -> MachineDisplay -> Html Msg
-rowView model machineDisplay =
+rowView : ResolvedModel -> List FieldInstance -> MachineDisplay -> Html Msg
+rowView model fieldInstances machineDisplay =
     let
-        globalRowClass machine =
+        machine =
+            machineDisplay.machine
+
+        globalRowClass =
             case machine of
                 GlobalMachine ->
                     class [ CssClasses.ConfigTableGlobalRow ]
@@ -299,13 +307,21 @@ rowView model machineDisplay =
             , code = entry.code
             }
 
-        fieldLocators =
-            List.map toFieldLocator model.configGroup.schema.entries
+        fieldInstances : List FieldInstance
+        fieldInstances =
+            model.fieldInstances
+
+        machineScoped fieldInstance =
+            fieldInstance.fieldLocator.fieldScope.machine == machine
+
+        filteredFieldInstances : List FieldInstance
+        filteredFieldInstances =
+            List.filter machineScoped fieldInstances
     in
-        tr [ globalRowClass machineDisplay.machine ]
+        tr [ globalRowClass ]
             ((td [] [ text (machineDisplay.display) ])
                 :: (List.map (cellView model)
-                        fieldLocators
+                        filteredFieldInstances
                    )
             )
 
@@ -335,8 +351,15 @@ tableView model =
         machines =
             listMachines configGroup
 
+        cryptoScoped fieldInstance =
+            fieldInstance.fieldLocator.fieldScope.crypto == crypto
+
+        instances : List FieldInstance
+        instances =
+            List.filter cryptoScoped model.fieldInstances
+
         rows =
-            List.map (rowView model) machines
+            List.map (rowView model instances) machines
     in
         table [ class [ CssClasses.ConfigTable ] ]
             [ thead [] [ headerRow ]
@@ -346,7 +369,7 @@ tableView model =
 
 isField : String -> Field -> Bool
 isField fieldCode field =
-    field.code == fieldCode
+    field.fieldLocator.code == fieldCode
 
 
 type Msg
@@ -369,16 +392,13 @@ selectizeItem displayRec =
         Selectize.selectizeItem code displayRec.display []
 
 
-initCurrencySelectize : FieldDescriptor -> ConfigGroup -> FieldScope -> Selectizer
-initCurrencySelectize fieldDescriptor configGroup fieldScope =
+initCurrencySelectize : ConfigGroup -> FieldScope -> Selectize.Model
+initCurrencySelectize configGroup fieldScope =
     let
         availableItems =
             List.map selectizeItem configGroup.data.currencies
-
-        selectizeModel =
-            Selectize.init 1 availableItems
     in
-        ( fieldScope, selectizeModel )
+        Selectize.init 1 5 [] availableItems
 
 
 initAccountSelectize : ConfigGroup -> String -> FieldScope -> Selectize.Model
@@ -394,7 +414,7 @@ initAccountSelectize configGroup accountClass fieldScope =
             List.filterMap toDisplayRec configGroup.data.accounts
                 |> List.map selectizeItem
     in
-        Selectize.init 1 availableItems
+        Selectize.init 1 5 [] availableItems
 
 
 buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> FieldComponent
@@ -423,24 +443,36 @@ buildFieldComponent configGroup fieldType fieldScope =
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
 initFieldInstance configGroup fieldDescriptor fieldScope =
     let
+        fieldLocator =
+            { fieldScope = fieldScope, code = fieldDescriptor.code }
+
         component =
             buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope
     in
-        { fieldScope = fieldScope
-        , code = fieldDescriptor.code
+        { fieldLocator = fieldLocator
         , component = component
         }
 
 
-initFieldInstancesPerEntry : ConfigGroup -> List FieldScope -> FieldDescriptor -> List FieldInstance
-initFieldInstancesPerEntry configGroup fieldScopes fieldDescriptor =
-    List.map (initFieldInstances configGroup fieldDescriptor) fieldScopes
+initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
+initFieldInstancesPerEntry configGroup fieldDescriptor =
+    List.map (initFieldInstance configGroup fieldDescriptor) (fieldScopes configGroup)
 
 
 initFieldInstances : ConfigGroup -> List FieldInstance
 initFieldInstances configGroup =
-    List.map (initFieldInstancesPerEntry (configGroup fieldScopes configGroup))
-        configGroup.schema.entries
+    List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
+
+
+
+-- TODO: Need to do this for lensing into the right Selectize model
+-- updateSelectize : Selectize.Model -> Selectize.Msg -> ( Model, Cmd Msg )
+-- updateSelectize selectizeModel selectizeMsg =
+--     let
+--         ( newSelectizeModel, selectizeCmd ) =
+--             Selectize.update selectizeMsg selectizeModel
+--     in
+--         { selectizeModel | selectize = selectizeModel } ! [ Cmd.map SelectizeMsg selectizeCmd ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -457,6 +489,7 @@ update msg model =
                 webConfigGroup =
                     RemoteData.map .data configGroupResponse
 
+                fieldInstances : List FieldInstance
                 fieldInstances =
                     case webConfigGroup of
                         Success configGroup ->
