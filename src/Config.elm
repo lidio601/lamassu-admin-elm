@@ -53,16 +53,18 @@ type alias Model =
 
 type alias ResolvedModel =
     { configGroup : ConfigGroup
-    , selectizers : List Selectizer
+    , fieldInstances : List FieldInstance
     , crypto : Crypto
+    , status : SavingStatus
     }
 
 
-toResolvedModel : ConfigGroup -> List Selectizer -> Maybe Crypto -> ResolvedModel
-toResolvedModel configGroup selectizers maybeCrypto =
+toResolvedModel : Model -> ConfigGroup -> ResolvedModel
+toResolvedModel model configGroup =
     { configGroup = configGroup
-    , selectizers = selectizers
-    , crypto = Maybe.withDefault GlobalCrypto maybeCrypto
+    , fieldInstances = model.fieldInstances
+    , crypto = Maybe.withDefault GlobalCrypto model.crypto
+    , status = model.status
     }
 
 
@@ -162,11 +164,11 @@ placeField fieldList field =
         newField :: (List.filter (not << (isFieldClass field)) fieldList)
 
 
-updateValues : ConfigGroup -> Crypto -> Machine -> String -> String -> ConfigGroup
-updateValues configGroup crypto machine fieldCode valueString =
+updateValues : ConfigGroup -> FieldLocator -> String -> ConfigGroup
+updateValues configGroup fieldLocator valueString =
     let
         maybeFieldDescriptor =
-            List.filter (\fd -> fd.code == fieldCode) configGroup.schema.entries
+            List.filter (\fd -> fd.code == fieldLocator.code) configGroup.schema.entries
                 |> List.head
     in
         case maybeFieldDescriptor of
@@ -176,9 +178,7 @@ updateValues configGroup crypto machine fieldCode valueString =
                         stringToFieldValue fieldDescriptor.fieldType valueString
 
                     field =
-                        { code = fieldCode
-                        , crypto = crypto
-                        , machine = machine
+                        { fieldLocator = fieldLocator
                         , fieldValue = fieldValueHolder
                         , loadedFieldValue = Nothing
                         }
@@ -199,12 +199,6 @@ updateValues configGroup crypto machine fieldCode valueString =
 textInput : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
     let
-        crypto =
-            fieldLocator.crypto
-
-        machine =
-            fieldLocator.machine
-
         maybeSpecificString =
             Maybe.map fieldValueToString maybeFieldValue
 
@@ -216,54 +210,23 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
 
         fallbackString =
             Maybe.withDefault "" maybeFallbackString
-
-        cryptoString =
-            cryptoToString crypto
-
-        machineString =
-            machineToString machine
     in
         input
-            [ onInput (Input crypto machine fieldLocator.code)
+            [ onInput (Input fieldLocator)
             , defaultValue defaultString
             , placeholder fallbackString
             ]
             []
 
 
-pluckSelectizeModel : List Selectizer -> FieldLocator -> Maybe Selectize.Model
-pluckSelectizeModel selectizers fieldLocator =
-    List.filter (((==) fieldLocator) << fst) selectizers
-        |> List.head
+fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
+    case fieldInstance.component of
+        InputBoxComponent fieldType ->
+            textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
-
-fieldInput : ResolvedModel -> FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-fieldInput model fieldLocator maybeFieldValue maybeFallbackFieldValue =
-    case fieldLocator.fieldType of
-        FieldStringType ->
-            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
-
-        FieldPercentageType ->
-            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
-
-        FieldIntegerType ->
-            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
-
-        FieldOnOffType ->
-            -- TODO: Need to make a 3-state custom component
-            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
-
-        FieldAccountType accountClass ->
-            -- TODO: Need to turn into smart search field
-            let
-                maybeSelectizeModel =
-                    pluckSelectizeModel model.selectizers fieldLocator
-            in
-                Html.App.map (SelectizeMsg fieldLocator) (Selectize.view selectizeModel)
-
-        FieldCurrencyType ->
-            -- TODO: Need to turn into smart search field
-            textInput fieldLocator maybeFieldValue maybeFallbackFieldValue
+        SelectizeComponent fieldType selectizeModel ->
+            Html.App.map (SelectizeMsg fieldInstance.fieldLocator) (Selectize.view selectizeModel)
 
 
 fieldComponent : ResolvedModel -> FieldLocator -> Html Msg
@@ -298,10 +261,10 @@ cellView model fieldLocator =
     -- Note: keying here is needed to clear out fields when switching cryptos
     let
         machine =
-            fieldLocator.machine
+            fieldLocator.fieldScope.machine
 
         crypto =
-            fieldLocator.crypto
+            fieldLocator.fieldScope.crypto
     in
         Html.Keyed.node "td"
             []
@@ -326,11 +289,14 @@ rowView model machineDisplay =
                 _ ->
                     class []
 
-        toFieldLocator entry =
+        fieldScope =
             { crypto = model.crypto
             , machine = machineDisplay.machine
+            }
+
+        toFieldLocator entry =
+            { fieldScope = fieldScope
             , code = entry.code
-            , fieldType = entry.fieldType
             }
 
         fieldLocators =
@@ -386,7 +352,7 @@ isField fieldCode field =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | Input Crypto Machine String String
+    | Input FieldLocator String
     | CryptoSwitch Crypto
     | SelectizeMsg FieldLocator Selectize.Msg
 
@@ -403,8 +369,8 @@ selectizeItem displayRec =
         Selectize.selectizeItem code displayRec.display []
 
 
-initCurrencySelectizer : FieldDescriptor -> ConfigGroup -> FieldScope -> Selectizer
-initCurrencySelectizer fieldDescriptor configGroup fieldScope =
+initCurrencySelectize : FieldDescriptor -> ConfigGroup -> FieldScope -> Selectizer
+initCurrencySelectize fieldDescriptor configGroup fieldScope =
     let
         availableItems =
             List.map selectizeItem configGroup.data.currencies
@@ -415,8 +381,8 @@ initCurrencySelectizer fieldDescriptor configGroup fieldScope =
         ( fieldScope, selectizeModel )
 
 
-initAccountSelectizer : ConfigGroup -> String -> FieldScope -> Selectize.Model
-initAccountSelectizer configGroup accountClass fieldScope =
+initAccountSelectize : ConfigGroup -> String -> FieldScope -> Selectize.Model
+initAccountSelectize configGroup accountClass fieldScope =
     let
         toDisplayRec accountRec =
             if (accountClass == accountRec.class) then
@@ -427,7 +393,6 @@ initAccountSelectizer configGroup accountClass fieldScope =
         availableItems =
             List.filterMap toDisplayRec configGroup.data.accounts
                 |> List.map selectizeItem
-
     in
         Selectize.init 1 availableItems
 
@@ -449,27 +414,34 @@ buildFieldComponent configGroup fieldType fieldScope =
 
         FieldAccountType accountClass ->
             SelectizeComponent fieldType
-            (initAccountSelectize configGroup  accountClass fieldScope)
+                (initAccountSelectize configGroup accountClass fieldScope)
 
         FieldCurrencyType ->
             SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope)
 
 
-initSelectizers : ConfigGroup -> List Selectizer
-initSelectizers configGroup =
-    List.filterMap (initSelectizersPerSchemaEntry configGroup) configGroup.schema.entries
-        |> List.concat
-
-initFieldInstance : ConfigGroup -> FieldType -> FieldScope -> FieldInstance
-initFieldInstance configGroup fieldType fieldScope =
+initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
+initFieldInstance configGroup fieldDescriptor fieldScope =
     let
-        component = buildFieldComponent configGroup fieldType fieldScope
+        component =
+            buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope
     in
-        { crypto =
-        , machine : Machine
-        , code : String
-        , component : FieldComponent
+        { fieldScope = fieldScope
+        , code = fieldDescriptor.code
+        , component = component
         }
+
+
+initFieldInstancesPerEntry : ConfigGroup -> List FieldScope -> FieldDescriptor -> List FieldInstance
+initFieldInstancesPerEntry configGroup fieldScopes fieldDescriptor =
+    List.map (initFieldInstances configGroup fieldDescriptor) fieldScopes
+
+
+initFieldInstances : ConfigGroup -> List FieldInstance
+initFieldInstances configGroup =
+    List.map (initFieldInstancesPerEntry (configGroup fieldScopes configGroup))
+        configGroup.schema.entries
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -509,12 +481,12 @@ update msg model =
                 _ ->
                     model ! []
 
-        Input crypto machine fieldCode valueString ->
+        Input fieldLocator valueString ->
             case model.webConfigGroup of
                 Success configGroup ->
                     let
                         newConfigGroup =
-                            updateValues configGroup crypto machine fieldCode valueString
+                            updateValues configGroup fieldLocator valueString
 
                         webConfigGroup =
                             Success newConfigGroup
@@ -585,7 +557,7 @@ view model =
         Success configGroup ->
             let
                 resolvedModel =
-                    toResolvedModel configGroup model.selectizers model.crypto
+                    toResolvedModel model configGroup
 
                 configGroupView =
                     div [ class [ CssClasses.ConfigTableContainer ] ]

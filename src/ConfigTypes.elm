@@ -53,23 +53,25 @@ type alias FieldScope =
     }
 
 
+type alias FieldLocator =
+    { fieldScope : FieldScope
+    , code : String
+    }
+
+
 type FieldComponent
     = InputBoxComponent FieldType
     | SelectizeComponent FieldType Selectize.Model
 
 
 type alias FieldInstance =
-    { crypto : Crypto
-    , machine : Machine
-    , code : String
+    { fieldLocator : FieldLocator
     , component : FieldComponent
     }
 
 
 type alias Field =
-    { code : String
-    , crypto : Crypto
-    , machine : Machine
+    { fieldLocator : FieldLocator
     , fieldValue : FieldHolder
     , loadedFieldValue : Maybe FieldValue
     }
