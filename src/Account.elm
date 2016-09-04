@@ -41,8 +41,8 @@ postForm account =
         |> Cmd.map Load
 
 
-initModel : Model
-initModel =
+init : Model
+init =
     RemoteData.NotAsked
 
 

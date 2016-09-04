@@ -19,8 +19,8 @@ getTotem =
         |> RemoteData.asCmd
 
 
-initModel : Model
-initModel =
+init : Model
+init =
     NotAsked
 
 

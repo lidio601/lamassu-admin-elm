@@ -61,9 +61,9 @@ init pageResult =
     let
         initModel =
             { page = withDefault UnknownPage (Debug.log "DEBUG11" pageResult)
-            , account = Account.initModel
-            , pair = Pair.initModel
-            , config = Config.initModel
+            , account = Account.init
+            , pair = Pair.init
+            , config = Config.init
             , err = Nothing
             }
     in
