@@ -36,14 +36,14 @@ fieldScopeDecoder =
 fieldLocatorDecoder : Decoder FieldLocator
 fieldLocatorDecoder =
     object2 FieldLocator
-        ("scope" := fieldScopeDecoder)
+        ("fieldScope" := fieldScopeDecoder)
         ("code" := string)
 
 
 fieldDecoder : Decoder Field
 fieldDecoder =
     object3 Field
-        ("locator" := fieldLocatorDecoder)
+        ("fieldLocator" := fieldLocatorDecoder)
         (map (Ok << Just)
             (("fieldType" := string)
                 `andThen` fieldValueDecoder
@@ -111,26 +111,26 @@ string2ConfigScope s =
             Err ("No such ConfigScope " ++ s)
 
 
-string2FieldType : String -> Result String FieldType
-string2FieldType s =
+basicFieldTypeDecoder : String -> Decoder FieldType
+basicFieldTypeDecoder s =
     case s of
         "string" ->
-            Ok FieldStringType
+            succeed FieldStringType
 
         "percentage" ->
-            Ok FieldPercentageType
+            succeed FieldPercentageType
 
         "integer" ->
-            Ok FieldIntegerType
+            succeed FieldIntegerType
 
         "onOff" ->
-            Ok FieldOnOffType
+            succeed FieldOnOffType
 
         "currency" ->
-            Ok FieldCurrencyType
+            succeed FieldCurrencyType
 
         _ ->
-            Err ("No such FieldType " ++ s)
+            fail ("No such FieldType " ++ s)
 
 
 configScopeDecoder : Decoder ConfigScope
@@ -145,12 +145,7 @@ fieldTypeDecoder fieldType =
             map FieldAccountType ("accountClass" := string)
 
         _ ->
-            basicFieldTypeDecoder
-
-
-basicFieldTypeDecoder : Decoder FieldType
-basicFieldTypeDecoder =
-    customDecoder string string2FieldType
+            basicFieldTypeDecoder fieldType
 
 
 fieldDescriptorDecoder : Decoder FieldDescriptor

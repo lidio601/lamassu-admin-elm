@@ -307,10 +307,6 @@ rowView model fieldInstances machineDisplay =
             , code = entry.code
             }
 
-        fieldInstances : List FieldInstance
-        fieldInstances =
-            model.fieldInstances
-
         machineScoped fieldInstance =
             fieldInstance.fieldLocator.fieldScope.machine == machine
 
