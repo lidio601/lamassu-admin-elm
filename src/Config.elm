@@ -34,10 +34,6 @@ type SavingStatus
     | NotSaving
 
 
-type ItemRec
-    = ItemValue String
-
-
 type alias Model =
     { webConfigGroup : WebConfigGroup
     , fieldInstances : List FieldInstance
@@ -363,20 +359,46 @@ selectizeItem displayRec =
     let
         code =
             displayRec.code
-
-        itemRec =
-            ItemValue code
     in
         Selectize.selectizeItem code displayRec.display []
 
 
-initCurrencySelectize : ConfigGroup -> FieldScope -> Selectize.Model
-initCurrencySelectize configGroup fieldScope =
+maybeToList : Maybe a -> List a
+maybeToList maybe =
+    case maybe of
+        Nothing ->
+            []
+
+        Just x ->
+            [ x ]
+
+
+initCurrencySelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> Selectize.Model
+initCurrencySelectize configGroup fieldScope maybeFieldValue =
     let
+        currencies =
+            configGroup.data.currencies
+
         availableItems =
-            List.map selectizeItem configGroup.data.currencies
+            List.map selectizeItem currencies
+
+        maybeSelectedItem : FieldValue -> Maybe Selectize.Item
+        maybeSelectedItem fieldValue =
+            case fieldValue of
+                FieldCurrencyValue code ->
+                    List.filter (((==) code) << .code) currencies
+                        |> List.head
+                        |> Maybe.map selectizeItem
+
+                _ ->
+                    Nothing
+
+        selectedItems =
+            maybeFieldValue
+                `Maybe.andThen` maybeSelectedItem
+                |> maybeToList
     in
-        Selectize.init 1 5 [] availableItems
+        Selectize.init 1 5 selectedItems availableItems
 
 
 initAccountSelectize : ConfigGroup -> String -> FieldScope -> Selectize.Model
@@ -395,8 +417,8 @@ initAccountSelectize configGroup accountClass fieldScope =
         Selectize.init 1 5 [] availableItems
 
 
-buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> FieldComponent
-buildFieldComponent configGroup fieldType fieldScope =
+buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> Maybe FieldValue -> FieldComponent
+buildFieldComponent configGroup fieldType fieldScope fieldValue =
     case fieldType of
         FieldStringType ->
             InputBoxComponent fieldType
@@ -415,7 +437,7 @@ buildFieldComponent configGroup fieldType fieldScope =
                 (initAccountSelectize configGroup accountClass fieldScope)
 
         FieldCurrencyType ->
-            SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope)
+            SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope fieldValue)
 
 
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
@@ -424,17 +446,17 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         fieldLocator =
             { fieldScope = fieldScope, code = fieldDescriptor.code }
 
-        component =
-            buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope
-
         value =
             List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
                 |> List.head
                 |> Maybe.map .fieldValue
+
+        component =
+            buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope value
     in
         { fieldLocator = fieldLocator
         , component = component
-        , fieldValue = Ok Nothing
+        , fieldValue = Ok value
         , loadedFieldValue = value
         }
 
