@@ -4,6 +4,7 @@ module Selectize
         , update
         , view
         , selectizeItem
+        , selectedItemCodes
         , Model
         , Msg
         , Item
@@ -104,6 +105,11 @@ type Msg
     | KeyUp Int
     | Blur
     | Focus
+
+
+selectedItemCodes : Model -> List String
+selectedItemCodes model =
+    List.map .code model.selectedItems
 
 
 clean : String -> String

@@ -156,6 +156,11 @@ placeField fieldList field =
         newField :: (List.filter (not << (similar .fieldLocator field)) fieldList)
 
 
+
+-- updateValue : FieldLocator -> FieldValue -> List FieldInstance -> List FieldInstance
+-- updateValue fieldLocator fieldValue fieldInstances =
+
+
 updateValues : ConfigGroup -> FieldLocator -> String -> ConfigGroup
 updateValues configGroup fieldLocator valueString =
     let
@@ -475,37 +480,57 @@ initFieldInstances configGroup =
     List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
 
 
+pickFieldInstance : FieldLocator -> List FieldInstance -> Maybe FieldInstance
+pickFieldInstance fieldLocator fieldInstances =
+    let
+        sameLocation targetFieldLocator fieldInstance =
+            fieldInstance.fieldLocator == targetFieldLocator
+    in
+        List.filter (sameLocation fieldLocator) fieldInstances
+            |> List.head
+
+
+updateSelectizeValue : FieldType -> Selectize.Model -> Maybe FieldValue
+updateSelectizeValue fieldType selectizeModel =
+    case fieldType of
+        FieldCurrencyType ->
+            Selectize.selectedItemCodes selectizeModel
+                |> List.head
+                |> Maybe.map FieldCurrencyValue
+
+        _ ->
+            Nothing
+
+
 updateSelectize : FieldLocator -> Selectize.Msg -> Model -> ( Model, Cmd Msg )
 updateSelectize fieldLocator selectizeMsg model =
-    let
-        sameLocation fieldLocator' fieldInstance =
-            fieldInstance.fieldLocator == fieldLocator'
+    case (pickFieldInstance fieldLocator model.fieldInstances) of
+        Nothing ->
+            model ! []
 
-        maybeFieldInstance =
-            List.filter (sameLocation fieldLocator) model.fieldInstances
-                |> List.head
-    in
-        case maybeFieldInstance of
-            Nothing ->
-                model ! []
+        Just fieldInstance ->
+            case fieldInstance.component of
+                SelectizeComponent fieldType selectizeModel ->
+                    let
+                        ( newSelectizeModel, selectizeCmd ) =
+                            Selectize.update selectizeMsg selectizeModel
 
-            Just fieldInstance ->
-                case fieldInstance.component of
-                    SelectizeComponent fieldType selectizeModel ->
-                        let
-                            ( newSelectizeModel, selectizeCmd ) =
-                                Selectize.update selectizeMsg selectizeModel
+                        newValue =
+                            updateSelectizeValue fieldType newSelectizeModel
 
-                            modifyInstance currentFieldInstance =
-                                if currentFieldInstance.fieldLocator == fieldLocator then
-                                    { currentFieldInstance | component = SelectizeComponent fieldType newSelectizeModel }
-                                else
-                                    currentFieldInstance
-                        in
-                            { model | fieldInstances = List.map modifyInstance model.fieldInstances } ! []
+                        modifyInstance currentFieldInstance =
+                            if currentFieldInstance.fieldLocator == fieldLocator then
+                                { currentFieldInstance
+                                    | component = SelectizeComponent fieldType newSelectizeModel
+                                    , value = newValue
+                                }
+                            else
+                                currentFieldInstance
+                    in
+                        { model | fieldInstances = List.map modifyInstance model.fieldInstances } ! []
 
-                    _ ->
-                        model ! []
+                _ ->
+                    model ! []
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
