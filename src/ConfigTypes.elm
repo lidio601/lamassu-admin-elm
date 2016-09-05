@@ -67,20 +67,20 @@ type FieldComponent
 type alias FieldInstance =
     { fieldLocator : FieldLocator
     , component : FieldComponent
-    , value : Maybe FieldValue
-    }
-
-
-type alias Field =
-    { fieldLocator : FieldLocator
     , fieldValue : FieldHolder
     , loadedFieldValue : Maybe FieldValue
     }
 
 
-type alias ValidDirtyField =
+type alias ResolvedFieldInstance =
     { fieldLocator : FieldLocator
     , fieldValue : Maybe FieldValue
+    }
+
+
+type alias Field =
+    { fieldLocator : FieldLocator
+    , fieldValue : FieldValue
     }
 
 

@@ -463,10 +463,16 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
 
         component =
             buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope
+
+        value =
+            List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
+                |> List.head
+                |> Maybe.map .fieldValue
     in
         { fieldLocator = fieldLocator
         , component = component
-        , value = Nothing
+        , fieldValue = Ok Nothing
+        , loadedFieldValue = value
         }
 
 
@@ -522,7 +528,7 @@ updateSelectize fieldLocator selectizeMsg model =
                             if currentFieldInstance.fieldLocator == fieldLocator then
                                 { currentFieldInstance
                                     | component = SelectizeComponent fieldType newSelectizeModel
-                                    , value = newValue
+                                    , fieldValue = Ok newValue
                                 }
                             else
                                 currentFieldInstance

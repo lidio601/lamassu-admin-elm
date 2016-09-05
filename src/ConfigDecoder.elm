@@ -42,17 +42,10 @@ fieldLocatorDecoder =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    object3 Field
+    object2 Field
         ("fieldLocator" := fieldLocatorDecoder)
-        (map (Ok << Just)
-            (("fieldType" := string)
-                `andThen` fieldValueDecoder
-            )
-        )
-        (map Just
-            (("fieldType" := string)
-                `andThen` fieldValueDecoder
-            )
+        (("fieldType" := string)
+            `andThen` fieldValueDecoder
         )
 
 
