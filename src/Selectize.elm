@@ -31,6 +31,7 @@ type alias HtmlOptions =
 
 type alias HtmlClasses =
     { container : String
+    , selectBox : String
     , selectedItems : String
     , selectedItem : String
     , boxItems : String
@@ -309,7 +310,7 @@ view h model =
                     input [ readonly True, onFocus Focus ] []
     in
         div [ class h.classes.container ]
-            [ div [ onKeyDown KeyDown ]
+            [ div [ class h.classes.selectBox, onKeyDown KeyDown ]
                 [ div [] [ itemsView h model.selectedItems ]
                 , editInput
                 ]

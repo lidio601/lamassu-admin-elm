@@ -144,7 +144,7 @@ css =
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
             , descendants
-                [ (.) SelectizeContainer
+                [ (.) Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
                 , input
                     [ border zero
@@ -154,12 +154,17 @@ css =
                     , width (pct 100)
                     , fontFamilies [ "Fira Code" ]
                     , fontWeight (int 600)
+                    , property "outline" "none"
                     ]
                 , td
-                    [ padding2 (px 5) (px 10)
+                    [ padding2 (px 3) (px 4)
                     , textAlign center
                     , width (px 100)
                     , verticalAlign bottom
+                    ]
+                , (.) Component
+                    [ borderRadius (px 3)
+                    , border3 (px 1) solid Colors.lightGrey
                     ]
                 , tbody
                     [ descendants

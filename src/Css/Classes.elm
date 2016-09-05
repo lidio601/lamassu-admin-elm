@@ -17,4 +17,4 @@ type CssClasses
     | ConfigButtonRow
     | Active
     | BasicInput
-    | SelectizeContainer
+    | Component

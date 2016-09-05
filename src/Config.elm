@@ -219,7 +219,7 @@ selectizeHtmlClasses =
 
 selectizeHtmlOptions : Selectize.HtmlOptions
 selectizeHtmlOptions =
-    { instructionsForBlank = "Start typing for options"
+    { instructionsForBlank = "Start typing to see options..."
     , classes = selectizeHtmlClasses
     }
 
@@ -291,7 +291,8 @@ cellView model fieldInstance =
                     ++ (machineToString machine)
                     ++ "-"
                     ++ fieldLocator.code
-              , fieldComponent model fieldInstance
+              , div [ class [ Css.Classes.Component ] ]
+                    [ fieldComponent model fieldInstance ]
               )
             ]
 

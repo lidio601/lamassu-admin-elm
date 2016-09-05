@@ -3,7 +3,7 @@ module NavBar exposing (Page(..), view, update, Msg)
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
 import Html.Events exposing (onClick)
 import Html.CssHelpers
-import CssClasses
+import Css.Classes
 import Navigation exposing (newUrl)
 import VirtualDom
 
@@ -81,14 +81,14 @@ activePage linkPage page =
                     linkPage == page
     in
         if (active) then
-            class [ CssClasses.Active ]
+            class [ Css.Classes.Active ]
         else
             class []
 
 
 view : Page -> Html Msg
 view page =
-    nav [ class [ CssClasses.NavBar ] ]
+    nav [ class [ Css.Classes.NavBar ] ]
         [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
         , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
         , div [ onClick (NewPage (CryptoConfigPage "commissions" "global")), activePage (CryptoConfigPage "commissions" "global") page ] [ text "Commissions" ]
