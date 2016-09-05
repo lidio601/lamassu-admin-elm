@@ -3,12 +3,14 @@ module Css.Selectize exposing (..)
 import Css exposing (..)
 import Colors
 import Selectize
+import Css.Admin exposing (..)
 
 
 type Class
     = SelectizeContainer
     | SelectBox
     | BoxItems
+    | SelectedItems
 
 
 classes : Selectize.HtmlClasses
