@@ -103,36 +103,6 @@ load model code maybeCryptoCodeString =
 -- UPDATE
 
 
-toMatchedFieldValue : FieldLocator -> Field -> Maybe FieldValue
-toMatchedFieldValue fieldLocator field =
-    let
-        maybeFieldValue =
-            case field.fieldValue of
-                Err _ ->
-                    field.loadedFieldValue
-
-                Ok originalMaybeFieldValue ->
-                    originalMaybeFieldValue
-    in
-        if field.fieldLocator == fieldLocator then
-            maybeFieldValue
-        else
-            Nothing
-
-
-pickField : List Field -> Crypto -> Machine -> String -> Maybe FieldValue
-pickField fields crypto machine fieldCode =
-    let
-        fieldScope =
-            { crypto = crypto, machine = machine }
-
-        fieldLocator =
-            { fieldScope = fieldScope, code = fieldCode }
-    in
-        List.filterMap (toMatchedFieldValue fieldLocator) fields
-            |> List.head
-
-
 similar : (x -> y) -> x -> x -> Bool
 similar mapper a b =
     (==) (mapper a) (mapper b)
@@ -239,20 +209,26 @@ fieldComponent model fieldInstance =
         fieldCode =
             fieldLocator.code
 
-        values =
-            model.configGroup.values
+        instances : List FieldInstance
+        instances =
+            model.fieldInstances
 
         maybeGlobal =
-            pickField values GlobalCrypto GlobalMachine fieldCode
+            pickFieldInstanceValue GlobalCrypto GlobalMachine fieldCode instances
 
         maybeGlobalCrypto =
-            pickField values GlobalCrypto fieldScope.machine fieldCode
+            pickFieldInstanceValue GlobalCrypto fieldScope.machine fieldCode instances
 
         maybeGlobalMachine =
-            pickField values fieldScope.crypto GlobalMachine fieldCode
+            pickFieldInstanceValue fieldScope.crypto GlobalMachine fieldCode instances
 
         maybeSpecific =
-            pickField values fieldScope.crypto fieldScope.machine fieldCode
+            case fieldInstance.fieldValue of
+                Ok maybeFieldValue ->
+                    maybeFieldValue
+
+                _ ->
+                    Nothing
 
         maybeFallbackFieldValue =
             oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
@@ -481,6 +457,29 @@ pickFieldInstance fieldLocator fieldInstances =
     in
         List.filter (sameLocation fieldLocator) fieldInstances
             |> List.head
+
+
+fieldInstanceToMaybeFieldValue : FieldInstance -> Maybe FieldValue
+fieldInstanceToMaybeFieldValue fieldInstance =
+    case fieldInstance.fieldValue of
+        Ok maybeFieldValue ->
+            maybeFieldValue
+
+        _ ->
+            Nothing
+
+
+pickFieldInstanceValue : Crypto -> Machine -> String -> List FieldInstance -> Maybe FieldValue
+pickFieldInstanceValue crypto machine fieldCode fieldInstances =
+    let
+        fieldScope =
+            { crypto = crypto, machine = machine }
+
+        fieldLocator =
+            { fieldScope = fieldScope, code = fieldCode }
+    in
+        pickFieldInstance fieldLocator fieldInstances
+            `Maybe.andThen` fieldInstanceToMaybeFieldValue
 
 
 updateSelectizeValue : FieldType -> Selectize.Model -> Maybe FieldValue
