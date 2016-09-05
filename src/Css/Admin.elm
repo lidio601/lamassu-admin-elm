@@ -9,6 +9,7 @@ import Html.CssHelpers
 import Colors
 import Css.ColorSchemes exposing (..)
 import Css.Classes exposing (..)
+import Css.Selectize
 
 
 name : String
@@ -171,7 +172,9 @@ css =
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
             , descendants
-                [ input
+                [ (.) SelectizeContainer
+                    [ Css.Selectize.component ]
+                , input
                     [ border zero
                     , borderRadius (px 3)
                     , padding (px 6)

@@ -1,7 +1,7 @@
 port module Stylesheets exposing (..)
 
 import Css.File exposing (..)
-import AdminCss
+import Css.Admin
 import Html exposing (div)
 import Html.App as Html
 
@@ -11,7 +11,7 @@ port files : CssFileStructure -> Cmd msg
 
 cssFiles : CssFileStructure
 cssFiles =
-    toFileStructure [ ( "styles.css", compile AdminCss.css ) ]
+    toFileStructure [ ( "styles.css", compile Css.Admin.css ) ]
 
 
 main : Program Never
