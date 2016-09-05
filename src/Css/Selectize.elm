@@ -1,18 +1,39 @@
 module Css.Selectize exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button)
-import Css.Namespace exposing (namespace)
-import Css.Helpers
-import Html
-import Html.CssHelpers
 import Colors
-import Css.ColorSchemes exposing (..)
-import Css.Classes exposing (..)
+import Selectize
+
+
+type Class
+    = SelectizeContainer
+    | SelectBox
+    | BoxItems
+
+
+classes : Selectize.HtmlClasses
+classes =
+    { container = className SelectizeContainer
+    , selectedItems = className SelectedItems
+    , selectedItem = "selectedItem"
+    , boxItems = "boxItems"
+    , boxItem = "boxItem"
+    , boxItemActive = "activeBoxItem"
+    , instructionsForBlank = "instructions"
+    }
 
 
 component : Mixin
 component =
     mixin
-        [ backgroundColor (hex "f00")
+        [ backgroundColor Colors.white
+        , borderRadius (px 3)
+        , position relative
+        , children
+            [ (.) SelectBox
+                [ displayFlex
+                ]
+            , (.) BoxItems
+                [ position absolute ]
+            ]
         ]

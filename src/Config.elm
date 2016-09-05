@@ -15,6 +15,7 @@ import ConfigEncoder exposing (..)
 import Css.Admin exposing (class, className, id)
 import Css.Classes
 import Selectize
+import Css.Selectize
 import Maybe exposing (oneOf)
 
 
@@ -213,14 +214,7 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
 
 selectizeHtmlClasses : Selectize.HtmlClasses
 selectizeHtmlClasses =
-    { container = className Css.Classes.SelectizeContainer
-    , selectedItems = "selectedItems"
-    , selectedItem = "selectedItem"
-    , boxItems = "boxItems"
-    , boxItem = "boxItem"
-    , boxItemActive = "activeBoxItem"
-    , instructionsForBlank = "instructions"
-    }
+    Css.Selectize.classes
 
 
 selectizeHtmlOptions : Selectize.HtmlOptions

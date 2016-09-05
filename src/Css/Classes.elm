@@ -1,10 +1,6 @@
 module Css.Classes exposing (..)
 
 
-type SelectizeClasses
-    = SelectizeContainer
-
-
 type CssClasses
     = NavBar
     | MainLeft
@@ -21,3 +17,4 @@ type CssClasses
     | ConfigButtonRow
     | Active
     | BasicInput
+    | SelectizeContainer
