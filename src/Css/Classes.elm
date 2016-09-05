@@ -1,4 +1,8 @@
-module CssClasses exposing (..)
+module Css.Classes exposing (..)
+
+
+type SelectizeClasses
+    = SelectizeContainer
 
 
 type CssClasses
@@ -16,3 +20,4 @@ type CssClasses
     | ConfigButton
     | ConfigButtonRow
     | Active
+    | BasicInput

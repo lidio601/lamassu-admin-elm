@@ -1,8 +1,8 @@
-module ColorSchemes exposing (..)
+module Css.ColorSchemes exposing (..)
 
 import Css exposing (..)
 import Colors
-import CssClasses exposing (..)
+import Css.Classes exposing (..)
 
 
 type alias ColorScheme =
@@ -13,6 +13,7 @@ type alias ColorScheme =
     }
 
 
+darkGreyScheme : { bg : Color, bgHover : Color, fg : Color, fgActive : Color }
 darkGreyScheme =
     { bg = Colors.darkGrey
     , fg = Colors.sandstone
@@ -21,6 +22,7 @@ darkGreyScheme =
     }
 
 
+lightGreyScheme : { bg : Color, bgHover : Color, fg : Color, fgActive : Color }
 lightGreyScheme =
     { bg = Colors.lightGrey
     , fg = Colors.sandstone
@@ -29,6 +31,7 @@ lightGreyScheme =
     }
 
 
+cobaltScheme : { bg : Color, bgHover : Color, fg : Color, fgActive : Color }
 cobaltScheme =
     { bg = Colors.cobalt
     , fg = Colors.white

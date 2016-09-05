@@ -1,73 +1,116 @@
-module AdminCss exposing (..)
+module Css.Admin exposing (..)
 
 import Css exposing (..)
 import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button)
 import Css.Namespace exposing (namespace)
+import Css.Helpers
+import Html
+import Html.CssHelpers
 import Colors
-import ColorSchemes exposing (..)
-import CssClasses exposing (..)
+import Css.ColorSchemes exposing (..)
+import Css.Classes exposing (..)
+
+
+name : String
+name =
+    "lamassuAdmin"
+
+
+helpers : Html.CssHelpers.Namespace String class id msg
+helpers =
+    Html.CssHelpers.withNamespace name
+
+
+className : class -> String
+className class =
+    Css.Helpers.identifierToString name class
+
+
+class : List class -> Html.Attribute msg
+class =
+    helpers.class
+
+
+id : id -> Html.Attribute msg
+id =
+    helpers.id
 
 
 type CssIds
     = Page
 
 
+mainBackgroundColor : Color
 mainBackgroundColor =
     Colors.lightGrey
 
 
+contentBackgroundColor : Color
 contentBackgroundColor =
     Colors.white
 
 
+navBackgroundColor : Color
 navBackgroundColor =
     Colors.darkGrey
 
 
+navItemActiveBackgroundColor : Color
 navItemActiveBackgroundColor =
     Colors.darkerGrey
 
 
+navItemActiveColor : Color
 navItemActiveColor =
     Colors.amazonite
 
 
+navItemColor : Color
 navItemColor =
     Colors.sandstone
 
 
+cryptoTabsBackgroundColor : Color
 cryptoTabsBackgroundColor =
     Colors.cobalt
 
 
+cryptoTabsHoverBackgroundColor : Color
 cryptoTabsHoverBackgroundColor =
     Colors.darkCobalt
 
 
+cryptoTabsColor : Color
 cryptoTabsColor =
     Colors.white
 
 
+cryptoTabsActiveColor : Color
 cryptoTabsActiveColor =
     Colors.amazonite
 
 
+cobaltBG : Color
 cobaltBG =
     Colors.cobalt
 
 
+cobaltHoverBG : Color
 cobaltHoverBG =
     Colors.darkCobalt
 
 
+cobaltColor : Color
 cobaltColor =
     Colors.white
 
 
+cobaltActiveColor : Color
 cobaltActiveColor =
     Colors.amazonite
 
 
+css : Stylesheet
 css =
     (stylesheet << namespace "lamassuAdmin")
         [ body

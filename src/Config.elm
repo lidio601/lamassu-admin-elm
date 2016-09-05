@@ -12,14 +12,12 @@ import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (..)
 import ConfigEncoder exposing (..)
-import Html.CssHelpers
-import CssClasses
+import Css.Admin exposing (class, className, id)
+import Css.Classes
 import Selectize
 import Maybe exposing (oneOf)
 
 
-{ id, class, classList } =
-    Html.CssHelpers.withNamespace "lamassuAdmin"
 type alias ConfigGroupResponse =
     RemoteData (Error String) (Response ConfigGroup)
 
@@ -208,13 +206,14 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
             [ onInput (Input fieldLocator)
             , defaultValue defaultString
             , placeholder fallbackString
+            , class [ Css.Classes.BasicInput ]
             ]
             []
 
 
 selectizeHtmlClasses : Selectize.HtmlClasses
 selectizeHtmlClasses =
-    { container = "container"
+    { container = className Css.Classes.SelectizeContainer
     , selectedItems = "selectedItems"
     , selectedItem = "selectedItem"
     , boxItems = "boxItems"
@@ -234,7 +233,7 @@ selectizeHtmlOptions =
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
     case fieldInstance.component of
-        InputBoxComponent fieldType ->
+        InputBoxComponent _ ->
             textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
         SelectizeComponent fieldType selectizeModel ->
@@ -312,7 +311,7 @@ rowView model fieldInstances machineDisplay =
         globalRowClass =
             case machine of
                 GlobalMachine ->
-                    class [ CssClasses.ConfigTableGlobalRow ]
+                    class [ Css.Classes.ConfigTableGlobalRow ]
 
                 _ ->
                     class []
@@ -377,7 +376,7 @@ tableView model =
         rows =
             List.map (rowView model instances) machines
     in
-        table [ class [ CssClasses.ConfigTable ] ]
+        table [ class [ Css.Classes.ConfigTable ] ]
             [ thead [] [ headerRow ]
             , tbody [] rows
             ]
@@ -600,7 +599,7 @@ cryptoView maybeActiveCrypto cryptoDisplay =
 
                 Just activeCrypto ->
                     if (activeCrypto == cryptoDisplay.crypto) then
-                        class [ CssClasses.Active ]
+                        class [ Css.Classes.Active ]
                     else
                         class []
     in
@@ -613,7 +612,7 @@ cryptosView activeCrypto configGroup =
         cryptos =
             listCryptos configGroup
     in
-        nav [ class [ CssClasses.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
+        nav [ class [ Css.Classes.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
 
 
 view : Model -> Html Msg
@@ -634,7 +633,7 @@ view model =
                     toResolvedModel model configGroup
 
                 configGroupView =
-                    div [ class [ CssClasses.ConfigTableContainer ] ]
+                    div [ class [ Css.Classes.ConfigTableContainer ] ]
                         [ tableView resolvedModel ]
 
                 statusString =
@@ -648,20 +647,20 @@ view model =
                 form =
                     Html.form []
                         [ div [] [ configGroupView ]
-                        , div [ class [ CssClasses.ConfigButtonRow ] ]
-                            [ div [ onClick Submit, class [ CssClasses.ConfigButton ] ] [ text "Submit" ]
+                        , div [ class [ Css.Classes.ConfigButtonRow ] ]
+                            [ div [ onClick Submit, class [ Css.Classes.ConfigButton ] ] [ text "Submit" ]
                             , div [] [ text statusString ]
                             ]
                         ]
             in
                 if (configGroup.schema.cryptoScope == Global) then
                     div []
-                        [ div [ class [ CssClasses.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ Css.Classes.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
                         , form
                         ]
                 else
                     div []
-                        [ div [ class [ CssClasses.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ Css.Classes.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
                         , div [] [ (cryptosView model.crypto configGroup) ]
                         , form
                         ]
