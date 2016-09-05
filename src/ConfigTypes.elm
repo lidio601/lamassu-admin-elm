@@ -67,6 +67,7 @@ type FieldComponent
 type alias FieldInstance =
     { fieldLocator : FieldLocator
     , component : FieldComponent
+    , value : Maybe FieldValue
     }
 
 

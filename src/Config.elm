@@ -461,6 +461,7 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
     in
         { fieldLocator = fieldLocator
         , component = component
+        , value = Nothing
         }
 
 
