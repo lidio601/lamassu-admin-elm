@@ -4,26 +4,31 @@ import Json.Decode exposing (..)
 import ConfigTypes exposing (..)
 
 
-fieldValueDecoder : String -> Decoder FieldValue
-fieldValueDecoder fieldType =
+fieldValueTypeDecoder : String -> Decoder FieldValue
+fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldStringValue ("fieldValue" := string)
+            map FieldStringValue ("value" := string)
 
         "percentage" ->
-            map FieldPercentageValue ("fieldValue" := float)
+            map FieldPercentageValue ("value" := float)
 
         "integer" ->
-            map FieldIntegerValue ("fieldValue" := int)
+            map FieldIntegerValue ("value" := int)
 
         "onOff" ->
-            map FieldOnOffValue ("fieldValue" := bool)
+            map FieldOnOffValue ("value" := bool)
 
         "currency" ->
-            map FieldCurrencyValue ("fieldValue" := string)
+            map FieldCurrencyValue ("value" := string)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
+
+
+fieldValueDecoder : Decoder FieldValue
+fieldValueDecoder =
+    ("fieldType" := string) `andThen` fieldValueTypeDecoder
 
 
 fieldScopeDecoder : Decoder FieldScope
@@ -44,9 +49,7 @@ fieldDecoder : Decoder Field
 fieldDecoder =
     object2 Field
         ("fieldLocator" := fieldLocatorDecoder)
-        (("fieldType" := string)
-            `andThen` fieldValueDecoder
-        )
+        ("fieldValue" := fieldValueDecoder)
 
 
 string2machine : String -> Machine

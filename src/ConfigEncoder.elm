@@ -5,6 +5,11 @@ import List
 import ConfigTypes exposing (..)
 
 
+encodeFieldValueObject : String -> Value -> Value
+encodeFieldValueObject fieldTypeStr value =
+    object [ ( "fieldType", string fieldTypeStr ), ( "value", value ) ]
+
+
 encodeFieldValue : Maybe FieldValue -> Value
 encodeFieldValue maybeFieldValue =
     case maybeFieldValue of
@@ -14,22 +19,26 @@ encodeFieldValue maybeFieldValue =
         Just fieldValue ->
             case fieldValue of
                 FieldStringValue value ->
-                    string value
+                    encodeFieldValueObject "string" (string value)
 
                 FieldPercentageValue value ->
-                    float value
+                    encodeFieldValueObject "percentage" (float value)
 
                 FieldIntegerValue value ->
-                    int value
+                    encodeFieldValueObject "integer" (int value)
 
                 FieldOnOffValue value ->
-                    bool value
+                    encodeFieldValueObject "onOff" (bool value)
 
-                FieldAccountValue value ->
-                    string value
+                FieldAccountValue accountClass value ->
+                    object
+                        [ ( "fieldType", string "account" )
+                        , ( "accountClass", string accountClass )
+                        , ( "value", string value )
+                        ]
 
                 FieldCurrencyValue value ->
-                    string value
+                    encodeFieldValueObject "currency" (string value)
 
 
 encodeCrypto : Crypto -> Value
@@ -74,7 +83,7 @@ encodeFieldResult fieldInstance =
         encode maybeFieldValue =
             Json.Encode.object
                 [ ( "fieldLocator", encodeFieldLocator fieldInstance.fieldLocator )
-                , ( "value", encodeFieldValue maybeFieldValue )
+                , ( "fieldValue", encodeFieldValue maybeFieldValue )
                 ]
 
         onlyDirty maybeFieldValue =
@@ -90,6 +99,6 @@ encodeFieldResult fieldInstance =
 encodeResults : String -> List FieldInstance -> Value
 encodeResults configGroupCode fieldInstances =
     Json.Encode.object
-        [ ( "configGroup", string configGroupCode )
+        [ ( "groupCode", string configGroupCode )
         , ( "values", list (List.filterMap encodeFieldResult fieldInstances) )
         ]
