@@ -156,45 +156,32 @@ placeField fieldList field =
         newField :: (List.filter (not << (similar .fieldLocator field)) fieldList)
 
 
+updateStringFieldInstance : FieldLocator -> FieldHolder -> FieldInstance -> FieldInstance
+updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
+    if fieldInstance.fieldLocator == fieldLocator then
+        { fieldInstance | fieldValue = fieldHolder }
+    else
+        fieldInstance
 
--- updateValue : FieldLocator -> FieldValue -> List FieldInstance -> List FieldInstance
--- updateValue fieldLocator fieldValue fieldInstances =
 
-
-updateValues : ConfigGroup -> FieldLocator -> String -> ConfigGroup
-updateValues configGroup fieldLocator valueString =
+updateInput : FieldLocator -> FieldType -> String -> Model -> ( Model, Cmd Msg )
+updateInput fieldLocator fieldType valueString model =
     let
-        maybeFieldDescriptor =
-            List.filter (\fd -> fd.code == fieldLocator.code) configGroup.schema.entries
-                |> List.head
+        fieldValue =
+            stringToFieldValue fieldType valueString
+
+        fieldInstances =
+            List.map (updateStringFieldInstance fieldLocator fieldValue) model.fieldInstances
     in
-        case maybeFieldDescriptor of
-            Just fieldDescriptor ->
-                let
-                    fieldValueHolder =
-                        stringToFieldValue fieldDescriptor.fieldType valueString
-
-                    field =
-                        { fieldLocator = fieldLocator
-                        , fieldValue = fieldValueHolder
-                        , loadedFieldValue = Nothing
-                        }
-
-                    values =
-                        placeField configGroup.values field
-                in
-                    { configGroup | values = values }
-
-            Nothing ->
-                configGroup
+        { model | fieldInstances = fieldInstances } ! []
 
 
 
 -- View
 
 
-textInput : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
+textInput : FieldLocator -> FieldType -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
     let
         maybeSpecificString =
             Maybe.map fieldValueToString maybeFieldValue
@@ -209,7 +196,7 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
             Maybe.withDefault "" maybeFallbackString
     in
         input
-            [ onInput (Input fieldLocator)
+            [ onInput (Input fieldLocator fieldType)
             , defaultValue defaultString
             , placeholder fallbackString
             , class [ Css.Classes.BasicInput ]
@@ -232,8 +219,8 @@ selectizeHtmlOptions =
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
     case fieldInstance.component of
-        InputBoxComponent _ ->
-            textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
+        InputBoxComponent fieldType ->
+            textInput fieldInstance.fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue
 
         SelectizeComponent fieldType selectizeModel ->
             Html.App.map (SelectizeMsg fieldInstance.fieldLocator)
@@ -390,7 +377,7 @@ isField fieldCode field =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | Input FieldLocator String
+    | Input FieldLocator FieldType String
     | CryptoSwitch Crypto
     | SelectizeMsg FieldLocator Selectize.Msg
 
@@ -578,24 +565,8 @@ update msg model =
                 _ ->
                     model ! []
 
-        Input fieldLocator valueString ->
-            case model.webConfigGroup of
-                Success configGroup ->
-                    let
-                        newConfigGroup =
-                            updateValues configGroup fieldLocator valueString
-
-                        webConfigGroup =
-                            Success newConfigGroup
-                    in
-                        { model
-                            | webConfigGroup = webConfigGroup
-                            , status = Editing
-                        }
-                            ! []
-
-                _ ->
-                    model ! []
+        Input fieldLocator fieldType valueString ->
+            updateInput fieldLocator fieldType valueString model
 
         CryptoSwitch crypto ->
             case model.webConfigGroup of
