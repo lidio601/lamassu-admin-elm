@@ -32,65 +32,6 @@ encodeFieldValue maybeFieldValue =
                     string value
 
 
-encodeFieldType : Maybe FieldValue -> Value
-encodeFieldType maybeFieldValue =
-    case maybeFieldValue of
-        Nothing ->
-            null
-
-        Just fieldValue ->
-            case fieldValue of
-                FieldStringValue _ ->
-                    string "string"
-
-                FieldPercentageValue _ ->
-                    string "percentage"
-
-                FieldIntegerValue _ ->
-                    string "integer"
-
-                FieldOnOffValue _ ->
-                    string "onOff"
-
-                FieldAccountValue _ ->
-                    string "account"
-
-                FieldCurrencyValue _ ->
-                    string "currency"
-
-
-dirtyValue : Field -> Maybe ValidDirtyField
-dirtyValue field =
-    let
-        maybeMaybeFieldValue =
-            case field.fieldValue of
-                Err _ ->
-                    Nothing
-
-                Ok maybeFieldValue ->
-                    case field.loadedFieldValue of
-                        Nothing ->
-                            Just maybeFieldValue
-
-                        Just loadedFieldValue ->
-                            case maybeFieldValue of
-                                Nothing ->
-                                    Just maybeFieldValue
-
-                                Just fieldValue ->
-                                    if (fieldValue /= loadedFieldValue) then
-                                        Just maybeFieldValue
-                                    else
-                                        Nothing
-
-        toValidDirtyField maybeFieldValue =
-            { fieldLocator = field.fieldLocator
-            , fieldValue = maybeFieldValue
-            }
-    in
-        Maybe.map toValidDirtyField maybeMaybeFieldValue
-
-
 encodeCrypto : Crypto -> Value
 encodeCrypto crypto =
     case crypto of
@@ -127,22 +68,28 @@ encodeFieldLocator fieldLocator =
         ]
 
 
-encodeField : ValidDirtyField -> Value
-encodeField field =
-    Json.Encode.object
-        [ ( "fieldLocator", encodeFieldLocator field.fieldLocator )
-        , ( "fieldValue", encodeFieldValue field.fieldValue )
-        , ( "fieldType", encodeFieldType field.fieldValue )
-        ]
-
-
-encodeConfigGroup : ConfigGroup -> Value
-encodeConfigGroup configGroup =
+encodeFieldResult : FieldInstance -> Maybe Value
+encodeFieldResult fieldInstance =
     let
-        dirtyFields =
-            List.filterMap dirtyValue configGroup.values
+        encode maybeFieldValue =
+            Json.Encode.object
+                [ ( "fieldLocator", encodeFieldLocator fieldInstance.fieldLocator )
+                , ( "value", encodeFieldValue maybeFieldValue )
+                ]
+
+        onlyDirty maybeFieldValue =
+            if (fieldInstance.loadedFieldValue == maybeFieldValue) then
+                Nothing
+            else
+                Just (encode maybeFieldValue)
     in
-        Json.Encode.object
-            [ ( "code", string configGroup.schema.code )
-            , ( "values", list (List.map encodeField dirtyFields) )
-            ]
+        Result.toMaybe fieldInstance.fieldValue
+            `Maybe.andThen` onlyDirty
+
+
+encodeResults : String -> List FieldInstance -> Value
+encodeResults configGroupCode fieldInstances =
+    Json.Encode.object
+        [ ( "configGroup", string configGroupCode )
+        , ( "values", list (List.filterMap encodeFieldResult fieldInstances) )
+        ]

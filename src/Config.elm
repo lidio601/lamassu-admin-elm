@@ -71,11 +71,11 @@ getForm code =
         |> Cmd.map Load
 
 
-postForm : ConfigGroup -> Cmd Msg
-postForm configGroup =
+postForm : String -> List FieldInstance -> Cmd Msg
+postForm configGroupCode fieldInstances =
     post "http://localhost:8093/config"
         |> withHeader "Content-Type" "application/json"
-        |> withJsonBody (encodeConfigGroup configGroup)
+        |> withJsonBody (encodeResults configGroupCode fieldInstances)
         |> send (jsonReader configGroupDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -559,7 +559,8 @@ update msg model =
         Submit ->
             case model.webConfigGroup of
                 Success configGroup ->
-                    { model | status = Saving } ! [ postForm configGroup ]
+                    { model | status = Saving }
+                        ! [ postForm configGroup.schema.code model.fieldInstances ]
 
                 _ ->
                     model ! []
