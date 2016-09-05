@@ -3,7 +3,6 @@ module NavBar exposing (Page(..), view, update, Msg)
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
 import Html.Events exposing (onClick)
 import Html.CssHelpers
-import AdminCss
 import CssClasses
 import Navigation exposing (newUrl)
 import VirtualDom
@@ -94,4 +93,5 @@ view page =
         , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
         , div [ onClick (NewPage (CryptoConfigPage "commissions" "global")), activePage (CryptoConfigPage "commissions" "global") page ] [ text "Commissions" ]
         , div [ onClick (NewPage (ConfigPage "limits")), activePage (ConfigPage "limits") page ] [ text "Limits" ]
+        , div [ onClick (NewPage (ConfigPage "fiat")), activePage (ConfigPage "fiat") page ] [ text "Fiat" ]
         ]
