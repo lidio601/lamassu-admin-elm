@@ -7,19 +7,41 @@ module Selectize
         , Model
         , Msg
         , Item
-        , keyDown
-        , keyUp
+        , HtmlOptions
+        , HtmlClasses
         )
 
 import Task
 import Html exposing (..)
-import Html.Attributes exposing (value, defaultValue, readonly)
-import Html.Events exposing (onInput)
+import Html.Attributes exposing (value, defaultValue, readonly, maxlength, class, classList)
+import Html.Events exposing (onInput, onBlur, onFocus, on)
 import Fuzzy
 import String
+import Json.Decode
 
 
 -- MODEL
+
+
+type alias HtmlOptions =
+    { instructionsForBlank : String
+    , classes : HtmlClasses
+    }
+
+
+type alias HtmlClasses =
+    { container : String
+    , selectedItems : String
+    , selectedItem : String
+    , boxItems : String
+    , boxItem : String
+    , boxItemActive : String
+    , instructionsForBlank : String
+    }
+
+
+type alias H =
+    HtmlOptions
 
 
 type alias Item =
@@ -33,6 +55,7 @@ type Status
     = Initial
     | Editing
     | Cleared
+    | Blurred
 
 
 selectizeItem : String -> String -> List String -> Item
@@ -66,7 +89,7 @@ init maxItems boxLength selectedItems availableItems =
     , availableItems = availableItems
     , boxItems = []
     , boxPosition = 0
-    , status = Initial
+    , status = Blurred
     }
 
 
@@ -78,6 +101,8 @@ type Msg
     = Input String
     | KeyDown Int
     | KeyUp Int
+    | Blur
+    | Focus
 
 
 clean : String -> String
@@ -116,8 +141,8 @@ diffItems a b =
 
 updateInput : String -> Model -> ( Model, Cmd Msg )
 updateInput string model =
-    if (String.length string < 2) then
-        { model | status = Editing, boxItems = [] } ! []
+    if (String.length string == 0) then
+        { model | status = Initial, boxItems = [] } ! []
     else
         let
             unselectedItems =
@@ -135,52 +160,59 @@ updateInput string model =
 
 updateKey : Int -> Model -> ( Model, Cmd Msg )
 updateKey keyCode model =
-    case keyCode of
-        -- up
-        38 ->
-            { model | boxPosition = (max 0 (model.boxPosition - 1)) } ! []
+    case model.status of
+        Editing ->
+            case keyCode of
+                -- up
+                38 ->
+                    { model | boxPosition = (max 0 (model.boxPosition - 1)) } ! []
 
-        -- down
-        40 ->
-            { model
-                | boxPosition =
-                    (min ((List.length model.boxItems) - 1)
-                        (model.boxPosition + 1)
-                    )
-            }
-                ! []
+                -- down
+                40 ->
+                    { model
+                        | boxPosition =
+                            (min ((List.length model.boxItems) - 1)
+                                (model.boxPosition + 1)
+                            )
+                    }
+                        ! []
 
-        -- enter
-        13 ->
-            let
-                maybeItem =
-                    (List.head << (List.drop model.boxPosition)) model.boxItems
-            in
-                case maybeItem of
-                    Nothing ->
-                        model ! []
+                -- enter
+                13 ->
+                    let
+                        maybeItem =
+                            (List.head << (List.drop model.boxPosition)) model.boxItems
+                    in
+                        case maybeItem of
+                            Nothing ->
+                                model ! []
 
-                    Just item ->
-                        { model
-                            | status = Cleared
-                            , selectedItems = model.selectedItems ++ [ item ]
-                            , boxPosition = 0
-                        }
-                            ! []
+                            Just item ->
+                                { model
+                                    | status = Cleared
+                                    , selectedItems = model.selectedItems ++ [ item ]
+                                    , boxPosition = 0
+                                }
+                                    ! []
 
-        -- backspace
-        8 ->
-            if model.status == Initial then
-                let
-                    allButLast =
-                        max 0 ((List.length model.selectedItems) - 1)
+                _ ->
+                    model ! []
 
-                    newSelectedItems =
-                        List.take allButLast model.selectedItems
-                in
-                    { model | selectedItems = newSelectedItems } ! []
-            else
-                model ! []
+        Initial ->
+            case keyCode of
+                -- backspace
+                8 ->
+                    let
+                        allButLast =
+                            max 0 ((List.length model.selectedItems) - 1)
+
+                        newSelectedItems =
+                            List.take allButLast model.selectedItems
+                    in
+                        { model | selectedItems = newSelectedItems } ! []
+
+                _ ->
+                    model ! []
 
         _ ->
             model ! []
@@ -206,67 +238,90 @@ update msg model =
             else
                 model ! []
 
+        Blur ->
+            { model | status = Blurred, boxPosition = 0 } ! []
+
+        Focus ->
+            { model | status = Initial, boxPosition = 0 } ! []
+
 
 
 -- VIEW
 
 
-itemView : Item -> Html Msg
-itemView item =
-    div [] [ text item.display ]
+itemView : HtmlOptions -> Item -> Html Msg
+itemView h item =
+    div [ class h.classes.selectedItem ] [ text item.code ]
 
 
-itemsView : List Item -> Html Msg
-itemsView items =
-    div [] (List.map itemView items)
+itemsView : HtmlOptions -> List Item -> Html Msg
+itemsView h items =
+    div [ class h.classes.selectedItems ] (List.map (itemView h) items)
 
 
-boxView : Model -> Html Msg
-boxView model =
-    let
-        boxItemHtml pos item =
-            if model.boxPosition == pos then
-                div [] [ text ("* " ++ item.display) ]
+boxView : HtmlOptions -> Model -> Html Msg
+boxView h model =
+    case model.status of
+        Editing ->
+            let
+                c =
+                    h.classes
+
+                boxItemHtml pos item =
+                    div
+                        [ classList
+                            [ ( c.boxItem, True )
+                            , ( c.boxItemActive, model.boxPosition == pos )
+                            ]
+                        ]
+                        [ text item.display ]
+            in
+                div [ class c.boxItems ] (List.indexedMap boxItemHtml model.boxItems)
+
+        Initial ->
+            if List.length model.selectedItems == model.maxItems then
+                span [] []
             else
-                div [] [ text item.display ]
-    in
-        if model.status == Editing then
-            div [] (List.indexedMap boxItemHtml model.boxItems)
-        else
-            div [] []
+                div [ class h.classes.instructionsForBlank ] [ text h.instructionsForBlank ]
+
+        _ ->
+            span [] []
 
 
-view : Model -> Html Msg
-view model =
+view : HtmlOptions -> Model -> Html Msg
+view h model =
     let
         editInput =
-            case (Debug.log "DEBUG1" model.status) of
+            case model.status of
                 Initial ->
                     if (List.length model.selectedItems) < model.maxItems then
-                        input [ onInput Input ] []
+                        input [ onBlur Blur, onInput Input ] []
                     else
                         input [ readonly True ] []
 
                 Editing ->
-                    input [ onInput Input ] []
+                    input [ onBlur Blur, onInput Input ] []
 
                 Cleared ->
-                    input [ value "", onInput Input ] []
+                    input [ onKeyUp KeyUp, value "", onBlur Blur, onInput Input ] []
+
+                Blurred ->
+                    input [ readonly True, onFocus Focus ] []
     in
-        div []
-            [ div []
-                [ div [] [ itemsView model.selectedItems ]
+        div [ class h.classes.container ]
+            [ div [ onKeyDown KeyDown ]
+                [ div [] [ itemsView h model.selectedItems ]
                 , editInput
                 ]
-            , boxView model
+            , boxView h model
             ]
 
 
-keyUp : Int -> Msg
-keyUp code =
-    KeyUp code
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+    on "keydown" (Json.Decode.map tagger Html.Events.keyCode)
 
 
-keyDown : Int -> Msg
-keyDown code =
-    KeyDown code
+onKeyUp : (Int -> msg) -> Attribute msg
+onKeyUp tagger =
+    on "keyup" (Json.Decode.map tagger Html.Events.keyCode)

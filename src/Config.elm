@@ -212,6 +212,25 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
             []
 
 
+selectizeHtmlClasses : Selectize.HtmlClasses
+selectizeHtmlClasses =
+    { container = "container"
+    , selectedItems = "selectedItems"
+    , selectedItem = "selectedItem"
+    , boxItems = "boxItems"
+    , boxItem = "boxItem"
+    , boxItemActive = "activeBoxItem"
+    , instructionsForBlank = "instructions"
+    }
+
+
+selectizeHtmlOptions : Selectize.HtmlOptions
+selectizeHtmlOptions =
+    { instructionsForBlank = "Start typing for options"
+    , classes = selectizeHtmlClasses
+    }
+
+
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
     case fieldInstance.component of
@@ -219,7 +238,8 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
             textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
         SelectizeComponent fieldType selectizeModel ->
-            Html.App.map (SelectizeMsg fieldInstance.fieldLocator) (Selectize.view selectizeModel)
+            Html.App.map (SelectizeMsg fieldInstance.fieldLocator)
+                (Selectize.view selectizeHtmlOptions selectizeModel)
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
