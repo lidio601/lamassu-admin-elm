@@ -42,6 +42,7 @@ type alias HtmlClasses =
     , boxItem : String
     , boxItemActive : String
     , instructionsForBlank : String
+    , inputEditing : String
     }
 
 
@@ -398,7 +399,7 @@ view h fallbackCodes model =
                         input [ readonly True ] []
 
                 Editing ->
-                    input [ onBlur Blur, onInput Input ] []
+                    input [ onBlur Blur, onInput Input, class h.classes.inputEditing ] []
 
                 Cleared ->
                     input [ onKeyUp KeyUp, value "", onBlur Blur, onInput Input ] []

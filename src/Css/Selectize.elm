@@ -103,4 +103,5 @@ classes =
     , boxItem = className BoxItem
     , boxItemActive = className BoxItemActive
     , instructionsForBlank = className Instructions
+    , inputEditing = className InputEditing
     }
