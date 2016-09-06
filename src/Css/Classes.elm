@@ -18,3 +18,4 @@ type CssClasses
     | Active
     | BasicInput
     | Component
+    | FocusedComponent

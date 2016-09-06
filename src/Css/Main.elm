@@ -3,7 +3,7 @@ module Css.Main exposing (..)
 import Css exposing (..)
 import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button)
 import Css.Namespace exposing (namespace)
-import Colors
+import Css.Colors as Colors
 import Css.ColorSchemes exposing (..)
 import Css.Classes exposing (..)
 import Css.Selectize
@@ -155,6 +155,7 @@ css =
                     , fontFamilies [ "Fira Code" ]
                     , fontWeight (int 600)
                     , property "outline" "none"
+                    , property "background-color" "inherit"
                     ]
                 , td
                     [ padding2 (px 3) (px 4)
@@ -164,8 +165,11 @@ css =
                     ]
                 , (.) Component
                     [ borderRadius (px 3)
-                    , border3 (px 1) solid Colors.lightGrey
+                    , border3 (px 2) solid Colors.lightGrey
+                    , backgroundColor Colors.white
                     ]
+                , (.) FocusedComponent
+                    [ borderTopColor Colors.amazonite ]
                 , tbody
                     [ descendants
                         [ td

@@ -1,7 +1,7 @@
 module Css.Selectize exposing (..)
 
 import Css exposing (..)
-import Colors
+import Css.Colors as Colors
 import Selectize
 import Css.Admin exposing (..)
 import Css.Elements exposing (input)
@@ -10,14 +10,14 @@ import Css.Elements exposing (input)
 component : Mixin
 component =
     mixin
-        [ backgroundColor Colors.white
-        , borderRadius (px 3)
+        [ borderRadius (px 3)
         , position relative
         , descendants
             [ (.) SelectBox
                 [ displayFlex
                 , alignItems center
                 , padding2 zero (px 3)
+                , property "background-color" "inherit"
                 ]
             , (.) BoxItems
                 [ position absolute
@@ -71,6 +71,7 @@ component =
             , input
                 [ textAlign left
                 , opacity zero
+                , property "background-color" "inherit"
                 ]
             , (.) InputEditing
                 [ opacity (int 1)

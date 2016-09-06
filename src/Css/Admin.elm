@@ -1,4 +1,4 @@
-module Css.Admin exposing (..)
+module Css.Admin exposing (className, class, classList, id)
 
 import Css.Helpers
 import Html
@@ -23,6 +23,11 @@ className class =
 class : List class -> Html.Attribute msg
 class =
     helpers.class
+
+
+classList : List ( class, Bool ) -> Html.Attribute msg
+classList =
+    helpers.classList
 
 
 id : id -> Html.Attribute msg

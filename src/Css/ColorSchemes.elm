@@ -1,7 +1,7 @@
 module Css.ColorSchemes exposing (..)
 
 import Css exposing (..)
-import Colors
+import Css.Colors as Colors
 import Css.Classes exposing (..)
 
 

@@ -1,4 +1,4 @@
-module Colors exposing (..)
+module Css.Colors exposing (..)
 
 import Css exposing (..)
 
@@ -31,6 +31,11 @@ sandstone =
 lightGrey : Color
 lightGrey =
     hex "f6f6f4"
+
+
+lighterLightGrey : Color
+lighterLightGrey =
+    hex "fcfcfa"
 
 
 darkerLightGrey : Color

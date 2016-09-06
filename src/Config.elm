@@ -12,7 +12,7 @@ import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (..)
 import ConfigEncoder exposing (..)
-import Css.Admin exposing (class, className, id)
+import Css.Admin exposing (..)
 import Css.Classes
 import Selectize
 import Css.Selectize
@@ -39,6 +39,7 @@ type alias Model =
     , fieldInstances : List FieldInstance
     , crypto : Maybe Crypto
     , status : SavingStatus
+    , focused : Maybe FieldLocator
     }
 
 
@@ -47,6 +48,7 @@ type alias ResolvedModel =
     , fieldInstances : List FieldInstance
     , crypto : Crypto
     , status : SavingStatus
+    , focused : Maybe FieldLocator
     }
 
 
@@ -56,6 +58,7 @@ toResolvedModel model configGroup =
     , fieldInstances = model.fieldInstances
     , crypto = Maybe.withDefault GlobalCrypto model.crypto
     , status = model.status
+    , focused = model.focused
     }
 
 
@@ -83,6 +86,7 @@ init =
     , fieldInstances = []
     , crypto = Nothing
     , status = NotSaving
+    , focused = Nothing
     }
 
 
@@ -163,6 +167,8 @@ textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
     in
         input
             [ onInput (Input fieldLocator fieldType)
+            , onFocus (Focus fieldLocator)
+            , onBlur (Blur fieldLocator)
             , defaultValue defaultString
             , placeholder fallbackString
             , class [ Css.Classes.BasicInput ]
@@ -253,6 +259,9 @@ cellView model fieldInstance =
 
         crypto =
             fieldScope.crypto
+
+        focused =
+            (Just fieldLocator) == model.focused
     in
         Html.Keyed.node "td"
             []
@@ -261,7 +270,7 @@ cellView model fieldInstance =
                     ++ (machineToString machine)
                     ++ "-"
                     ++ fieldLocator.code
-              , div [ class [ Css.Classes.Component ] ]
+              , div [ classList [ ( Css.Classes.Component, True ), ( Css.Classes.FocusedComponent, focused ) ] ]
                     [ fieldComponent model fieldInstance ]
               )
             ]
@@ -358,6 +367,8 @@ type Msg
     | Input FieldLocator FieldType String
     | CryptoSwitch Crypto
     | SelectizeMsg FieldLocator Selectize.Msg
+    | Blur FieldLocator
+    | Focus FieldLocator
 
 
 selectizeItem : DisplayRec -> Selectize.Item
@@ -510,6 +521,19 @@ updateSelectizeValue fieldType selectizeModel =
             Nothing
 
 
+determineSelectizeFocus : FieldLocator -> Selectize.Msg -> Model -> Maybe FieldLocator
+determineSelectizeFocus fieldLocator selectizeMsg model =
+    if Selectize.focused selectizeMsg then
+        Just fieldLocator
+    else if (Selectize.blurred selectizeMsg) then
+        if model.focused == (Just fieldLocator) then
+            Nothing
+        else
+            model.focused
+    else
+        model.focused
+
+
 updateSelectize : FieldLocator -> Selectize.Msg -> Model -> ( Model, Cmd Msg )
 updateSelectize fieldLocator selectizeMsg model =
     case (pickFieldInstance fieldLocator model.fieldInstances) of
@@ -535,10 +559,24 @@ updateSelectize fieldLocator selectizeMsg model =
                             else
                                 currentFieldInstance
                     in
-                        { model | fieldInstances = List.map modifyInstance model.fieldInstances } ! []
+                        { model
+                            | fieldInstances = List.map modifyInstance model.fieldInstances
+                            , focused = determineSelectizeFocus fieldLocator selectizeMsg model
+                        }
+                            ! []
 
                 _ ->
                     model ! []
+
+
+updateFocus : FieldLocator -> Bool -> Model -> ( Model, Cmd Msg )
+updateFocus fieldLocator focused model =
+    if focused then
+        { model | focused = Just fieldLocator } ! []
+    else if model.focused == Just fieldLocator then
+        { model | focused = Nothing } ! []
+    else
+        model ! []
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -601,6 +639,12 @@ update msg model =
 
         SelectizeMsg fieldLocator selectizeMsg ->
             updateSelectize fieldLocator selectizeMsg model
+
+        Focus fieldLocator ->
+            updateFocus fieldLocator True model
+
+        Blur fieldLocator ->
+            updateFocus fieldLocator False model
 
 
 cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg
