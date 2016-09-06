@@ -42,6 +42,7 @@ type alias HtmlClasses =
     , selectBox : String
     , selectedItems : String
     , fallbackItems : String
+    , fallbackItem : String
     , selectedItem : String
     , boxContainer : String
     , boxItems : String
@@ -326,9 +327,15 @@ update msg model =
 -- VIEW
 
 
-itemView : HtmlOptions -> Item -> Html Msg
-itemView h item =
-    div [ class h.classes.selectedItem ] [ text item.code ]
+itemView : HtmlOptions -> Bool -> Item -> Html Msg
+itemView h isFallback item =
+    div
+        [ classList
+            [ ( h.classes.selectedItem, True )
+            , ( h.classes.fallbackItem, isFallback )
+            ]
+        ]
+        [ text item.code ]
 
 
 fallbackItemsView : HtmlOptions -> List Item -> List Item -> Model -> Html Msg
@@ -340,13 +347,16 @@ fallbackItemsView h fallbackItems selectedItems model =
                 , ( h.classes.fallbackItems, List.length selectedItems == 0 )
                 ]
 
+        isFallback =
+            List.length selectedItems == 0
+
         items =
-            if List.length selectedItems == 0 then
+            if isFallback then
                 fallbackItems
             else
                 selectedItems
     in
-        div [ classes ] (List.map (itemView h) items)
+        div [ classes ] (List.map (itemView h isFallback) items)
 
 
 itemsView : HtmlOptions -> List Item -> List Item -> Model -> Html Msg
@@ -478,18 +488,19 @@ view h fallbackCodes model =
                 Blurred ->
                     input [ maxlength 0, onFocus Focus, value "" ] []
     in
-        div
-            [ classList
-                [ ( h.classes.container, True )
-                , ( h.classes.singleItemContainer, model.maxItems == 1 )
-                , ( h.classes.multiItemContainer, model.maxItems > 1 )
+        div [ class h.classes.container ]
+            [ div
+                [ classList
+                    [ ( h.classes.singleItemContainer, model.maxItems == 1 )
+                    , ( h.classes.multiItemContainer, model.maxItems > 1 )
+                    ]
                 ]
-            ]
-            [ div [ class h.classes.selectBox, onKeyDown KeyDown ]
-                [ div [] [ itemsView h fallbackItems model.selectedItems model ]
-                , editInput
+                [ div [ class h.classes.selectBox, onKeyDown KeyDown ]
+                    [ div [] [ itemsView h fallbackItems model.selectedItems model ]
+                    , editInput
+                    ]
+                , boxView h model
                 ]
-            , boxView h model
             ]
 
 

@@ -30,6 +30,7 @@ component =
                 , backgroundColor Colors.darkerLightGrey
                 , color Colors.sandstone
                 , width (em 15)
+                , cursor pointer
                 ]
             , (.) BoxItems
                 []
@@ -54,6 +55,9 @@ component =
                         , fontWeight bold
                         , borderRadius (px 3)
                         ]
+                    , (.) FallbackItem
+                        [ backgroundColor Colors.sandstone
+                        ]
                     ]
                 ]
             , (.) SingleItemContainer
@@ -64,12 +68,8 @@ component =
                         , padding zero
                         , borderRadius zero
                         ]
-                    ]
-                ]
-            , (.) FallbackItems
-                [ children
-                    [ (.) SelectedItem
-                        [ backgroundColor Colors.sandstone
+                    , (.) FallbackItem
+                        [ color Colors.sandstone
                         ]
                     ]
                 ]
@@ -93,6 +93,7 @@ type Class
     | BoxItemActive
     | SelectedItems
     | FallbackItems
+    | FallbackItem
     | SelectedItem
     | InputEditing
     | SingleItemContainer
@@ -110,6 +111,7 @@ classes =
     , selectBox = className SelectBox
     , selectedItems = className SelectedItems
     , fallbackItems = className FallbackItems
+    , fallbackItem = className FallbackItem
     , selectedItem = className SelectedItem
     , boxContainer = className BoxContainer
     , boxItems = className BoxItems
