@@ -22,6 +22,14 @@ fieldValueTypeDecoder fieldType =
         "currency" ->
             map FieldCurrencyValue ("value" := string)
 
+        "account" ->
+            ("accountClass" := string)
+                `andThen`
+                    (\accountClass ->
+                        map (FieldAccountValue accountClass)
+                            ("value" := string)
+                    )
+
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
 
@@ -172,10 +180,18 @@ configGroupDecoder =
 
 accountRecDecoder : Decoder AccountRec
 accountRecDecoder =
-    object3 AccountRec
-        ("code" := string)
-        ("display" := string)
-        ("class" := string)
+    oneOf
+        [ object4 AccountRec
+            ("code" := string)
+            ("display" := string)
+            ("class" := string)
+            ("cryptos" := map Just (list cryptoDecoder))
+        , object4 AccountRec
+            ("code" := string)
+            ("display" := string)
+            ("class" := string)
+            (succeed Nothing)
+        ]
 
 
 configDataDecoder : Decoder ConfigData

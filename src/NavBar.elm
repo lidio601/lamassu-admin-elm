@@ -94,4 +94,5 @@ view page =
         , div [ onClick (NewPage (CryptoConfigPage "commissions" "global")), activePage (CryptoConfigPage "commissions" "global") page ] [ text "Commissions" ]
         , div [ onClick (NewPage (ConfigPage "limits")), activePage (ConfigPage "limits") page ] [ text "Limits" ]
         , div [ onClick (NewPage (ConfigPage "fiat")), activePage (ConfigPage "fiat") page ] [ text "Fiat" ]
+        , div [ onClick (NewPage (ConfigPage "crypto-services")), activePage (ConfigPage "crytpo-services") page ] [ text "Crypto services" ]
         ]

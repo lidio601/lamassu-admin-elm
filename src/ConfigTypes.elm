@@ -129,6 +129,7 @@ type alias AccountRec =
     { code : String
     , display : String
     , class : String
+    , cryptos : Maybe (List Crypto)
     }
 
 

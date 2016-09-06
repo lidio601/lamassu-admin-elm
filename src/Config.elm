@@ -409,11 +409,22 @@ initCurrencySelectize configGroup fieldScope maybeFieldValue =
         Selectize.init 1 5 selectedCodes availableItems
 
 
-initAccountSelectize : ConfigGroup -> String -> FieldScope -> Selectize.Model
-initAccountSelectize configGroup accountClass fieldScope =
+initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe FieldValue -> Selectize.Model
+initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
     let
+        matches accountRec =
+            (accountClass
+                == accountRec.class
+            )
+                && case accountRec.cryptos of
+                    Nothing ->
+                        True
+
+                    Just cryptos ->
+                        List.member fieldScope.crypto cryptos
+
         toDisplayRec accountRec =
-            if (accountClass == accountRec.class) then
+            if matches accountRec then
                 Just { code = accountRec.code, display = accountRec.display }
             else
                 Nothing
@@ -421,8 +432,12 @@ initAccountSelectize configGroup accountClass fieldScope =
         availableItems =
             List.filterMap toDisplayRec configGroup.data.accounts
                 |> List.map selectizeItem
+
+        selectedCodes =
+            maybeToList maybeFieldValue
+                |> List.map fieldValueToString
     in
-        Selectize.init 1 5 [] availableItems
+        Selectize.init 1 5 selectedCodes availableItems
 
 
 buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> Maybe FieldValue -> FieldComponent
@@ -442,7 +457,7 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
 
         FieldAccountType accountClass ->
             SelectizeComponent fieldType
-                (initAccountSelectize configGroup accountClass fieldScope)
+                (initAccountSelectize configGroup accountClass fieldScope fieldValue)
 
         FieldCurrencyType ->
             SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope fieldValue)
