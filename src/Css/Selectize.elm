@@ -75,11 +75,7 @@ component =
                 ]
             , input
                 [ textAlign left
-                , opacity zero
                 , property "background-color" "inherit"
-                ]
-            , (.) InputEditing
-                [ opacity (int 1)
                 ]
             ]
         ]
