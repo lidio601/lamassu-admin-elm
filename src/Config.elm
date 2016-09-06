@@ -184,6 +184,9 @@ selectizeHtmlClasses =
 selectizeHtmlOptions : Selectize.HtmlOptions
 selectizeHtmlOptions =
     { instructionsForBlank = "Start typing to see options..."
+    , atMaxLength = "Type backspace to edit"
+    , noMatches = "No matches"
+    , typeForMore = "Type for more options"
     , classes = selectizeHtmlClasses
     }
 

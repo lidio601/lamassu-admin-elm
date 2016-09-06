@@ -19,7 +19,7 @@ component =
                 , padding2 zero (px 3)
                 , property "background-color" "inherit"
                 ]
-            , (.) BoxItems
+            , (.) BoxContainer
                 [ position absolute
                 , property "z-index" "100"
                 , backgroundColor Colors.white
@@ -31,6 +31,8 @@ component =
                 , color Colors.sandstone
                 , width (em 15)
                 ]
+            , (.) BoxItems
+                []
             , (.) BoxItemActive
                 [ color Colors.cobalt
                 , fontWeight (int 900)
@@ -38,7 +40,7 @@ component =
             , (.) BoxItem
                 [ padding2 (px 3) (px 6)
                 ]
-            , (.) Instructions
+            , (.) Info
                 [ position absolute
                 , property "z-index" "100"
                 , backgroundColor Colors.white
@@ -52,14 +54,28 @@ component =
                 , borderRadius (px 3)
                 , width (em 15)
                 ]
-            , (.) SelectedItem
-                [ backgroundColor Colors.cobalt
-                , color Colors.white
-                , padding3 (px 2) (px 3) (px 1)
-                , fontFamilies [ "Inconsolata" ]
-                , fontSize (pct 70)
-                , fontWeight bold
-                , borderRadius (px 3)
+            , (.) MultiItemContainer
+                [ descendants
+                    [ (.) SelectedItem
+                        [ backgroundColor Colors.cobalt
+                        , color Colors.white
+                        , padding3 (px 2) (px 3) (px 1)
+                        , fontFamilies [ "Inconsolata" ]
+                        , fontSize (pct 70)
+                        , fontWeight bold
+                        , borderRadius (px 3)
+                        ]
+                    ]
+                ]
+            , (.) SingleItemContainer
+                [ descendants
+                    [ (.) SelectedItem
+                        [ fontFamilies [ "Fira Code" ]
+                        , fontSize (px 11)
+                        , padding zero
+                        , borderRadius zero
+                        ]
+                    ]
                 ]
             , (.) FallbackItems
                 [ children
@@ -89,20 +105,28 @@ type Class
     | SelectedItems
     | FallbackItems
     | SelectedItem
-    | Instructions
     | InputEditing
+    | SingleItemContainer
+    | MultiItemContainer
+    | BoxContainer
+    | Info
+    | InfoNoMatches
 
 
 classes : Selectize.HtmlClasses
 classes =
     { container = className SelectizeContainer
+    , singleItemContainer = className SingleItemContainer
+    , multiItemContainer = className MultiItemContainer
     , selectBox = className SelectBox
     , selectedItems = className SelectedItems
     , fallbackItems = className FallbackItems
     , selectedItem = className SelectedItem
+    , boxContainer = className BoxContainer
     , boxItems = className BoxItems
     , boxItem = className BoxItem
     , boxItemActive = className BoxItemActive
-    , instructionsForBlank = className Instructions
+    , info = className Info
+    , infoNoMatches = className InfoNoMatches
     , inputEditing = className InputEditing
     }

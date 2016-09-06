@@ -28,20 +28,27 @@ import Json.Decode
 
 type alias HtmlOptions =
     { instructionsForBlank : String
+    , noMatches : String
+    , typeForMore : String
+    , atMaxLength : String
     , classes : HtmlClasses
     }
 
 
 type alias HtmlClasses =
     { container : String
+    , singleItemContainer : String
+    , multiItemContainer : String
     , selectBox : String
     , selectedItems : String
     , fallbackItems : String
     , selectedItem : String
+    , boxContainer : String
     , boxItems : String
     , boxItem : String
     , boxItemActive : String
-    , instructionsForBlank : String
+    , info : String
+    , infoNoMatches : String
     , inputEditing : String
     }
 
@@ -99,7 +106,7 @@ init maxItems boxLength selectedCodes availableItems =
     , boxLength = boxLength
     , selectedItems = pickItems availableItems selectedCodes
     , availableItems = availableItems
-    , boxItems = []
+    , boxItems = List.take boxLength availableItems
     , boxPosition = 0
     , status = Blurred
     }
@@ -170,7 +177,7 @@ diffItems a b =
 updateInput : String -> Model -> ( Model, Cmd Msg )
 updateInput string model =
     if (String.length string == 0) then
-        { model | status = Idle, boxItems = [] } ! []
+        { model | status = Idle, boxItems = List.take model.boxLength model.availableItems } ! []
     else
         let
             unselectedItems =
@@ -215,69 +222,73 @@ updateEnterKey model =
                     ! []
 
 
+updateBox : Int -> Model -> ( Model, Cmd Msg )
+updateBox keyCode model =
+    case keyCode of
+        -- up
+        38 ->
+            { model | boxPosition = (max 0 (model.boxPosition - 1)) } ! []
+
+        -- down
+        40 ->
+            { model
+                | boxPosition =
+                    (min ((List.length model.boxItems) - 1)
+                        (model.boxPosition + 1)
+                    )
+            }
+                ! []
+
+        -- enter
+        13 ->
+            updateEnterKey model
+
+        -- tab
+        9 ->
+            updateEnterKey model
+
+        _ ->
+            model ! []
+
+
+updateBoxInitial : Int -> Model -> ( Model, Cmd Msg )
+updateBoxInitial keyCode originalModel =
+    let
+        ( model, cmd ) =
+            updateBox keyCode originalModel
+    in
+        case keyCode of
+            -- backspace
+            8 ->
+                let
+                    allButLast =
+                        max 0 ((List.length model.selectedItems) - 1)
+
+                    newSelectedItems =
+                        List.take allButLast model.selectedItems
+                in
+                    { model | selectedItems = newSelectedItems } ! [ cmd ]
+
+            _ ->
+                model ! [ cmd ]
+
+
 updateKey : Int -> Model -> ( Model, Cmd Msg )
 updateKey keyCode model =
     case model.status of
         Editing ->
-            case keyCode of
-                -- up
-                38 ->
-                    { model | boxPosition = (max 0 (model.boxPosition - 1)) } ! []
-
-                -- down
-                40 ->
-                    { model
-                        | boxPosition =
-                            (min ((List.length model.boxItems) - 1)
-                                (model.boxPosition + 1)
-                            )
-                    }
-                        ! []
-
-                -- enter
-                13 ->
-                    updateEnterKey model
-
-                -- tab
-                9 ->
-                    updateEnterKey model
-
-                _ ->
-                    model ! []
+            updateBox keyCode model
 
         Initial ->
-            case keyCode of
-                -- backspace
-                8 ->
-                    let
-                        allButLast =
-                            max 0 ((List.length model.selectedItems) - 1)
-
-                        newSelectedItems =
-                            List.take allButLast model.selectedItems
-                    in
-                        { model | selectedItems = newSelectedItems } ! []
-
-                _ ->
-                    model ! []
+            updateBoxInitial keyCode model
 
         Idle ->
-            case keyCode of
-                -- backspace
-                8 ->
-                    let
-                        allButLast =
-                            max 0 ((List.length model.selectedItems) - 1)
+            updateBoxInitial keyCode model
 
-                        newSelectedItems =
-                            List.take allButLast model.selectedItems
-                    in
-                        { model | selectedItems = newSelectedItems } ! []
+        Cleared ->
+            updateBoxInitial keyCode model
 
-                _ ->
-                    model ! []
-
-        _ ->
+        Blurred ->
             model ! []
 
 
@@ -357,33 +368,70 @@ itemsView h fallbackItems selectedItems model =
             fallbackItemsView h fallbackItems selectedItems model
 
 
+editingBoxView : HtmlOptions -> Model -> Html Msg
+editingBoxView h model =
+    let
+        c =
+            h.classes
+
+        boxItemHtml pos item =
+            div
+                [ classList
+                    [ ( c.boxItem, True )
+                    , ( c.boxItemActive, model.boxPosition == pos )
+                    ]
+                , onMouseDown (MouseClick item)
+                ]
+                [ text item.display ]
+    in
+        div [ class c.boxItems ] (List.indexedMap boxItemHtml model.boxItems)
+
+
+idleBoxView : HtmlOptions -> Model -> Html Msg
+idleBoxView h model =
+    if List.length model.selectedItems == model.maxItems then
+        div [ class h.classes.boxContainer ]
+            [ div [] [ text h.atMaxLength ] ]
+    else
+        div [ class h.classes.boxContainer ]
+            [ editingBoxView h model
+            , div [ class h.classes.info ] [ text h.typeForMore ]
+            ]
+
+
+noMatches : HtmlOptions -> Model -> Html Msg
+noMatches h model =
+    if List.length model.boxItems == 0 then
+        div
+            [ classList
+                [ ( h.classes.info, True )
+                , ( h.classes.infoNoMatches, True )
+                ]
+            ]
+            [ text h.noMatches ]
+    else
+        div [] []
+
+
 boxView : HtmlOptions -> Model -> Html Msg
 boxView h model =
     case model.status of
         Editing ->
-            let
-                c =
-                    h.classes
-
-                boxItemHtml pos item =
-                    div
-                        [ classList
-                            [ ( c.boxItem, True )
-                            , ( c.boxItemActive, model.boxPosition == pos )
-                            ]
-                        , onMouseDown (MouseClick item)
-                        ]
-                        [ text item.display ]
-            in
-                div [ class c.boxItems ] (List.indexedMap boxItemHtml model.boxItems)
+            div [ class h.classes.boxContainer ]
+                [ editingBoxView h model
+                , noMatches h model
+                ]
 
         Initial ->
-            if List.length model.selectedItems == model.maxItems then
-                span [] []
-            else
-                div [ class h.classes.instructionsForBlank ] [ text h.instructionsForBlank ]
+            idleBoxView h model
 
-        _ ->
+        Idle ->
+            idleBoxView h model
+
+        Cleared ->
+            idleBoxView h model
+
+        Blurred ->
             span [] []
 
 
@@ -399,16 +447,23 @@ view h fallbackCodes model =
                     if (List.length model.selectedItems) < model.maxItems then
                         input [ onBlur Blur, onInput Input ] []
                     else
-                        input [ onBlur Blur, maxlength 0 ] []
+                        input [ onBlur Blur, onInput Input, maxlength 0 ] []
 
                 Idle ->
                     if (List.length model.selectedItems) < model.maxItems then
                         input [ onBlur Blur, onInput Input ] []
                     else
-                        input [ onBlur Blur, maxlength 0 ] []
+                        input [ onBlur Blur, onInput Input, maxlength 0 ] []
 
                 Editing ->
-                    input [ onBlur Blur, onInput Input, class h.classes.inputEditing ] []
+                    let
+                        maxlength' =
+                            if List.length model.boxItems == 0 then
+                                0
+                            else
+                                524288
+                    in
+                        input [ maxlength maxlength', onBlur Blur, onInput Input, class h.classes.inputEditing ] []
 
                 Cleared ->
                     input [ onKeyUp KeyUp, value "", onBlur Blur, onInput Input ] []
@@ -416,7 +471,13 @@ view h fallbackCodes model =
                 Blurred ->
                     input [ maxlength 0, onFocus Focus, value "" ] []
     in
-        div [ class h.classes.container ]
+        div
+            [ classList
+                [ ( h.classes.container, True )
+                , ( h.classes.singleItemContainer, model.maxItems == 1 )
+                , ( h.classes.multiItemContainer, model.maxItems > 1 )
+                ]
+            ]
             [ div [ class h.classes.selectBox, onKeyDown KeyDown ]
                 [ div [] [ itemsView h fallbackItems model.selectedItems model ]
                 , editInput
