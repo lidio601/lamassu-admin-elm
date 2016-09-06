@@ -389,14 +389,21 @@ editingBoxView h model =
 
 idleBoxView : HtmlOptions -> Model -> Html Msg
 idleBoxView h model =
-    if List.length model.selectedItems == model.maxItems then
-        div [ class h.classes.boxContainer ]
-            [ div [] [ text h.atMaxLength ] ]
-    else
-        div [ class h.classes.boxContainer ]
-            [ editingBoxView h model
-            , div [ class h.classes.info ] [ text h.typeForMore ]
-            ]
+    let
+        typeForMore =
+            if (List.length model.boxItems) > model.boxLength then
+                div [ class h.classes.info ] [ text h.typeForMore ]
+            else
+                span [] []
+    in
+        if List.length model.selectedItems == model.maxItems then
+            div [ class h.classes.boxContainer ]
+                [ div [ class h.classes.info ] [ text h.atMaxLength ] ]
+        else
+            div [ class h.classes.boxContainer ]
+                [ editingBoxView h model
+                , typeForMore
+                ]
 
 
 noMatches : HtmlOptions -> Model -> Html Msg
@@ -410,7 +417,7 @@ noMatches h model =
             ]
             [ text h.noMatches ]
     else
-        div [] []
+        span [] []
 
 
 boxView : HtmlOptions -> Model -> Html Msg

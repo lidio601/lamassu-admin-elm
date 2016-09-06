@@ -41,18 +41,7 @@ component =
                 [ padding2 (px 3) (px 6)
                 ]
             , (.) Info
-                [ position absolute
-                , property "z-index" "100"
-                , backgroundColor Colors.white
-                , textAlign left
-                , fontWeight (int 500)
-                , fontSize (pct 80)
-                , padding2 (px 3) (px 6)
-                , width (pct 100)
-                , backgroundColor Colors.darkerLightGrey
-                , color Colors.sandstone
-                , borderRadius (px 3)
-                , width (em 15)
+                [ padding2 (px 3) (px 6)
                 ]
             , (.) MultiItemContainer
                 [ descendants
