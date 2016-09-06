@@ -196,6 +196,25 @@ updateMouse item model =
         ! []
 
 
+updateEnterKey : Model -> ( Model, Cmd Msg )
+updateEnterKey model =
+    let
+        maybeItem =
+            (List.head << (List.drop model.boxPosition)) model.boxItems
+    in
+        case maybeItem of
+            Nothing ->
+                model ! []
+
+            Just item ->
+                { model
+                    | status = Cleared
+                    , selectedItems = model.selectedItems ++ [ item ]
+                    , boxPosition = 0
+                }
+                    ! []
+
+
 updateKey : Int -> Model -> ( Model, Cmd Msg )
 updateKey keyCode model =
     case model.status of
@@ -217,21 +236,11 @@ updateKey keyCode model =
 
                 -- enter
                 13 ->
-                    let
-                        maybeItem =
-                            (List.head << (List.drop model.boxPosition)) model.boxItems
-                    in
-                        case maybeItem of
-                            Nothing ->
-                                model ! []
+                    updateEnterKey model
 
-                            Just item ->
-                                { model
-                                    | status = Cleared
-                                    , selectedItems = model.selectedItems ++ [ item ]
-                                    , boxPosition = 0
-                                }
-                                    ! []
+                -- tab
+                9 ->
+                    updateEnterKey model
 
                 _ ->
                     model ! []
