@@ -143,6 +143,7 @@ css =
             , borderRadius (px 7)
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
+            , width (pct 100)
             , descendants
                 [ (.) Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
@@ -160,7 +161,6 @@ css =
                 , td
                     [ padding2 (px 3) (px 4)
                     , textAlign center
-                    , width (px 100)
                     , verticalAlign middle
                     ]
                 , (.) Component
@@ -174,6 +174,7 @@ css =
                     [ descendants
                         [ td
                             [ textAlign right
+                            , whiteSpace noWrap
                             ]
                         ]
                     ]
