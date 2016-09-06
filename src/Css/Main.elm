@@ -161,7 +161,7 @@ css =
                     [ padding2 (px 3) (px 4)
                     , textAlign center
                     , width (px 100)
-                    , verticalAlign bottom
+                    , verticalAlign middle
                     ]
                 , (.) Component
                     [ borderRadius (px 3)
