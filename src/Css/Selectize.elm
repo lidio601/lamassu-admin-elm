@@ -16,21 +16,25 @@ component =
             [ (.) SelectBox
                 [ displayFlex
                 , alignItems center
-                , padding2 zero (px 3)
+                , padding2 zero (px 5)
                 , property "background-color" "inherit"
                 ]
             , (.) BoxContainer
                 [ position absolute
                 , property "z-index" "100"
+                , left (px -3)
                 , backgroundColor Colors.white
                 , textAlign left
                 , fontWeight (int 500)
                 , fontSize (pct 80)
                 , borderRadius (px 3)
-                , backgroundColor Colors.darkerLightGrey
+                , backgroundColor Colors.white
+                , border3 (px 3) solid Colors.lightGrey
+                , borderTop zero
                 , color Colors.sandstone
                 , width (em 15)
                 , cursor pointer
+                , padding (px 5)
                 ]
             , (.) BoxItems
                 []
@@ -43,6 +47,7 @@ component =
                 ]
             , (.) Info
                 [ padding2 (px 3) (px 6)
+                , color Colors.darkGrey
                 ]
             , (.) MultiItemContainer
                 [ descendants
@@ -76,6 +81,7 @@ component =
             , input
                 [ textAlign left
                 , property "background-color" "inherit"
+                , padding2 (px 6) (px 2)
                 ]
             ]
         ]

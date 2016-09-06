@@ -15,8 +15,8 @@ module Selectize
         )
 
 import Html exposing (..)
-import Html.Attributes exposing (value, defaultValue, maxlength, class, classList)
-import Html.Events exposing (onInput, onBlur, onFocus, onMouseDown, on)
+import Html.Attributes exposing (value, defaultValue, maxlength, class, classList, id)
+import Html.Events exposing (onInput, onBlur, onFocus, onMouseDown, onClick, on)
 import Fuzzy
 import String
 import Json.Decode
@@ -349,7 +349,7 @@ update msg model =
 
 itemView : HtmlOptions -> Bool -> Item -> Html Msg
 itemView h isFallback item =
-    div
+    span
         [ classList
             [ ( h.classes.selectedItem, True )
             , ( h.classes.fallbackItem, isFallback )
@@ -376,7 +376,7 @@ fallbackItemsView h fallbackItems selectedItems model =
             else
                 selectedItems
     in
-        div [ classes ] (List.map (itemView h isFallback) items)
+        span [ classes ] (List.map (itemView h isFallback) items)
 
 
 itemsView : HtmlOptions -> List Item -> List Item -> Model -> Html Msg
@@ -509,17 +509,17 @@ view h fallbackCodes model =
                     input [ onKeyUp KeyUp, value "", onBlur Blur, onInput Input ] []
 
                 Blurred ->
-                    input [ maxlength 0, onFocus Focus, value "" ] []
+                    input [ id "this-id", maxlength 0, onFocus Focus, value "" ] []
     in
         div [ class h.classes.container ]
-            [ div
+            [ label
                 [ classList
                     [ ( h.classes.singleItemContainer, model.maxItems == 1 )
                     , ( h.classes.multiItemContainer, model.maxItems > 1 )
                     ]
                 ]
-                [ div [ class h.classes.selectBox, onKeyDown KeyDown ]
-                    [ div [] [ itemsView h fallbackItems model.selectedItems model ]
+                [ span [ class h.classes.selectBox, onKeyDown KeyDown ]
+                    [ span [] [ itemsView h fallbackItems model.selectedItems model ]
                     , editInput
                     ]
                 , boxView h model
