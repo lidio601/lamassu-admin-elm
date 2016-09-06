@@ -10,12 +10,14 @@ module Selectize
         , Item
         , HtmlOptions
         , HtmlClasses
+        , focused
+        , blurred
         )
 
 import Task
 import Html exposing (..)
 import Html.Attributes exposing (value, defaultValue, readonly, maxlength, class, classList)
-import Html.Events exposing (onInput, onBlur, onFocus, on)
+import Html.Events exposing (onInput, onBlur, onFocus, onMouseDown, on)
 import Fuzzy
 import String
 import Json.Decode
@@ -34,6 +36,7 @@ type alias HtmlClasses =
     { container : String
     , selectBox : String
     , selectedItems : String
+    , fallbackItems : String
     , selectedItem : String
     , boxItems : String
     , boxItem : String
@@ -57,6 +60,7 @@ type Status
     = Initial
     | Editing
     | Cleared
+    | Idle
     | Blurred
 
 
@@ -83,11 +87,16 @@ type alias Model =
     }
 
 
-init : Int -> Int -> List Item -> List Item -> Model
-init maxItems boxLength selectedItems availableItems =
+pickItems : Items -> List String -> Items
+pickItems items codes =
+    List.filter (\item -> (List.member item.code codes)) items
+
+
+init : Int -> Int -> List String -> Items -> Model
+init maxItems boxLength selectedCodes availableItems =
     { maxItems = maxItems
     , boxLength = boxLength
-    , selectedItems = selectedItems
+    , selectedItems = pickItems availableItems selectedCodes
     , availableItems = availableItems
     , boxItems = []
     , boxPosition = 0
@@ -103,8 +112,19 @@ type Msg
     = Input String
     | KeyDown Int
     | KeyUp Int
+    | MouseClick Item
     | Blur
     | Focus
+
+
+focused : Msg -> Bool
+focused msg =
+    msg == Focus
+
+
+blurred : Msg -> Bool
+blurred msg =
+    msg == Blur
 
 
 selectedItemCodes : Model -> List String
@@ -149,7 +169,7 @@ diffItems a b =
 updateInput : String -> Model -> ( Model, Cmd Msg )
 updateInput string model =
     if (String.length string == 0) then
-        { model | status = Initial, boxItems = [] } ! []
+        { model | status = Idle, boxItems = [] } ! []
     else
         let
             unselectedItems =
@@ -163,6 +183,16 @@ updateInput string model =
                     |> List.map snd
         in
             { model | status = Editing, boxItems = boxItems } ! []
+
+
+updateMouse : Item -> Model -> ( Model, Cmd Msg )
+updateMouse item model =
+    { model
+        | status = Cleared
+        , selectedItems = model.selectedItems ++ [ item ]
+        , boxPosition = 0
+    }
+        ! []
 
 
 updateKey : Int -> Model -> ( Model, Cmd Msg )
@@ -221,6 +251,22 @@ updateKey keyCode model =
                 _ ->
                     model ! []
 
+        Idle ->
+            case keyCode of
+                -- backspace
+                8 ->
+                    let
+                        allButLast =
+                            max 0 ((List.length model.selectedItems) - 1)
+
+                        newSelectedItems =
+                            List.take allButLast model.selectedItems
+                    in
+                        { model | selectedItems = newSelectedItems } ! []
+
+                _ ->
+                    model ! []
+
         _ ->
             model ! []
 
@@ -241,9 +287,12 @@ update msg model =
 
         KeyUp code ->
             if model.status == Cleared && code == 13 then
-                { model | status = Initial } ! []
+                { model | status = Idle } ! []
             else
                 model ! []
+
+        MouseClick item ->
+            updateMouse item model
 
         Blur ->
             { model | status = Blurred, boxPosition = 0 } ! []
@@ -261,9 +310,41 @@ itemView h item =
     div [ class h.classes.selectedItem ] [ text item.code ]
 
 
-itemsView : HtmlOptions -> List Item -> Html Msg
-itemsView h items =
-    div [ class h.classes.selectedItems ] (List.map (itemView h) items)
+fallbackItemsView : HtmlOptions -> List Item -> List Item -> Model -> Html Msg
+fallbackItemsView h fallbackItems selectedItems model =
+    let
+        classes =
+            classList
+                [ ( h.classes.selectedItems, True )
+                , ( h.classes.fallbackItems, List.length selectedItems == 0 )
+                ]
+
+        items =
+            if List.length selectedItems == 0 then
+                fallbackItems
+            else
+                selectedItems
+    in
+        div [ classes ] (List.map (itemView h) items)
+
+
+itemsView : HtmlOptions -> List Item -> List Item -> Model -> Html Msg
+itemsView h fallbackItems selectedItems model =
+    case model.status of
+        Editing ->
+            fallbackItemsView h [] selectedItems model
+
+        Initial ->
+            fallbackItemsView h fallbackItems selectedItems model
+
+        Idle ->
+            fallbackItemsView h fallbackItems selectedItems model
+
+        Cleared ->
+            fallbackItemsView h fallbackItems selectedItems model
+
+        Blurred ->
+            fallbackItemsView h fallbackItems selectedItems model
 
 
 boxView : HtmlOptions -> Model -> Html Msg
@@ -280,6 +361,7 @@ boxView h model =
                             [ ( c.boxItem, True )
                             , ( c.boxItemActive, model.boxPosition == pos )
                             ]
+                        , onMouseDown (MouseClick item)
                         ]
                         [ text item.display ]
             in
@@ -295,12 +377,21 @@ boxView h model =
             span [] []
 
 
-view : HtmlOptions -> Model -> Html Msg
-view h model =
+view : HtmlOptions -> List String -> Model -> Html Msg
+view h fallbackCodes model =
     let
+        fallbackItems =
+            pickItems model.availableItems fallbackCodes
+
         editInput =
             case model.status of
                 Initial ->
+                    if (List.length model.selectedItems) < model.maxItems then
+                        input [ onBlur Blur, onInput Input ] []
+                    else
+                        input [ readonly True ] []
+
+                Idle ->
                     if (List.length model.selectedItems) < model.maxItems then
                         input [ onBlur Blur, onInput Input ] []
                     else
@@ -313,11 +404,11 @@ view h model =
                     input [ onKeyUp KeyUp, value "", onBlur Blur, onInput Input ] []
 
                 Blurred ->
-                    input [ readonly True, onFocus Focus ] []
+                    input [ readonly True, onFocus Focus, value "" ] []
     in
         div [ class h.classes.container ]
             [ div [ class h.classes.selectBox, onKeyDown KeyDown ]
-                [ div [] [ itemsView h model.selectedItems ]
+                [ div [] [ itemsView h fallbackItems model.selectedItems model ]
                 , editInput
                 ]
             , boxView h model

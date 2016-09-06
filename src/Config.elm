@@ -189,8 +189,14 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
             textInput fieldInstance.fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue
 
         SelectizeComponent fieldType selectizeModel ->
-            Html.App.map (SelectizeMsg fieldInstance.fieldLocator)
-                (Selectize.view selectizeHtmlOptions selectizeModel)
+            let
+                fallbackCodes =
+                    maybeFallbackFieldValue
+                        |> maybeToList
+                        |> List.map fieldValueToString
+            in
+                Html.App.map (SelectizeMsg fieldInstance.fieldLocator)
+                    (Selectize.view selectizeHtmlOptions fallbackCodes selectizeModel)
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -382,23 +388,11 @@ initCurrencySelectize configGroup fieldScope maybeFieldValue =
         availableItems =
             List.map selectizeItem currencies
 
-        maybeSelectedItem : FieldValue -> Maybe Selectize.Item
-        maybeSelectedItem fieldValue =
-            case fieldValue of
-                FieldCurrencyValue code ->
-                    List.filter (((==) code) << .code) currencies
-                        |> List.head
-                        |> Maybe.map selectizeItem
-
-                _ ->
-                    Nothing
-
-        selectedItems =
-            maybeFieldValue
-                `Maybe.andThen` maybeSelectedItem
-                |> maybeToList
+        selectedCodes =
+            maybeToList maybeFieldValue
+                |> List.map fieldValueToString
     in
-        Selectize.init 1 5 selectedItems availableItems
+        Selectize.init 1 5 selectedCodes availableItems
 
 
 initAccountSelectize : ConfigGroup -> String -> FieldScope -> Selectize.Model

@@ -61,8 +61,19 @@ component =
                 , fontWeight bold
                 , borderRadius (px 3)
                 ]
+            , (.) FallbackItems
+                [ children
+                    [ (.) SelectedItem
+                        [ backgroundColor Colors.sandstone
+                        ]
+                    ]
+                ]
             , input
                 [ textAlign left
+                , opacity zero
+                ]
+            , (.) InputEditing
+                [ opacity (int 1)
                 ]
             ]
         ]
@@ -75,15 +86,18 @@ type Class
     | BoxItem
     | BoxItemActive
     | SelectedItems
+    | FallbackItems
     | SelectedItem
     | Instructions
+    | InputEditing
 
 
 classes : Selectize.HtmlClasses
 classes =
     { container = className SelectizeContainer
-    , selectBox = Debug.log "DEBUG2" (className SelectBox)
-    , selectedItems = Debug.log "DEBUG1" (className SelectedItems)
+    , selectBox = className SelectBox
+    , selectedItems = className SelectedItems
+    , fallbackItems = className FallbackItems
     , selectedItem = className SelectedItem
     , boxItems = className BoxItems
     , boxItem = className BoxItem
