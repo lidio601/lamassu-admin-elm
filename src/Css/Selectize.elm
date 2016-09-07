@@ -13,7 +13,17 @@ component =
         [ borderRadius (px 3)
         , position relative
         , descendants
-            [ (.) SelectBox
+            [ (.) NoOptions
+                [ backgroundColor Colors.lighterLightGrey
+                , fontSize (px 11)
+                , fontWeight (int 500)
+                , color Colors.sandstone
+                , padding (px 5)
+                , textAlign center
+                , cursor default
+                , property "-webkit-user-select" "none"
+                ]
+            , (.) SelectBox
                 [ displayFlex
                 , alignItems center
                 , padding2 zero (px 5)
@@ -103,11 +113,13 @@ type Class
     | BoxContainer
     | Info
     | InfoNoMatches
+    | NoOptions
 
 
 classes : Selectize.HtmlClasses
 classes =
     { container = className SelectizeContainer
+    , noOptions = className NoOptions
     , singleItemContainer = className SingleItemContainer
     , multiItemContainer = className MultiItemContainer
     , selectBox = className SelectBox

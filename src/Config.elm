@@ -17,6 +17,7 @@ import Css.Classes
 import Selectize
 import Css.Selectize
 import Maybe exposing (oneOf)
+import String
 
 
 type alias ConfigGroupResponse =
@@ -50,6 +51,18 @@ type alias ResolvedModel =
     , status : SavingStatus
     , focused : Maybe FieldLocator
     }
+
+
+type alias SelectizeModel =
+    Selectize.Model String Msg
+
+
+type alias SelectizeItem =
+    Selectize.Item String Msg
+
+
+type alias SelectizeMsgType =
+    Selectize.Msg String Msg
 
 
 toResolvedModel : Model -> ConfigGroup -> ResolvedModel
@@ -188,6 +201,7 @@ selectizeHtmlOptions =
     , noMatches = "No matches"
     , typeForMore = "Type for more options"
     , classes = selectizeHtmlClasses
+    , noOptions = "No options"
     }
 
 
@@ -369,18 +383,21 @@ type Msg
     | Submit
     | Input FieldLocator FieldType String
     | CryptoSwitch Crypto
-    | SelectizeMsg FieldLocator Selectize.Msg
+    | SelectizeMsg FieldLocator SelectizeMsgType
     | Blur FieldLocator
     | Focus FieldLocator
 
 
-selectizeItem : DisplayRec -> Selectize.Item
+selectizeItem : DisplayRec -> SelectizeItem
 selectizeItem displayRec =
     let
         code =
             displayRec.code
+
+        searchWords =
+            code :: (String.split " " displayRec.display)
     in
-        Selectize.selectizeItem code displayRec.display []
+        Selectize.selectizeItem code (text code) (text displayRec.display) searchWords
 
 
 maybeToList : Maybe a -> List a
@@ -393,7 +410,7 @@ maybeToList maybe =
             [ x ]
 
 
-initCurrencySelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> Selectize.Model
+initCurrencySelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> SelectizeModel
 initCurrencySelectize configGroup fieldScope maybeFieldValue =
     let
         currencies =
@@ -409,7 +426,7 @@ initCurrencySelectize configGroup fieldScope maybeFieldValue =
         Selectize.init 1 5 selectedCodes availableItems
 
 
-initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe FieldValue -> Selectize.Model
+initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe FieldValue -> SelectizeModel
 initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
     let
         matches accountRec =
@@ -527,16 +544,16 @@ pickFieldInstanceValue crypto machine fieldCode fieldInstances =
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
 
 
-updateSelectizeValue : FieldType -> Selectize.Model -> Maybe FieldValue
+updateSelectizeValue : FieldType -> SelectizeModel -> Maybe FieldValue
 updateSelectizeValue fieldType selectizeModel =
     case fieldType of
         FieldCurrencyType ->
-            Selectize.selectedItemCodes selectizeModel
+            Selectize.selectedIds selectizeModel
                 |> List.head
                 |> Maybe.map FieldCurrencyValue
 
         FieldAccountType accountClass ->
-            Selectize.selectedItemCodes selectizeModel
+            Selectize.selectedIds selectizeModel
                 |> List.head
                 |> Maybe.map (FieldAccountValue accountClass)
 
@@ -544,7 +561,7 @@ updateSelectizeValue fieldType selectizeModel =
             Debug.crash "Not a selectize field"
 
 
-determineSelectizeFocus : FieldLocator -> Selectize.Msg -> Model -> Maybe FieldLocator
+determineSelectizeFocus : FieldLocator -> SelectizeMsgType -> Model -> Maybe FieldLocator
 determineSelectizeFocus fieldLocator selectizeMsg model =
     if Selectize.focused selectizeMsg then
         Just fieldLocator
@@ -557,7 +574,7 @@ determineSelectizeFocus fieldLocator selectizeMsg model =
         model.focused
 
 
-updateSelectize : FieldLocator -> Selectize.Msg -> Model -> ( Model, Cmd Msg )
+updateSelectize : FieldLocator -> SelectizeMsgType -> Model -> ( Model, Cmd Msg )
 updateSelectize fieldLocator selectizeMsg model =
     case (pickFieldInstance fieldLocator model.fieldInstances) of
         Nothing ->
