@@ -61,7 +61,7 @@ type alias FieldLocator =
 
 type FieldComponent
     = InputBoxComponent FieldType
-    | SelectizeComponent FieldType SelectizeModel
+    | SelectizeComponent FieldType (Selectize.Model String)
 
 
 type alias FieldInstance =
@@ -182,6 +182,9 @@ fieldValueToString fieldValue =
         FieldCurrencyValue v ->
             v
 
+        FieldLanguageValue v ->
+            Debug.crash "Can't turn languages into string"
+
 
 machineToString : Machine -> String
 machineToString machine =
@@ -291,3 +294,6 @@ stringToFieldValue fieldType s =
 
             FieldCurrencyType ->
                 Ok (Just (FieldCurrencyValue s))
+
+            FieldLanguageType ->
+                Debug.crash "Can't turn languages into string"

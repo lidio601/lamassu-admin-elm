@@ -54,15 +54,15 @@ type alias ResolvedModel =
 
 
 type alias SelectizeModel =
-    Selectize.Model String Msg
+    Selectize.Model String
 
 
 type alias SelectizeItem =
-    Selectize.Item String Msg
+    Selectize.Item String
 
 
 type alias SelectizeMsgType =
-    Selectize.Msg String Msg
+    Selectize.Msg String
 
 
 toResolvedModel : Model -> ConfigGroup -> ResolvedModel
@@ -397,7 +397,7 @@ selectizeItem displayRec =
         searchWords =
             code :: (String.split " " displayRec.display)
     in
-        Selectize.selectizeItem code (text code) (text displayRec.display) searchWords
+        Selectize.selectizeItem code code displayRec.display searchWords
 
 
 maybeToList : Maybe a -> List a
@@ -410,8 +410,8 @@ maybeToList maybe =
             [ x ]
 
 
-initCurrencySelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> SelectizeModel
-initCurrencySelectize configGroup fieldScope maybeFieldValue =
+initCurrencySelectize : ConfigGroup -> FieldScope -> Maybe String -> SelectizeModel
+initCurrencySelectize configGroup fieldScope maybeCurrency =
     let
         currencies =
             configGroup.data.currencies
@@ -420,14 +420,34 @@ initCurrencySelectize configGroup fieldScope maybeFieldValue =
             List.map selectizeItem currencies
 
         selectedCodes =
-            maybeToList maybeFieldValue
-                |> List.map fieldValueToString
+            maybeToList maybeCurrency
     in
         Selectize.init 1 5 selectedCodes availableItems
 
 
-initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe FieldValue -> SelectizeModel
-initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
+initLanguageSelectize : ConfigGroup -> FieldScope -> Maybe (List String) -> SelectizeModel
+initLanguageSelectize configGroup fieldScope maybeLanguages =
+    let
+        languages =
+            configGroup.data.languages
+
+        selectize language =
+            Selectize.selectizeItem language.code
+                language.display
+                language.display
+                (String.split " " language.display)
+
+        availableItems =
+            List.map selectize languages
+
+        selectedCodes =
+            Maybe.withDefault [] maybeLanguages
+    in
+        Selectize.init 1 5 selectedCodes availableItems
+
+
+initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe String -> SelectizeModel
+initAccountSelectize configGroup accountClass fieldScope maybeAccount =
     let
         matches accountRec =
             (accountClass
@@ -444,8 +464,8 @@ initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
             if matches accountRec then
                 Just
                     (Selectize.selectizeItem accountRec.code
-                        (text accountRec.display)
-                        (text accountRec.display)
+                        accountRec.display
+                        accountRec.display
                         [ accountRec.code ]
                     )
             else
@@ -455,33 +475,61 @@ initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
             List.filterMap toItem configGroup.data.accounts
 
         selectedCodes =
-            maybeToList maybeFieldValue
-                |> List.map fieldValueToString
+            maybeToList maybeAccount
     in
         Selectize.init 1 5 selectedCodes availableItems
 
 
 buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> Maybe FieldValue -> FieldComponent
-buildFieldComponent configGroup fieldType fieldScope fieldValue =
-    case fieldType of
-        FieldStringType ->
-            InputBoxComponent fieldType
+buildFieldComponent configGroup fieldType fieldScope maybeFieldValue =
+    case maybeFieldValue of
+        Nothing ->
+            case fieldType of
+                FieldStringType ->
+                    InputBoxComponent fieldType
 
-        FieldPercentageType ->
-            InputBoxComponent fieldType
+                FieldPercentageType ->
+                    InputBoxComponent fieldType
 
-        FieldIntegerType ->
-            InputBoxComponent fieldType
+                FieldIntegerType ->
+                    InputBoxComponent fieldType
 
-        FieldOnOffType ->
-            InputBoxComponent fieldType
+                FieldOnOffType ->
+                    InputBoxComponent fieldType
 
-        FieldAccountType accountClass ->
-            SelectizeComponent fieldType
-                (initAccountSelectize configGroup accountClass fieldScope fieldValue)
+                FieldAccountType accountClass ->
+                    SelectizeComponent fieldType
+                        (initAccountSelectize configGroup accountClass fieldScope Nothing)
 
-        FieldCurrencyType ->
-            SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope fieldValue)
+                FieldCurrencyType ->
+                    SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope Nothing)
+
+                FieldLanguageType ->
+                    SelectizeComponent fieldType (initLanguageSelectize configGroup fieldScope Nothing)
+
+        Just fieldValue ->
+            case fieldValue of
+                FieldStringValue _ ->
+                    InputBoxComponent fieldType
+
+                FieldPercentageValue _ ->
+                    InputBoxComponent fieldType
+
+                FieldIntegerValue _ ->
+                    InputBoxComponent fieldType
+
+                FieldOnOffValue _ ->
+                    InputBoxComponent fieldType
+
+                FieldAccountValue accountClass account ->
+                    SelectizeComponent fieldType
+                        (initAccountSelectize configGroup accountClass fieldScope (Just account))
+
+                FieldCurrencyValue currency ->
+                    SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope (Just currency))
+
+                FieldLanguageValue languages ->
+                    SelectizeComponent fieldType (initLanguageSelectize configGroup fieldScope (Just languages))
 
 
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance

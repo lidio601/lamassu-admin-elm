@@ -40,6 +40,9 @@ encodeFieldValue maybeFieldValue =
                 FieldCurrencyValue value ->
                     encodeFieldValueObject "currency" (string value)
 
+                FieldLanguageValue value ->
+                    encodeFieldValueObject "language" (list (List.map string value))
+
 
 encodeCrypto : Crypto -> Value
 encodeCrypto crypto =

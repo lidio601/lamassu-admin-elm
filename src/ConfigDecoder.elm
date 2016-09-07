@@ -30,6 +30,9 @@ fieldValueTypeDecoder fieldType =
                             ("value" := string)
                     )
 
+        "languages" ->
+            map FieldLanguageValue ("value" := list string)
+
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
 
