@@ -38,8 +38,8 @@ desiredPage =
     oneOf
         [ format AccountPage (s "account" </> string)
         , format PairPage (s "pair")
-        , format (\config -> ConfigPage config Nothing) (s "config" </> string)
         , format (\config crypto -> ConfigPage config (Just crypto)) (s "config" </> string </> string)
+        , format (\config -> ConfigPage config Nothing) (s "config" </> string)
         ]
 
 

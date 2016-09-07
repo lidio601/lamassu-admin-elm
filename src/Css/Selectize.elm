@@ -12,6 +12,7 @@ component =
     mixin
         [ borderRadius (px 3)
         , position relative
+        , margin zero
         , descendants
             [ (.) NoOptions
                 [ backgroundColor Colors.lighterLightGrey
@@ -28,6 +29,7 @@ component =
                 , alignItems center
                 , padding2 zero (px 5)
                 , property "background-color" "inherit"
+                , width (px 60)
                 ]
             , (.) BoxContainer
                 [ position absolute
@@ -92,6 +94,7 @@ component =
                 [ textAlign left
                 , property "background-color" "inherit"
                 , padding2 (px 6) (px 2)
+                , width (em 6)
                 ]
             ]
         ]
