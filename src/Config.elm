@@ -619,11 +619,22 @@ update msg model =
 
                         _ ->
                             []
+
+                crypto =
+                    case webConfigGroup of
+                        Success configGroup ->
+                            listCryptos configGroup
+                                |> List.head
+                                |> Maybe.map .crypto
+
+                        _ ->
+                            Nothing
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
                     , fieldInstances = fieldInstances
                     , status = status
+                    , crypto = crypto
                   }
                 , Cmd.none
                 )
