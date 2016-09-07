@@ -204,8 +204,8 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
                         |> maybeToList
                         |> List.map fieldValueToString
             in
-                Html.App.map (SelectizeMsg fieldInstance.fieldLocator)
-                    (Selectize.view selectizeHtmlOptions fallbackCodes selectizeModel)
+                Html.App.map (SelectizeMsg (Debug.log "DEBUG11" fieldInstance.fieldLocator))
+                    (Selectize.view selectizeHtmlOptions (Debug.log "DEBUG10" fallbackCodes) selectizeModel)
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -523,7 +523,7 @@ pickFieldInstanceValue crypto machine fieldCode fieldInstances =
         fieldLocator =
             { fieldScope = fieldScope, code = fieldCode }
     in
-        pickFieldInstance fieldLocator fieldInstances
+        (Debug.log "DEBUG13" (pickFieldInstance fieldLocator fieldInstances))
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
 
 
@@ -534,6 +534,11 @@ updateSelectizeValue fieldType selectizeModel =
             Selectize.selectedItemCodes selectizeModel
                 |> List.head
                 |> Maybe.map FieldCurrencyValue
+
+        FieldAccountType accountClass ->
+            Selectize.selectedItemCodes selectizeModel
+                |> List.head
+                |> Maybe.map (FieldAccountValue accountClass)
 
         _ ->
             Nothing
