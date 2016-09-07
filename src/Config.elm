@@ -541,7 +541,7 @@ updateSelectizeValue fieldType selectizeModel =
                 |> Maybe.map (FieldAccountValue accountClass)
 
         _ ->
-            Nothing
+            Debug.crash "Not a selectize field"
 
 
 determineSelectizeFocus : FieldLocator -> Selectize.Msg -> Model -> Maybe FieldLocator
