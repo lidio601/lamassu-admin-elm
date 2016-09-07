@@ -19,7 +19,7 @@ import VirtualDom
 type Page
     = AccountPage String
     | PairPage
-    | CryptoConfigPage String (Maybe String)
+    | ConfigPage String (Maybe String)
     | UnknownPage
 
 
@@ -54,7 +54,7 @@ update (NewPage page) model =
         AccountPage account ->
             model ! [ newUrl ("/account/" ++ account) ]
 
-        CryptoConfigPage configGroup maybeCrypto ->
+        ConfigPage configGroup maybeCrypto ->
             case maybeCrypto of
                 Nothing ->
                     model ! [ newUrl ("/config/" ++ configGroup) ]
@@ -81,8 +81,8 @@ activePage linkPage page =
                 AccountPage _ ->
                     linkPage == page
 
-                CryptoConfigPage config _ ->
-                    (Debug.log "DEBUG2" linkPage) == (Debug.log "DEBUG3" (CryptoConfigPage config Nothing))
+                ConfigPage config _ ->
+                    (Debug.log "DEBUG2" linkPage) == (Debug.log "DEBUG3" (ConfigPage config Nothing))
 
                 UnknownPage ->
                     Debug.crash "Need unknown page"
@@ -98,8 +98,8 @@ view page =
     nav [ class [ Css.Classes.NavBar ] ]
         [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
         , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
-        , div [ onClick (NewPage (CryptoConfigPage "commissions" Nothing)), activePage (CryptoConfigPage "commissions" Nothing) page ] [ text "Commissions" ]
-        , div [ onClick (NewPage (CryptoConfigPage "limits" Nothing)), activePage (CryptoConfigPage "limits" Nothing) page ] [ text "Limits" ]
-        , div [ onClick (NewPage (CryptoConfigPage "fiat" Nothing)), activePage (CryptoConfigPage "fiat" Nothing) page ] [ text "Fiat" ]
-        , div [ onClick (NewPage (CryptoConfigPage "crypto-services" Nothing)), activePage (CryptoConfigPage "crypto-services" Nothing) page ] [ text "Crypto services" ]
+        , div [ onClick (NewPage (ConfigPage "commissions" Nothing)), activePage (ConfigPage "commissions" Nothing) page ] [ text "Commissions" ]
+        , div [ onClick (NewPage (ConfigPage "limits" Nothing)), activePage (ConfigPage "limits" Nothing) page ] [ text "Limits" ]
+        , div [ onClick (NewPage (ConfigPage "fiat" Nothing)), activePage (ConfigPage "fiat" Nothing) page ] [ text "Fiat" ]
+        , div [ onClick (NewPage (ConfigPage "crypto-services" Nothing)), activePage (ConfigPage "crypto-services" Nothing) page ] [ text "Crypto services" ]
         ]
