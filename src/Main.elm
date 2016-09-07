@@ -38,11 +38,8 @@ desiredPage =
     oneOf
         [ format AccountPage (s "account" </> string)
         , format PairPage (s "pair")
-        , oneOf
-            [ format (\config -> CryptoConfigPage config Nothing) (s "config" </> string)
-            , format (\config crypto -> CryptoConfigPage config (Just crypto)) (s "config" </> string </> string)
-            ]
-        , format ConfigPage (s "config" </> string)
+        , format (\config -> CryptoConfigPage config Nothing) (s "config" </> string)
+        , format (\config crypto -> CryptoConfigPage config (Just crypto)) (s "config" </> string </> string)
         ]
 
 
@@ -125,10 +122,7 @@ content model =
         AccountPage _ ->
             map AccountMsg (Account.view model.account)
 
-        CryptoConfigPage _ cryptoCode ->
-            map ConfigMsg (Config.view model.config)
-
-        ConfigPage _ ->
+        CryptoConfigPage _ _ ->
             map ConfigMsg (Config.view model.config)
 
         UnknownPage ->
@@ -182,15 +176,8 @@ urlUpdate pageResult model =
                         in
                             { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-                    ConfigPage config ->
-                        let
-                            ( configModel, cmd ) =
-                                Config.load pagedModel.config config Nothing
-                        in
-                            { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
-
                     UnknownPage ->
-                        { model | err = Just "Unknown page" } ! []
+                        Debug.crash "Need to create unknown page"
 
 
 

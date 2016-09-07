@@ -20,7 +20,6 @@ type Page
     = AccountPage String
     | PairPage
     | CryptoConfigPage String (Maybe String)
-    | ConfigPage String
     | UnknownPage
 
 
@@ -63,9 +62,6 @@ update (NewPage page) model =
                 Just crypto ->
                     model ! [ newUrl ("/config/" ++ configGroup ++ "/" ++ crypto) ]
 
-        ConfigPage configGroup ->
-            model ! [ newUrl ("/config/" ++ configGroup) ]
-
         UnknownPage ->
             Debug.crash "Need unknown page"
 
@@ -88,9 +84,6 @@ activePage linkPage page =
                 CryptoConfigPage config _ ->
                     (Debug.log "DEBUG2" linkPage) == (Debug.log "DEBUG3" (CryptoConfigPage config Nothing))
 
-                ConfigPage _ ->
-                    linkPage == page
-
                 UnknownPage ->
                     Debug.crash "Need unknown page"
     in
@@ -106,7 +99,7 @@ view page =
         [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
         , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
         , div [ onClick (NewPage (CryptoConfigPage "commissions" Nothing)), activePage (CryptoConfigPage "commissions" Nothing) page ] [ text "Commissions" ]
-        , div [ onClick (NewPage (ConfigPage "limits")), activePage (ConfigPage "limits") page ] [ text "Limits" ]
-        , div [ onClick (NewPage (ConfigPage "fiat")), activePage (ConfigPage "fiat") page ] [ text "Fiat" ]
+        , div [ onClick (NewPage (CryptoConfigPage "limits" Nothing)), activePage (CryptoConfigPage "limits" Nothing) page ] [ text "Limits" ]
+        , div [ onClick (NewPage (CryptoConfigPage "fiat" Nothing)), activePage (CryptoConfigPage "fiat" Nothing) page ] [ text "Fiat" ]
         , div [ onClick (NewPage (CryptoConfigPage "crypto-services" Nothing)), activePage (CryptoConfigPage "crypto-services" Nothing) page ] [ text "Crypto services" ]
         ]
