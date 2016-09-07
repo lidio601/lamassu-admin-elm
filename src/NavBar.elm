@@ -102,4 +102,5 @@ view page =
         , div [ onClick (NewPage (ConfigPage "limits" Nothing)), activePage (ConfigPage "limits" Nothing) page ] [ text "Limits" ]
         , div [ onClick (NewPage (ConfigPage "fiat" Nothing)), activePage (ConfigPage "fiat" Nothing) page ] [ text "Fiat" ]
         , div [ onClick (NewPage (ConfigPage "crypto-services" Nothing)), activePage (ConfigPage "crypto-services" Nothing) page ] [ text "Crypto services" ]
+        , div [ onClick (NewPage (ConfigPage "languages" Nothing)), activePage (ConfigPage "languages" Nothing) page ] [ text "Languages" ]
         ]

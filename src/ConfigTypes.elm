@@ -61,7 +61,7 @@ type alias FieldLocator =
 
 type FieldComponent
     = InputBoxComponent FieldType
-    | SelectizeComponent FieldType Selectize.Model
+    | SelectizeComponent FieldType SelectizeModel
 
 
 type alias FieldInstance =
@@ -91,6 +91,7 @@ type FieldType
     | FieldOnOffType
     | FieldAccountType String
     | FieldCurrencyType
+    | FieldLanguageType
 
 
 type FieldValue
@@ -100,6 +101,7 @@ type FieldValue
     | FieldOnOffValue Bool
     | FieldAccountValue String String
     | FieldCurrencyValue String
+    | FieldLanguageValue (List String)
 
 
 type alias FieldDescriptor =
