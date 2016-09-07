@@ -438,17 +438,21 @@ initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
                         True
 
                     Just cryptos ->
-                        List.member fieldScope.crypto cryptos
+                        List.member (Debug.log "DEBUG1 fieldScope" fieldScope.crypto) (Debug.log "DEBUG20" cryptos)
 
-        toDisplayRec accountRec =
+        toItem accountRec =
             if matches accountRec then
-                Just { code = accountRec.code, display = accountRec.display }
+                Just
+                    (Selectize.selectizeItem accountRec.code
+                        (text accountRec.display)
+                        (text accountRec.display)
+                        [ accountRec.code ]
+                    )
             else
                 Nothing
 
         availableItems =
-            List.filterMap toDisplayRec configGroup.data.accounts
-                |> List.map selectizeItem
+            List.filterMap toItem configGroup.data.accounts
 
         selectedCodes =
             maybeToList maybeFieldValue
