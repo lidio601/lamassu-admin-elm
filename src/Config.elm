@@ -335,7 +335,7 @@ tableView model =
             model.configGroup
 
         crypto =
-            model.crypto
+            (Debug.log "DEBUG8" model.crypto)
 
         headerRow =
             headerRowView configGroup crypto
@@ -620,7 +620,7 @@ update msg model =
                         _ ->
                             []
 
-                crypto =
+                defaultCrypto =
                     case webConfigGroup of
                         Success configGroup ->
                             listCryptos configGroup
@@ -629,12 +629,20 @@ update msg model =
 
                         _ ->
                             Nothing
+
+                crypto =
+                    case model.crypto of
+                        Nothing ->
+                            defaultCrypto
+
+                        Just crypto ->
+                            Just crypto
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
                     , fieldInstances = fieldInstances
                     , status = status
-                    , crypto = crypto
+                    , crypto = (Debug.log "DEBUG3" crypto)
                   }
                 , Cmd.none
                 )
@@ -661,7 +669,7 @@ update msg model =
                         url =
                             "/config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
                     in
-                        { model | crypto = Just (Debug.log "DEBUG24" crypto) } ! [ Navigation.newUrl url ]
+                        { model | crypto = Just crypto } ! [ Navigation.newUrl url ]
 
                 _ ->
                     model ! []
