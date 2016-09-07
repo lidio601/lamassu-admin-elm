@@ -19,7 +19,7 @@ import VirtualDom
 type Page
     = AccountPage String
     | PairPage
-    | CryptoConfigPage String String
+    | CryptoConfigPage String (Maybe String)
     | ConfigPage String
     | UnknownPage
 
@@ -55,14 +55,19 @@ update (NewPage page) model =
         AccountPage account ->
             model ! [ newUrl ("/account/" ++ account) ]
 
-        CryptoConfigPage configGroup crypto ->
-            model ! [ newUrl ("/config/" ++ configGroup ++ "/" ++ crypto) ]
+        CryptoConfigPage configGroup maybeCrypto ->
+            case maybeCrypto of
+                Nothing ->
+                    model ! [ newUrl ("/config/" ++ configGroup) ]
+
+                Just crypto ->
+                    model ! [ newUrl ("/config/" ++ configGroup ++ "/" ++ crypto) ]
 
         ConfigPage configGroup ->
             model ! [ newUrl ("/config/" ++ configGroup) ]
 
         UnknownPage ->
-            model ! []
+            Debug.crash "Need unknown page"
 
 
 
@@ -74,11 +79,20 @@ activePage linkPage page =
     let
         active =
             case page of
-                CryptoConfigPage config _ ->
-                    linkPage == CryptoConfigPage config "global"
-
-                _ ->
+                PairPage ->
                     linkPage == page
+
+                AccountPage _ ->
+                    linkPage == page
+
+                CryptoConfigPage config _ ->
+                    (Debug.log "DEBUG2" linkPage) == (Debug.log "DEBUG3" (CryptoConfigPage config Nothing))
+
+                ConfigPage _ ->
+                    linkPage == page
+
+                UnknownPage ->
+                    Debug.crash "Need unknown page"
     in
         if (active) then
             class [ Css.Classes.Active ]
@@ -91,8 +105,8 @@ view page =
     nav [ class [ Css.Classes.NavBar ] ]
         [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
         , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
-        , div [ onClick (NewPage (CryptoConfigPage "commissions" "global")), activePage (CryptoConfigPage "commissions" "global") page ] [ text "Commissions" ]
+        , div [ onClick (NewPage (CryptoConfigPage "commissions" Nothing)), activePage (CryptoConfigPage "commissions" Nothing) page ] [ text "Commissions" ]
         , div [ onClick (NewPage (ConfigPage "limits")), activePage (ConfigPage "limits") page ] [ text "Limits" ]
         , div [ onClick (NewPage (ConfigPage "fiat")), activePage (ConfigPage "fiat") page ] [ text "Fiat" ]
-        , div [ onClick (NewPage (ConfigPage "crypto-services")), activePage (ConfigPage "crytpo-services") page ] [ text "Crypto services" ]
+        , div [ onClick (NewPage (CryptoConfigPage "crypto-services" Nothing)), activePage (CryptoConfigPage "crypto-services" Nothing) page ] [ text "Crypto services" ]
         ]
