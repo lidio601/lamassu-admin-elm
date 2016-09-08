@@ -185,17 +185,17 @@ fieldClusterDecoderHelper configData clusterTypeString =
         "string" ->
             object2 FieldStringCluster
                 ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder string))
+                ("fieldInstances" := list (fieldInstanceDecoder string identity componentModelNoop))
 
         "percentage" ->
             object2 FieldPercentageCluster
                 ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder float))
+                ("fieldInstances" := list (fieldInstanceDecoder float identity componentModelNoop))
 
         "integer" ->
             object2 FieldIntegerCluster
                 ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder int))
+                ("fieldInstances" := list (fieldInstanceDecoder int identity componentModelNoop))
 
         "onOff" ->
             object2 FieldOnOffCluster
