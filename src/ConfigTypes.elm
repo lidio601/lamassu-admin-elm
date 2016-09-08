@@ -58,28 +58,25 @@ type alias FieldLocator =
     }
 
 
+type alias SelectizeModel =
+    Selectize.Model String
+
+
 type FieldCluster
-    = FieldStringCluster String (List (FieldInstance String))
-    | FieldPercentageCluster String (List (FieldInstance Float))
-    | FieldIntegerCluster String (List (FieldInstance Int))
-    | FieldOnOffCluster String (List (FieldInstance Bool))
-    | FieldAccountCluster String (List (FieldSelectizeInstance ( String, String )))
-    | FieldCurrencyCluster String (List (FieldSelectizeInstance String))
-    | FieldLanguageCluster String (List (FieldSelectizeInstance (List String)))
+    = FieldStringCluster String (List (FieldInstance String ()))
+    | FieldPercentageCluster String (List (FieldInstance Float ()))
+    | FieldIntegerCluster String (List (FieldInstance Int ()))
+    | FieldOnOffCluster String (List (FieldInstance Bool ()))
+    | FieldAccountCluster String (List (FieldInstance ( String, String ) SelectizeModel))
+    | FieldCurrencyCluster String (List (FieldInstance String SelectizeModel))
+    | FieldLanguageCluster String (List (FieldInstance (List String) SelectizeModel))
 
 
-type alias FieldInstance valueType =
+type alias FieldInstance valueType componentModel =
     { fieldScope : FieldScope
     , fieldValue : FieldHolder valueType
     , loadedValue : Maybe valueType
-    }
-
-
-type alias FieldSelectizeInstance valueType =
-    { fieldScope : FieldScope
-    , fieldValue : FieldHolder valueType
-    , loadedValue : Maybe valueType
-    , selectizeMode : Selectize.Model String
+    , componentModel : componentModel
     }
 
 

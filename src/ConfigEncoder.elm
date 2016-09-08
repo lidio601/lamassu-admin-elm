@@ -51,7 +51,7 @@ encodeValue fieldHolder maybeLoadedValue encoder =
             `Maybe.andThen` onlyDirty
 
 
-encodeFieldInstance : (valueType -> Value) -> FieldInstance valueType -> Maybe Value
+encodeFieldInstance : (valueType -> Value) -> FieldInstance valueType componentModel -> Maybe Value
 encodeFieldInstance encoder fieldInstance =
     let
         encode value =
@@ -63,7 +63,7 @@ encodeFieldInstance encoder fieldInstance =
         encodeValue fieldInstance.fieldValue fieldInstance.loadedValue encoder
 
 
-encodeFieldClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType) -> Maybe Value
+encodeFieldClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
 encodeFieldClusterHelper fieldCode encoder fieldInstances =
     let
         instances =
@@ -100,13 +100,13 @@ encodeFieldCluster fieldCluster =
         FieldOnOffCluster fieldCode fieldInstances ->
             encodeFieldClusterHelper fieldCode bool fieldInstances
 
-        FieldAccountCluster fieldCode fieldInstances _ ->
+        FieldAccountCluster fieldCode fieldInstances ->
             encodeFieldClusterHelper fieldCode stringTuple fieldInstances
 
-        FieldCurrencyCluster fieldCode fieldInstances _ ->
+        FieldCurrencyCluster fieldCode fieldInstances ->
             encodeFieldClusterHelper fieldCode string fieldInstances
 
-        FieldLanguageCluster fieldCode fieldInstances _ ->
+        FieldLanguageCluster fieldCode fieldInstances ->
             encodeFieldClusterHelper fieldCode (list << (List.map string)) fieldInstances
 
 
