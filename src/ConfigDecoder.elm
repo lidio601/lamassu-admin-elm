@@ -207,6 +207,19 @@ fieldClusterDecoderHelper configData clusterTypeString =
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder stringTuple fst (initAccountSelectize configData)))
 
+        "currency" ->
+            object2 FieldCurrencyCluster
+                ("fieldCode" := string)
+                ("fieldInstances" := list (fieldInstanceDecoder string (always ()) (initCurrencySelectize configData)))
+
+        "language" ->
+            object2 FieldLanguageCluster
+                ("fieldCode" := string)
+                ("fieldInstances" := list (fieldInstanceDecoder (list string) (always ()) (initLanguageSelectize configData)))
+
+        _ ->
+            fail ("Unsupported " ++ clusterTypeString)
+
 
 
 -- | FieldPercentageType
