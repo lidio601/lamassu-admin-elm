@@ -63,15 +63,23 @@ type FieldCluster
     | FieldPercentageCluster String (List (FieldInstance Float))
     | FieldIntegerCluster String (List (FieldInstance Int))
     | FieldOnOffCluster String (List (FieldInstance Bool))
-    | FieldAccountCluster String (List (FieldInstance ( String, String ))) (Selectize.Model String)
-    | FieldCurrencyCluster String (List (FieldInstance String)) (Selectize.Model String)
-    | FieldLanguageCluster String (List (FieldInstance (List String))) (Selectize.Model String)
+    | FieldAccountCluster String (List (FieldSelectizeInstance ( String, String )))
+    | FieldCurrencyCluster String (List (FieldSelectizeInstance String))
+    | FieldLanguageCluster String (List (FieldSelectizeInstance (List String)))
 
 
 type alias FieldInstance valueType =
     { fieldScope : FieldScope
     , fieldValue : FieldHolder valueType
     , loadedValue : Maybe valueType
+    }
+
+
+type alias FieldSelectizeInstance valueType =
+    { fieldScope : FieldScope
+    , fieldValue : FieldHolder valueType
+    , loadedValue : Maybe valueType
+    , selectizeMode : Selectize.Model String
     }
 
 
