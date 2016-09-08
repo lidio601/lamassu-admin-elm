@@ -59,19 +59,13 @@ type alias FieldLocator =
 
 
 type FieldCluster
-    = FieldStringCluster (List (FieldInstance String))
-    | FieldPercentageCluster (FieldInstance Float)
-    | FieldIntegerCluster (FieldInstance Int)
-    | FieldOnOffCluster (FieldInstance Bool)
-    | FieldAccountCluster (FieldInstance ( String, String )) (Selectize.Model String)
-    | FieldCurrencyCluster (FieldInstance String) (Selectize.Model String)
-    | FieldLanguageCluster (FieldInstance (List String)) (Selectize.Model String)
-
-
-type alias FieldGroup =
-    { code : String
-    , fieldCluster : FieldCluster
-    }
+    = FieldStringCluster String (List (FieldInstance String))
+    | FieldPercentageCluster String (List (FieldInstance Float))
+    | FieldIntegerCluster String (List (FieldInstance Int))
+    | FieldOnOffCluster String (List (FieldInstance Bool))
+    | FieldAccountCluster String (List (FieldInstance ( String, String ))) (Selectize.Model String)
+    | FieldCurrencyCluster String (List (FieldInstance String)) (Selectize.Model String)
+    | FieldLanguageCluster String (List (FieldInstance (List String))) (Selectize.Model String)
 
 
 type alias FieldInstance valueType =

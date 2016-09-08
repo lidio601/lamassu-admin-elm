@@ -5,45 +5,6 @@ import List
 import ConfigTypes exposing (..)
 
 
-encodeFieldValueObject : String -> Value -> Value
-encodeFieldValueObject fieldTypeStr value =
-    object [ ( "fieldType", string fieldTypeStr ), ( "value", value ) ]
-
-
-encodeFieldValue : Maybe FieldValue -> Value
-encodeFieldValue maybeFieldValue =
-    case maybeFieldValue of
-        Nothing ->
-            null
-
-        Just fieldValue ->
-            case fieldValue of
-                FieldStringValue value ->
-                    encodeFieldValueObject "string" (string value)
-
-                FieldPercentageValue value ->
-                    encodeFieldValueObject "percentage" (float value)
-
-                FieldIntegerValue value ->
-                    encodeFieldValueObject "integer" (int value)
-
-                FieldOnOffValue value ->
-                    encodeFieldValueObject "onOff" (bool value)
-
-                FieldAccountValue accountClass value ->
-                    object
-                        [ ( "fieldType", string "account" )
-                        , ( "accountClass", string accountClass )
-                        , ( "value", string value )
-                        ]
-
-                FieldCurrencyValue value ->
-                    encodeFieldValueObject "currency" (string value)
-
-                FieldLanguageValue value ->
-                    encodeFieldValueObject "language" (list (List.map string value))
-
-
 encodeCrypto : Crypto -> Value
 encodeCrypto crypto =
     case crypto of
@@ -72,26 +33,6 @@ encodeFieldScope fieldScope =
         ]
 
 
-encodeFieldLocator : FieldLocator -> Value
-encodeFieldLocator fieldLocator =
-    Json.Encode.object
-        [ ( "fieldScope", encodeFieldScope fieldLocator.fieldScope )
-        , ( "code", string fieldLocator.code )
-        ]
-
-
-encodeFieldInstance : (valueType -> Value) -> FieldInstance valueType -> Maybe Value
-encodeFieldInstance encoder fieldInstance =
-    let
-        encode value =
-            Json.Encode.object
-                [ ( "fieldScope", encodeFieldScope fieldInstance.fieldScope )
-                , ( "fieldValue", value )
-                ]
-    in
-        encodeValue fieldInstance.value fieldInstance.loadedValue encoder
-
-
 encodeValue : FieldHolder valueType -> Maybe valueType -> (valueType -> Value) -> Maybe Value
 encodeValue fieldHolder maybeLoadedValue encoder =
     let
@@ -110,43 +51,68 @@ encodeValue fieldHolder maybeLoadedValue encoder =
             `Maybe.andThen` onlyDirty
 
 
-encodeFieldCluster : FieldLocator -> FieldCluster -> List Value
-encodeFieldCluster fieldLocator fieldCluster =
-    case fieldCluster of
-        FieldStringCluster fieldInstances ->
-            List.filterMap (encodeFieldInstance string) fieldInstances
-
-
-
--- FieldPercentageCluster (FieldInstance Float)
--- FieldIntegerCluster (FieldInstance Int)
--- FieldOnOffCluster (FieldInstance Bool)
--- FieldAccountCluster (FieldInstance ( String, String )) (Selectize.Model String)
--- FieldCurrencyCluster (FieldInstance String) (Selectize.Model String)
--- FieldLanguageCluster (FieldInstance (List String)) (Selectize.Model String)
-
-
-encodeFieldGroup : FieldGroup -> Maybe Value
-encodeFieldGroup fieldGroup =
+encodeFieldInstance : (valueType -> Value) -> FieldInstance valueType -> Maybe Value
+encodeFieldInstance encoder fieldInstance =
     let
-        fieldClusterValues =
-            encodeFieldCluster fieldGroup.fieldLocator fieldGroup.fieldCluster
-
-        toCluster values =
+        encode value =
             Json.Encode.object
-                [ ( "code", string fieldGroup.code )
-                , ( "fieldClusters", values )
+                [ ( "fieldScope", encodeFieldScope fieldInstance.fieldScope )
+                , ( "fieldValue", value )
                 ]
     in
-        if List.isEmpty fieldClusterValues then
+        encodeValue fieldInstance.value fieldInstance.loadedValue encoder
+
+
+encodeFieldClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType) -> Maybe Value
+encodeFieldClusterHelper fieldCode encoder fieldInstances =
+    let
+        instances =
+            List.filterMap (encodeFieldInstance encoder) fieldInstances
+    in
+        if List.isEmpty instances then
             Nothing
         else
-            Just (List.map toCluster fieldClusterValues)
+            Just
+                (object
+                    [ ( "fieldCode", string fieldCode )
+                    , ( "fieldInstances", list instances )
+                    ]
+                )
 
 
-encodeResults : String -> List FieldGroup -> Value
-encodeResults configGroupCode fieldGroups =
+stringTuple : ( String, String ) -> Value
+stringTuple ( x, y ) =
+    list [ string x, string y ]
+
+
+encodeFieldCluster : FieldCluster -> Maybe Value
+encodeFieldCluster fieldCluster =
+    case fieldCluster of
+        FieldStringCluster fieldCode fieldInstances ->
+            encodeFieldClusterHelper fieldCode string fieldInstances
+
+        FieldPercentageCluster fieldCode fieldInstances ->
+            encodeFieldClusterHelper fieldCode float fieldInstances
+
+        FieldIntegerCluster fieldCode fieldInstances ->
+            encodeFieldClusterHelper fieldCode int fieldInstances
+
+        FieldOnOffCluster fieldCode fieldInstances ->
+            encodeFieldClusterHelper fieldCode bool fieldInstances
+
+        FieldAccountCluster fieldCode fieldInstances _ ->
+            encodeFieldClusterHelper fieldCode stringTuple fieldInstances
+
+        FieldCurrencyCluster fieldCode fieldInstances _ ->
+            encodeFieldClusterHelper fieldCode string fieldInstances
+
+        FieldLanguageCluster fieldCode fieldInstances _ ->
+            encodeFieldClusterHelper fieldCode (list << (List.map string)) fieldInstances
+
+
+encodeResults : String -> List FieldCluster -> Value
+encodeResults configGroupCode fieldClusters =
     Json.Encode.object
         [ ( "groupCode", string configGroupCode )
-        , ( "fieldClusters", list (List.filterMap encodeFieldGroup fieldGroups) )
+        , ( "fieldClusters", list (List.filterMap encodeFieldCluster fieldClusters) )
         ]
