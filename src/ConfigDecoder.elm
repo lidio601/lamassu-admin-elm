@@ -174,7 +174,7 @@ fieldInstanceDecoder typeDecoder =
 
 fieldInstancesDecoder : Decoder fieldType -> List (FieldInstance fieldType)
 fieldInstancesDecoder typeDecoder =
-    list (fieldInstanceDecodertypeDecoder)
+    decodeValue list (fieldInstanceDecodertypeDecoder)
 
 
 toFieldCluster : ( String, FieldType, List Value ) -> FieldCluster
