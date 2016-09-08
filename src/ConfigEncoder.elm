@@ -80,31 +80,73 @@ encodeFieldLocator fieldLocator =
         ]
 
 
-encodeFieldResult : String -> FieldType -> FieldInstance valueType -> Maybe Value
-encodeFieldResult fieldCode fieldType fieldInstance =
+encodeFieldInstance : (valueType -> Value) -> FieldInstance valueType -> Maybe Value
+encodeFieldInstance encoder fieldInstance =
     let
-        fieldLocator =
-            { fieldScope = fieldInstance.fieldScope, code = fieldCode }
-
-        encode maybeValue =
+        encode value =
             Json.Encode.object
-                [ ( "fieldLocator", encodeFieldLocator fieldLocator )
-                , ( "fieldValue", encodeValue fieldType maybeValue )
+                [ ( "fieldScope", encodeFieldScope fieldInstance.fieldScope )
+                , ( "fieldValue", value )
                 ]
+    in
+        encodeValue fieldInstance.value fieldInstance.loadedValue encoder
 
+
+encodeValue : FieldHolder valueType -> Maybe valueType -> (valueType -> Value) -> Maybe Value
+encodeValue fieldHolder maybeLoadedValue encoder =
+    let
         onlyDirty maybeValue =
-            if (fieldInstance.loadedValue == maybeValue) then
+            if (maybeLoadedValue == maybeValue) then
                 Nothing
             else
-                Just (encode maybeValue)
+                case maybeValue of
+                    Nothing ->
+                        Just null
+
+                    Just value ->
+                        Just (encoder value)
     in
-        Result.toMaybe fieldInstance.value
+        Result.toMaybe fieldHolder
             `Maybe.andThen` onlyDirty
 
 
-encodeResults : String -> List FieldCluster -> Value
-encodeResults configGroupCode fieldInstances =
+encodeFieldCluster : FieldLocator -> FieldCluster -> List Value
+encodeFieldCluster fieldLocator fieldCluster =
+    case fieldCluster of
+        FieldStringCluster fieldInstances ->
+            List.filterMap (encodeFieldInstance string) fieldInstances
+
+
+
+-- FieldPercentageCluster (FieldInstance Float)
+-- FieldIntegerCluster (FieldInstance Int)
+-- FieldOnOffCluster (FieldInstance Bool)
+-- FieldAccountCluster (FieldInstance ( String, String )) (Selectize.Model String)
+-- FieldCurrencyCluster (FieldInstance String) (Selectize.Model String)
+-- FieldLanguageCluster (FieldInstance (List String)) (Selectize.Model String)
+
+
+encodeFieldGroup : FieldGroup -> Maybe Value
+encodeFieldGroup fieldGroup =
+    let
+        fieldClusterValues =
+            encodeFieldCluster fieldGroup.fieldLocator fieldGroup.fieldCluster
+
+        toCluster values =
+            Json.Encode.object
+                [ ( "code", string fieldGroup.code )
+                , ( "fieldClusters", values )
+                ]
+    in
+        if List.isEmpty fieldClusterValues then
+            Nothing
+        else
+            Just (List.map toCluster fieldClusterValues)
+
+
+encodeResults : String -> List FieldGroup -> Value
+encodeResults configGroupCode fieldGroups =
     Json.Encode.object
         [ ( "groupCode", string configGroupCode )
-        , ( "values", list (List.filterMap encodeFieldResult fieldInstances) )
+        , ( "fieldClusters", list (List.filterMap encodeFieldGroup fieldGroups) )
         ]
