@@ -137,15 +137,6 @@ stringTuple =
     tuple2 (,) string string
 
 
-
--- type alias FieldInstance valueType componentModel =
---     { fieldScope : FieldScope
---     , fieldValue : FieldHolder valueType
---     , loadedValue : Maybe valueType
---     , componentModel : componentModel
---     }
-
-
 fieldInstanceDecoderHelper :
     (valueType -> comModParam)
     -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
@@ -219,15 +210,6 @@ fieldClusterDecoderHelper configData clusterTypeString =
 
         _ ->
             fail ("Unsupported " ++ clusterTypeString)
-
-
-
--- | FieldPercentageType
--- | FieldIntegerType
--- | FieldOnOffType
--- | FieldAccountType String
--- | FieldCurrencyType
--- | FieldLanguageType
 
 
 fieldClusterDecoder : ConfigData -> Decoder FieldCluster

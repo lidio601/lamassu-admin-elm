@@ -20,6 +20,7 @@ import Maybe exposing (oneOf)
 import String
 import SelectizeHelpers exposing (..)
 
+
 type alias ConfigGroupResponse =
     RemoteData (Error String) (Response ConfigGroup)
 
@@ -391,12 +392,65 @@ type Msg
     | Focus FieldLocator
 
 
-initFieldInstances : ConfigGroup -> List (FieldInstance valueType)
-initFieldInstances configGroup =
+initFieldInstance :
+    ConfigGroup
+    -> String
+    -> FieldType
+    -> (FieldScope -> Maybe valueType -> componentModel)
+    -> FieldScope
+    -> FieldInstance valueType componentModel
+initFieldInstance configGroup fieldCode fieldType initComponent fieldScope =
     let
+        fieldComponent =
+            ()
+    in
+        { fieldScope = fieldScope
+        , fieldValue = Ok Nothing
+        , loadedValue = Nothing
+        , componentModel = initComponent fieldScope Nothing
+        }
 
-initFieldCluster : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldCluster
-initFieldCluster configGroup fieldDescriptor fieldScope =
+
+buildFieldInstance :
+    ConfigGroup
+    -> String
+    -> FieldType
+    -> Maybe fieldCluster
+    -> (FieldScope -> Maybe valueType -> componentModel)
+    -> FieldScope
+    -> FieldInstance valueType componentModel
+buildFieldInstance configGroup fieldCode maybeFieldCluster initComponent fieldScope =
+    let
+        maybeFieldInstance =
+            case maybeFieldCluster of
+                Nothing ->
+                    Nothing
+
+                Just fieldCluster ->
+                    (List.filter (((==) fieldScope) << .fieldScope) fieldCluster)
+                        |> List.head
+    in
+        case maybeFieldInstance of
+            Nothing ->
+                initFieldInstance configGroup fieldCode initComponent fieldScope
+
+            Just fieldInstance ->
+                fieldInstance
+
+
+buildFieldInstances :
+    ConfigGroup
+    -> String
+    -> FieldType
+    -> Maybe fieldCluster
+    -> (FieldScope -> Maybe valueType -> componentModel)
+    -> FieldInstance valueType componentModel
+buildFieldInstances configGroup fieldCode maybeFieldCluster initComponent =
+    List.map buildFieldInstance (fieldScopes configGroup)
+
+
+initFieldCluster : ConfigGroup -> FieldDescriptor -> FieldCluster
+initFieldCluster configGroup fieldDescriptor =
     let
         fieldCode =
             fieldDescriptor.code
@@ -404,41 +458,44 @@ initFieldCluster configGroup fieldDescriptor fieldScope =
         fieldType =
             fieldDescriptor.fieldType
 
+        maybeFieldCluster =
+            List.filter (((==) fieldCode) << .fieldCode) configGroup.values
+
+        noop _ _ =
+            ()
+
         fieldInstances =
-            initFieldInstances configGroup
+            buildFieldInstances configGroup fieldCode maybeFieldCluster
     in
         case fieldType of
             FieldStringType ->
-                FieldStringCluster fieldCode (fieldInstances fieldType)
+                FieldStringCluster fieldCode (fieldInstances noop)
 
             FieldPercentageType ->
-                FieldPercentageCluster fieldCode (fieldInstances fieldType)
+                FieldPercentageCluster fieldCode (fieldInstances noop)
 
             FieldIntegerType ->
-                FieldIntegerCluster fieldCode (fieldInstances fieldType)
+                FieldIntegerCluster fieldCode (fieldInstances noop)
 
             FieldOnOffType ->
-                FieldOnOffCluster fieldCode (fieldInstances fieldType)
+                FieldOnOffCluster fieldCode (fieldInstances noop)
 
             FieldAccountType accountClass ->
                 FieldAccountCluster fieldCode
-                    (fieldInstances fieldType)
-                    (initAccountSelectize configGroup accountClass fieldScope Nothing)
+                    (fieldInstances (initAccountSelectize configGroup accountClass))
 
             FieldCurrencyType ->
                 FieldCurrencyCluster fieldType
-                    (fieldInstances fieldType)
-                    (initCurrencySelectize configGroup fieldScope Nothing)
+                    (fieldInstances (initCurrencySelectize configGroup))
 
             FieldLanguageType ->
                 FieldLanguageCluster fieldType
-                    (fieldInstances fieldType)
-                    (initLanguageSelectize configGroup fieldScope Nothing)
+                    (fieldInstances (initLanguageSelectize configGroup))
 
 
 initFieldClustersPerEntry : ConfigGroup -> FieldDescriptor -> List FieldCluster
 initFieldClustersPerEntry configGroup fieldDescriptor =
-    List.map (initFieldCluster configGroup fieldDescriptor) (fieldScopes configGroup)
+    List.map (initFieldCluster configGroup fieldDescriptor)
 
 
 initFieldClusters : ConfigGroup -> List FieldCluster
