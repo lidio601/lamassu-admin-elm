@@ -80,26 +80,29 @@ encodeFieldLocator fieldLocator =
         ]
 
 
-encodeFieldResult : FieldInstance -> Maybe Value
-encodeFieldResult fieldInstance =
+encodeFieldResult : String -> FieldType -> FieldInstance valueType -> Maybe Value
+encodeFieldResult fieldCode fieldType fieldInstance =
     let
-        encode maybeFieldValue =
+        fieldLocator =
+            { fieldScope = fieldInstance.fieldScope, code = fieldCode }
+
+        encode maybeValue =
             Json.Encode.object
-                [ ( "fieldLocator", encodeFieldLocator fieldInstance.fieldLocator )
-                , ( "fieldValue", encodeFieldValue maybeFieldValue )
+                [ ( "fieldLocator", encodeFieldLocator fieldLocator )
+                , ( "fieldValue", encodeValue fieldType maybeValue )
                 ]
 
-        onlyDirty maybeFieldValue =
-            if (fieldInstance.loadedFieldValue == maybeFieldValue) then
+        onlyDirty maybeValue =
+            if (fieldInstance.loadedValue == maybeValue) then
                 Nothing
             else
-                Just (encode maybeFieldValue)
+                Just (encode maybeValue)
     in
-        Result.toMaybe fieldInstance.fieldValue
+        Result.toMaybe fieldInstance.value
             `Maybe.andThen` onlyDirty
 
 
-encodeResults : String -> List FieldInstance -> Value
+encodeResults : String -> List FieldCluster -> Value
 encodeResults configGroupCode fieldInstances =
     Json.Encode.object
         [ ( "groupCode", string configGroupCode )

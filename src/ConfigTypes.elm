@@ -58,20 +58,18 @@ type alias FieldLocator =
     }
 
 
-type FieldComponent
-    = InputBoxComponent FieldType
-    | SelectizeComponent FieldType (Selectize.Model String)
+type FieldCluster
+    = FieldStringCluster (FieldInstance String)
+    | FieldPercentageCluster (FieldInstance Float)
+    | FieldIntegerCluster (FieldInstance Int)
+    | FieldOnOffCluster (FieldInstance Bool)
+    | FieldAccountCluster (FieldInstance ( String, String )) (Selectize.Model String)
+    | FieldCurrencyCluster (FieldInstance String) (Selectize.Model String)
+    | FieldLanguageCluster (FieldInstance (List String)) (Selectize.Model String)
 
 
-type alias FieldCluster valueType componentType =
-    { fieldType : FieldType
-    , fieldInstances : List (FieldInstance valueType componentType)
-    }
-
-
-type alias FieldInstance valueType componentType =
+type alias FieldInstance valueType =
     { fieldScope : FieldScope
-    , component : componentType
     , value : FieldHolder valueType
     , loadedValue : Maybe valueType
     }
