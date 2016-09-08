@@ -131,7 +131,7 @@ configSchemaDecoder =
         ("entries" := list fieldDescriptorDecoder)
 
 
-fieldInstanceDecoder : Decoder valueType -> Decoder (FieldInstance valueType)
+fieldInstanceDecoder : Decoder valueType -> Decoder (FieldInstance valueType componentModel)
 fieldInstanceDecoder typeDecoder =
     object3 FieldInstance
         ("fieldScope" := fieldScopeDecoder)
@@ -139,7 +139,7 @@ fieldInstanceDecoder typeDecoder =
         (map Just ("fieldValue" := typeDecoder))
 
 
-toFieldValue : FieldScope -> valueType -> FieldInstance valueType
+toFieldValue : FieldScope -> valueType -> FieldInstance valueType componentModel
 toFieldValue fieldScope fieldValue =
     { fieldScope = fieldScope
     , fieldValue = Ok (Just fieldValue)
@@ -147,12 +147,17 @@ toFieldValue fieldScope fieldValue =
     }
 
 
-fieldInstancesDecoder : Decoder valueType -> Decoder (FieldInstance valueType)
+fieldInstancesDecoder : Decoder valueType -> Decoder (FieldInstance valueType componentModel)
 fieldInstancesDecoder typeDecoder =
     (object2 toFieldValue
         ("fieldScope" := fieldScopeDecoder)
         ("fieldValue" := typeDecoder)
     )
+
+
+stringTuple : Decoder ( String, String )
+stringTuple =
+    tuple2 (,) string string
 
 
 fieldClusterDecoderHelper : String -> Decoder FieldCluster
@@ -162,6 +167,26 @@ fieldClusterDecoderHelper clusterTypeString =
             object2 FieldStringCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder string))
+
+        "percentage" ->
+            object2 FieldPercentageCluster
+                ("fieldCode" := string)
+                ("fieldInstances" := list (fieldInstanceDecoder float))
+
+        "integer" ->
+            object2 FieldIntegerCluster
+                ("fieldCode" := string)
+                ("fieldInstances" := list (fieldInstanceDecoder int))
+
+        "onOff" ->
+            object2 FieldOnOffCluster
+                ("fieldCode" := string)
+                ("fieldInstances" := list (fieldInstanceDecoder bool))
+
+        "account" ->
+            object2 FieldAccountCluster
+                ("fieldCode" := string)
+                ("fieldInstances" := list (fieldInstanceDecoder stringTuple))
 
 
 
