@@ -2,6 +2,7 @@ module ConfigDecoder exposing (..)
 
 import Json.Decode exposing (..)
 import ConfigTypes exposing (..)
+import SelectizeHelpers exposing (..)
 
 
 fieldScopeDecoder : Decoder FieldScope
@@ -131,37 +132,55 @@ configSchemaDecoder =
         ("entries" := list fieldDescriptorDecoder)
 
 
-fieldInstanceDecoder : Decoder valueType -> Decoder (FieldInstance valueType componentModel)
-fieldInstanceDecoder typeDecoder =
-    object3 FieldInstance
-        ("fieldScope" := fieldScopeDecoder)
-        (map (Ok << Just) ("fieldValue" := typeDecoder))
-        (map Just ("fieldValue" := typeDecoder))
-
-
-toFieldValue : FieldScope -> valueType -> FieldInstance valueType componentModel
-toFieldValue fieldScope fieldValue =
-    { fieldScope = fieldScope
-    , fieldValue = Ok (Just fieldValue)
-    , loadedValue = Just fieldValue
-    }
-
-
-fieldInstancesDecoder : Decoder valueType -> Decoder (FieldInstance valueType componentModel)
-fieldInstancesDecoder typeDecoder =
-    (object2 toFieldValue
-        ("fieldScope" := fieldScopeDecoder)
-        ("fieldValue" := typeDecoder)
-    )
-
-
 stringTuple : Decoder ( String, String )
 stringTuple =
     tuple2 (,) string string
 
 
-fieldClusterDecoderHelper : String -> Decoder FieldCluster
-fieldClusterDecoderHelper clusterTypeString =
+
+-- type alias FieldInstance valueType componentModel =
+--     { fieldScope : FieldScope
+--     , fieldValue : FieldHolder valueType
+--     , loadedValue : Maybe valueType
+--     , componentModel : componentModel
+--     }
+
+
+fieldInstanceDecoderHelper :
+    (valueType -> comModParam)
+    -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
+    -> ( FieldScope, valueType )
+    -> Decoder (FieldInstance valueType componentModel)
+fieldInstanceDecoderHelper comModParamMapper comModMapper ( fieldScope, fieldValue ) =
+    succeed
+        { fieldScope = fieldScope
+        , fieldValue = Ok (Just fieldValue)
+        , loadedValue = Just fieldValue
+        , componentModel = comModMapper (comModParamMapper fieldValue) fieldScope (Just fieldValue)
+        }
+
+
+fieldInstanceDecoder :
+    Decoder valueType
+    -> (valueType -> comModParam)
+    -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
+    -> Decoder (FieldInstance valueType componentModel)
+fieldInstanceDecoder typeDecoder comModParamMapper comModMapper =
+    ((object2 (,)
+        ("fieldScope" := fieldScopeDecoder)
+        ("fieldValue" := typeDecoder)
+     )
+    )
+        `andThen` fieldInstanceDecoderHelper comModParamMapper comModMapper
+
+
+componentModelNoop : comModParam -> FieldScope -> Maybe valueType -> ()
+componentModelNoop _ _ _ =
+    ()
+
+
+fieldClusterDecoderHelper : ConfigData -> String -> Decoder FieldCluster
+fieldClusterDecoderHelper configData clusterTypeString =
     case clusterTypeString of
         "string" ->
             object2 FieldStringCluster
@@ -181,12 +200,12 @@ fieldClusterDecoderHelper clusterTypeString =
         "onOff" ->
             object2 FieldOnOffCluster
                 ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder bool))
+                ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
 
         "account" ->
             object2 FieldAccountCluster
                 ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder stringTuple))
+                ("fieldInstances" := list (fieldInstanceDecoder stringTuple fst (initAccountSelectize configData)))
 
 
 
@@ -198,17 +217,24 @@ fieldClusterDecoderHelper clusterTypeString =
 -- | FieldLanguageType
 
 
-fieldClusterDecoder : Decoder FieldCluster
-fieldClusterDecoder =
-    ("fieldType" := string) `andThen` fieldClusterDecoderHelper
+fieldClusterDecoder : ConfigData -> Decoder FieldCluster
+fieldClusterDecoder configData =
+    ("fieldType" := string)
+        `andThen` (fieldClusterDecoderHelper configData)
+
+
+configGroupDecoderHelper : ConfigData -> Decoder ConfigGroup
+configGroupDecoderHelper configData =
+    object3 ConfigGroup
+        ("schema" := configSchemaDecoder)
+        ("values" := list (fieldClusterDecoder configData))
+        (succeed configData)
 
 
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    object3 ConfigGroup
-        ("schema" := configSchemaDecoder)
-        ("values" := list fieldClusterDecoder)
-        ("data" := configDataDecoder)
+    ("data" := configDataDecoder)
+        `andThen` configGroupDecoderHelper
 
 
 accountRecDecoder : Decoder AccountRec
