@@ -136,6 +136,9 @@ basicFieldTypeDecoder s =
         "currency" ->
             succeed FieldCurrencyType
 
+        "languages" ->
+            succeed FieldLanguageType
+
         _ ->
             fail ("No such FieldType " ++ s)
 

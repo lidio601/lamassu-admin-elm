@@ -186,6 +186,34 @@ fieldValueToString fieldValue =
             Debug.crash "Can't turn languages into string"
 
 
+fieldValueToList : FieldValue -> List String
+fieldValueToList fieldValue =
+    case fieldValue of
+        FieldStringValue v ->
+            [ v ]
+
+        FieldPercentageValue v ->
+            [ toString v ]
+
+        FieldIntegerValue v ->
+            [ toString v ]
+
+        FieldOnOffValue v ->
+            if v then
+                [ "on" ]
+            else
+                [ "off" ]
+
+        FieldAccountValue _ v ->
+            [ v ]
+
+        FieldCurrencyValue v ->
+            [ v ]
+
+        FieldLanguageValue v ->
+            v
+
+
 machineToString : Machine -> String
 machineToString machine =
     case machine of

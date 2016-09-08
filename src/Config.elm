@@ -214,12 +214,15 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
         SelectizeComponent fieldType selectizeModel ->
             let
                 fallbackCodes =
-                    maybeFallbackFieldValue
-                        |> maybeToList
-                        |> List.map fieldValueToString
+                    case maybeFallbackFieldValue of
+                        Nothing ->
+                            []
+
+                        Just fallbackFieldValue ->
+                            fieldValueToList fallbackFieldValue
             in
                 Html.App.map (SelectizeMsg (Debug.log "DEBUG11" fieldInstance.fieldLocator))
-                    (Selectize.view selectizeHtmlOptions (Debug.log "DEBUG10" fallbackCodes) selectizeModel)
+                    (Selectize.view selectizeHtmlOptions fallbackCodes selectizeModel)
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -433,7 +436,7 @@ initLanguageSelectize configGroup fieldScope maybeLanguages =
 
         selectize language =
             Selectize.selectizeItem language.code
-                language.display
+                language.code
                 language.display
                 (String.split " " language.display)
 
@@ -443,7 +446,7 @@ initLanguageSelectize configGroup fieldScope maybeLanguages =
         selectedCodes =
             Maybe.withDefault [] maybeLanguages
     in
-        Selectize.init 1 5 selectedCodes availableItems
+        Selectize.init 4 5 selectedCodes availableItems
 
 
 initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe String -> SelectizeModel
@@ -608,6 +611,15 @@ updateSelectizeValue fieldType selectizeModel =
             Selectize.selectedIds selectizeModel
                 |> List.head
                 |> Maybe.map (FieldAccountValue accountClass)
+
+        FieldLanguageType ->
+            Selectize.selectedIds selectizeModel
+                |> (\languages ->
+                        if List.isEmpty languages then
+                            Nothing
+                        else
+                            (Just (FieldLanguageValue languages))
+                   )
 
         _ ->
             Debug.crash "Not a selectize field"
