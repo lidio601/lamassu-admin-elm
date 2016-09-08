@@ -1,6 +1,5 @@
 module ConfigTypes exposing (..)
 
-import String
 import Selectize
 
 
@@ -43,8 +42,8 @@ type FieldError
     | FieldValidationError String
 
 
-type alias FieldHolder =
-    Result FieldError (Maybe FieldValue)
+type alias FieldHolder valueType =
+    Result FieldError (Maybe valueType)
 
 
 type alias FieldScope =
@@ -64,11 +63,17 @@ type FieldComponent
     | SelectizeComponent FieldType (Selectize.Model String)
 
 
-type alias FieldInstance =
-    { fieldLocator : FieldLocator
-    , component : FieldComponent
-    , fieldValue : FieldHolder
-    , loadedFieldValue : Maybe FieldValue
+type alias FieldCluster valueType componentType =
+    { fieldType : FieldType
+    , fieldInstances : List (FieldInstance valueType componentType)
+    }
+
+
+type alias FieldInstance valueType componentType =
+    { fieldScope : FieldScope
+    , component : componentType
+    , value : FieldHolder valueType
+    , loadedValue : Maybe valueType
     }
 
 
@@ -283,45 +288,3 @@ stringToCrypto string =
 
         _ ->
             CryptoCode string
-
-
-stringToFieldValue : FieldType -> String -> FieldHolder
-stringToFieldValue fieldType s =
-    if (String.isEmpty s) then
-        Ok Nothing
-    else
-        case fieldType of
-            FieldStringType ->
-                Ok (Just (FieldStringValue s))
-
-            FieldPercentageType ->
-                String.toFloat s
-                    |> Result.map FieldPercentageValue
-                    |> Result.map Just
-                    |> Result.formatError FieldParsingError
-
-            FieldIntegerType ->
-                String.toInt s
-                    |> Result.map FieldIntegerValue
-                    |> Result.map Just
-                    |> Result.formatError FieldParsingError
-
-            FieldOnOffType ->
-                case s of
-                    "on" ->
-                        Ok (Just (FieldOnOffValue True))
-
-                    "off" ->
-                        Ok (Just (FieldOnOffValue False))
-
-                    _ ->
-                        Err (FieldParsingError ("Unsupported value for OnOff: " ++ s))
-
-            FieldAccountType accountClass ->
-                Ok (Just (FieldAccountValue accountClass s))
-
-            FieldCurrencyType ->
-                Ok (Just (FieldCurrencyValue s))
-
-            FieldLanguageType ->
-                Debug.crash "Can't turn languages into string"
