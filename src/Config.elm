@@ -37,7 +37,7 @@ type SavingStatus
 
 type alias Model =
     { webConfigGroup : WebConfigGroup
-    , fieldInstances : List FieldInstance
+    , fieldClusters : List FieldCluster
     , crypto : Maybe Crypto
     , status : SavingStatus
     , focused : Maybe FieldLocator
@@ -46,7 +46,7 @@ type alias Model =
 
 type alias ResolvedModel =
     { configGroup : ConfigGroup
-    , fieldInstances : List FieldInstance
+    , fieldClusters : List FieldCluster
     , crypto : Crypto
     , status : SavingStatus
     , focused : Maybe FieldLocator
@@ -68,7 +68,7 @@ type alias SelectizeMsgType =
 toResolvedModel : Model -> ConfigGroup -> ResolvedModel
 toResolvedModel model configGroup =
     { configGroup = configGroup
-    , fieldInstances = model.fieldInstances
+    , fieldClusters = model.fieldClusters
     , crypto = Maybe.withDefault GlobalCrypto model.crypto
     , status = model.status
     , focused = model.focused
@@ -83,11 +83,11 @@ getForm code =
         |> Cmd.map Load
 
 
-postForm : String -> List FieldInstance -> Cmd Msg
-postForm configGroupCode fieldInstances =
+postForm : String -> List FieldCluster -> Cmd Msg
+postForm configGroupCode fieldClusters =
     post "http://localhost:8093/config"
         |> withHeader "Content-Type" "application/json"
-        |> withJsonBody (encodeResults configGroupCode fieldInstances)
+        |> withJsonBody (encodeResults configGroupCode fieldClusters)
         |> send (jsonReader configGroupDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -482,88 +482,59 @@ initAccountSelectize configGroup accountClass fieldScope maybeAccount =
     in
         Selectize.init 1 5 selectedCodes availableItems
 
-
-buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> Maybe FieldValue -> FieldComponent
-buildFieldComponent configGroup fieldType fieldScope maybeFieldValue =
-    case maybeFieldValue of
-        Nothing ->
-            case fieldType of
-                FieldStringType ->
-                    InputBoxComponent fieldType
-
-                FieldPercentageType ->
-                    InputBoxComponent fieldType
-
-                FieldIntegerType ->
-                    InputBoxComponent fieldType
-
-                FieldOnOffType ->
-                    InputBoxComponent fieldType
-
-                FieldAccountType accountClass ->
-                    SelectizeComponent fieldType
-                        (initAccountSelectize configGroup accountClass fieldScope Nothing)
-
-                FieldCurrencyType ->
-                    SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope Nothing)
-
-                FieldLanguageType ->
-                    SelectizeComponent fieldType (initLanguageSelectize configGroup fieldScope Nothing)
-
-        Just fieldValue ->
-            case fieldValue of
-                FieldStringValue _ ->
-                    InputBoxComponent fieldType
-
-                FieldPercentageValue _ ->
-                    InputBoxComponent fieldType
-
-                FieldIntegerValue _ ->
-                    InputBoxComponent fieldType
-
-                FieldOnOffValue _ ->
-                    InputBoxComponent fieldType
-
-                FieldAccountValue accountClass account ->
-                    SelectizeComponent fieldType
-                        (initAccountSelectize configGroup accountClass fieldScope (Just account))
-
-                FieldCurrencyValue currency ->
-                    SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope (Just currency))
-
-                FieldLanguageValue languages ->
-                    SelectizeComponent fieldType (initLanguageSelectize configGroup fieldScope (Just languages))
-
-
-initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
-initFieldInstance configGroup fieldDescriptor fieldScope =
-    let
-        fieldLocator =
-            { fieldScope = fieldScope, code = fieldDescriptor.code }
-
-        value =
-            List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
-                |> List.head
-                |> Maybe.map .fieldValue
-
-        component =
-            buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope value
-    in
-        { fieldLocator = fieldLocator
-        , component = component
-        , fieldValue = Ok value
-        , loadedFieldValue = value
-        }
-
-
-initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
-initFieldInstancesPerEntry configGroup fieldDescriptor =
-    List.map (initFieldInstance configGroup fieldDescriptor) (fieldScopes configGroup)
-
-
-initFieldInstances : ConfigGroup -> List FieldInstance
+initFieldInstances : ConfigGroup -> List (FieldInstance valueType)
 initFieldInstances configGroup =
-    List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
+    let
+
+initFieldCluster : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldCluster
+initFieldCluster configGroup fieldDescriptor fieldScope =
+    let
+        fieldCode =
+            fieldDescriptor.code
+
+        fieldType =
+            fieldDescriptor.fieldType
+
+        fieldInstances =
+            initFieldInstances configGroup
+    in
+        case fieldType of
+            FieldStringType ->
+                FieldStringCluster fieldCode (fieldInstances fieldType)
+
+            FieldPercentageType ->
+                FieldPercentageCluster fieldCode (fieldInstances fieldType)
+
+            FieldIntegerType ->
+                FieldIntegerCluster fieldCode (fieldInstances fieldType)
+
+            FieldOnOffType ->
+                FieldOnOffCluster fieldCode (fieldInstances fieldType)
+
+            FieldAccountType accountClass ->
+                FieldAccountCluster fieldCode
+                    (fieldInstances fieldType)
+                    (initAccountSelectize configGroup accountClass fieldScope Nothing)
+
+            FieldCurrencyType ->
+                FieldCurrencyCluster fieldType
+                    (fieldInstances fieldType)
+                    (initCurrencySelectize configGroup fieldScope Nothing)
+
+            FieldLanguageType ->
+                FieldLanguageCluster fieldType
+                    (fieldInstances fieldType)
+                    (initLanguageSelectize configGroup fieldScope Nothing)
+
+
+initFieldClustersPerEntry : ConfigGroup -> FieldDescriptor -> List FieldCluster
+initFieldClustersPerEntry configGroup fieldDescriptor =
+    List.map (initFieldCluster configGroup fieldDescriptor) (fieldScopes configGroup)
+
+
+initFieldClusters : ConfigGroup -> List FieldCluster
+initFieldClusters configGroup =
+    List.concatMap (initFieldClustersPerEntry configGroup) configGroup.schema.entries
 
 
 pickFieldInstance : FieldLocator -> List FieldInstance -> Maybe FieldInstance
@@ -697,11 +668,11 @@ update msg model =
                 webConfigGroup =
                     RemoteData.map .data configGroupResponse
 
-                fieldInstances : List FieldInstance
-                fieldInstances =
+                fieldClusters : List FieldCluster
+                fieldClusters =
                     case webConfigGroup of
                         Success configGroup ->
-                            initFieldInstances configGroup
+                            initFieldClusters configGroup
 
                         _ ->
                             []
@@ -726,7 +697,7 @@ update msg model =
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
-                    , fieldInstances = fieldInstances
+                    , fieldClusters = fieldClusters
                     , status = status
                     , crypto = (Debug.log "DEBUG3" crypto)
                   }

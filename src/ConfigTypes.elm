@@ -70,7 +70,7 @@ type FieldCluster
 
 type alias FieldInstance valueType =
     { fieldScope : FieldScope
-    , value : FieldHolder valueType
+    , fieldValue : FieldHolder valueType
     , loadedValue : Maybe valueType
     }
 
@@ -78,12 +78,6 @@ type alias FieldInstance valueType =
 type alias ResolvedFieldInstance =
     { fieldLocator : FieldLocator
     , fieldValue : Maybe FieldValue
-    }
-
-
-type alias Field =
-    { fieldLocator : FieldLocator
-    , fieldValue : FieldValue
     }
 
 
@@ -125,7 +119,7 @@ type alias ConfigSchema =
 
 type alias ConfigGroup =
     { schema : ConfigSchema
-    , values : List Field
+    , values : List FieldCluster
     , data : ConfigData
     }
 

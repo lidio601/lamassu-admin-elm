@@ -60,7 +60,7 @@ encodeFieldInstance encoder fieldInstance =
                 , ( "fieldValue", value )
                 ]
     in
-        encodeValue fieldInstance.value fieldInstance.loadedValue encoder
+        encodeValue fieldInstance.fieldValue fieldInstance.loadedValue encoder
 
 
 encodeFieldClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType) -> Maybe Value

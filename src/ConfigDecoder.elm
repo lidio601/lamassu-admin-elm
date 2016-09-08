@@ -4,11 +4,11 @@ import Json.Decode exposing (..)
 import ConfigTypes exposing (..)
 
 
-fieldValueTypeDecoder : String -> Decoder FieldValue
+fieldValueTypeDecoder : String -> Decoder (FieldInstance valueType)
 fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldStringValue ("value" := string)
+            map FieldInstance ("value" := string)
 
         "percentage" ->
             map FieldPercentageValue ("value" := float)
@@ -37,11 +37,6 @@ fieldValueTypeDecoder fieldType =
             fail ("Unsupported field type: " ++ fieldType)
 
 
-fieldValueDecoder : Decoder FieldValue
-fieldValueDecoder =
-    ("fieldType" := string) `andThen` fieldValueTypeDecoder
-
-
 fieldScopeDecoder : Decoder FieldScope
 fieldScopeDecoder =
     object2 FieldScope
@@ -54,13 +49,6 @@ fieldLocatorDecoder =
     object2 FieldLocator
         ("fieldScope" := fieldScopeDecoder)
         ("code" := string)
-
-
-fieldDecoder : Decoder Field
-fieldDecoder =
-    object2 Field
-        ("fieldLocator" := fieldLocatorDecoder)
-        ("fieldValue" := fieldValueDecoder)
 
 
 string2machine : String -> Machine
@@ -176,11 +164,50 @@ configSchemaDecoder =
         ("entries" := list fieldDescriptorDecoder)
 
 
+fieldInstanceDecoder : Decoder fieldType -> Decoder (FieldInstance fieldType)
+fieldInstanceDecoder typeDecoder =
+    object3 FieldInstance
+        ("fieldScope" := fieldScopeDecoder)
+        (map (Ok << Just) ("fieldValue" := typeDecoder))
+        (map Just ("fieldValue" := typeDecoder))
+
+
+fieldInstancesDecoder : Decoder fieldType -> List (FieldInstance fieldType)
+fieldInstancesDecoder typeDecoder =
+    list (fieldInstanceDecodertypeDecoder)
+
+
+toFieldCluster : ( String, FieldType, List Value ) -> FieldCluster
+toFieldCluster ( fieldCode, fieldType, fieldInstanceValues ) =
+    case fieldType of
+        FieldStringType ->
+            FieldStringCluster fieldCode (fieldInstancesDecoder string fieldInstanceValues)
+
+
+
+-- | FieldPercentageType
+-- | FieldIntegerType
+-- | FieldOnOffType
+-- | FieldAccountType String
+-- | FieldCurrencyType
+-- | FieldLanguageType
+
+
+fieldClusterDecoder : Decoder FieldCluster
+fieldClusterDecoder =
+    (object3 (,,)
+        ("fieldCode" := string)
+        (("fieldType" := string) `andThen` fieldTypeDecoder)
+        ("fieldInstances" := list value)
+    )
+        |> map toFieldCluster
+
+
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
     object3 ConfigGroup
         ("schema" := configSchemaDecoder)
-        ("values" := list fieldDecoder)
+        ("values" := list fieldClusterDecoder)
         ("data" := configDataDecoder)
 
 
