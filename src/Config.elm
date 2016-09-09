@@ -148,16 +148,28 @@ updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
         fieldInstance
 
 
-updateInput : FieldLocator -> FieldType -> String -> Model -> ( Model, Cmd Msg )
-updateInput fieldLocator fieldType valueString model =
+updateWhen : (x -> Bool) -> (x -> x) -> List x
+updateWhen predicate updater list =
     let
-        fieldValue =
-            stringToFieldValue fieldType valueString
-
-        fieldInstances =
-            List.map (updateStringFieldInstance fieldLocator fieldValue) model.fieldInstances
+        mapper item =
+            if predicate item then
+                update item
+            else
+                item
     in
-        { model | fieldInstances = fieldInstances } ! []
+        List.map mapper list
+
+
+updateInput : InputCluster -> FieldScope -> String -> Model -> ( Model, Cmd Msg )
+updateInput inputCluster fieldScope valueString model =
+    let
+        instances =
+            updateWhen (((==) fieldScope) << .fieldScope) (updateInputInstance inputCluster fieldScope valueString)
+
+        clusters =
+            updateWhen (((==) inputCluster))
+    in
+        { model | fieldClusters = fieldClusters } ! []
 
 
 
@@ -385,9 +397,9 @@ isField fieldCode field =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | Input FieldLocator InputFieldType String
+    | Input InputCluster FieldScope String
+    | SelectizeMsg SelectizeCluster FieldScope SelectizeMsgType
     | CryptoSwitch Crypto
-    | SelectizeMsg FieldLocator SelectizeMsgType
     | Blur FieldLocator
     | Focus FieldLocator
 
@@ -679,8 +691,8 @@ update msg model =
                 _ ->
                     model ! []
 
-        Input fieldLocator fieldTypeInput valueString ->
-            updateInput fieldLocator fieldTypeInput valueString model
+        Input inputCluster fieldScope valueString ->
+            updateInput inputCluster fieldScope model
 
         CryptoSwitch crypto ->
             case model.webConfigGroup of
@@ -697,8 +709,8 @@ update msg model =
                 _ ->
                     model ! []
 
-        SelectizeMsg fieldLocator selectizeMsg ->
-            updateSelectize fieldLocator selectizeMsg model
+        SelectizeMsg selectizeCluster fieldScope selectizeMsg ->
+            updateSelectize selectizeCluster fieldScope selectizeMsg model
 
         Focus fieldLocator ->
             updateFocus fieldLocator True model
