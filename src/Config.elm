@@ -442,71 +442,77 @@ buildFieldInstances configGroup fieldCode maybeFieldInstance initComponent =
     List.map buildFieldInstance (fieldScopes configGroup)
 
 
-initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldInstance
-initFieldInstance configGroup fieldDescriptor =
+initFieldGroup : ConfigGroup -> FieldDescriptor -> FieldGroup
+initFieldGroup configGroup fieldDescriptor =
     let
-        fieldCode =
-            fieldDescriptor.code
 
-        fieldType =
-            fieldDescriptor.fieldType
+initFieldGroups : ConfigGroup -> List FieldGroup
+initFieldGroups configGroup =
+    List.concatMap (initFieldGroup configGroup) configGroup.schema.entries
 
-        maybeFieldInstance =
-            List.filter (((==) fieldCode) << .fieldCode) configGroup.values
-
-        noop _ _ =
-            ()
-
-        fieldInstances =
-            buildFieldInstances configGroup fieldCode maybeFieldInstance
-    in
-        case fieldType of
-            FieldStringType ->
-                FieldStringInstance fieldCode (fieldInstances noop)
-
-            FieldPercentageType ->
-                FieldPercentageInstance fieldCode (fieldInstances noop)
-
-            FieldIntegerType ->
-                FieldIntegerInstance fieldCode (fieldInstances noop)
-
-            FieldOnOffType ->
-                FieldOnOffInstance fieldCode (fieldInstances noop)
-
-            FieldAccountType accountClass ->
-                FieldAccountInstance fieldCode
-                    (fieldInstances (initAccountSelectize configGroup accountClass))
-
-            FieldCurrencyType ->
-                FieldCurrencyInstance fieldType
-                    (fieldInstances (initCurrencySelectize configGroup))
-
-            FieldLanguageType ->
-                FieldLanguageInstance fieldType
-                    (fieldInstances (initLanguageSelectize configGroup))
-
-
-initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
-initFieldInstancesPerEntry configGroup fieldDescriptor =
-    List.map (initFieldInstance configGroup fieldDescriptor)
-
-
-initFieldInstances : ConfigGroup -> List FieldInstance
-initFieldInstances configGroup =
-    List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
-
-
-pickFieldInstance : FieldLocator -> List FieldInstance -> Maybe FieldInstance
-pickFieldInstance fieldLocator fieldInstances =
-    let
-        sameLocation targetFieldLocator fieldInstance =
-            fieldInstance.fieldLocator == targetFieldLocator
-    in
-        List.filter (sameLocation fieldLocator) fieldInstances
-            |> List.head
-
-
-
+-- initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldInstance
+-- initFieldInstance configGroup fieldDescriptor =
+--     let
+--         fieldCode =
+--             fieldDescriptor.code
+--
+--         fieldType =
+--             fieldDescriptor.fieldType
+--
+--         maybeFieldInstance =
+--             List.filter (((==) fieldCode) << .fieldCode) configGroup.values
+--
+--         noop _ _ =
+--             ()
+--
+--         fieldInstances =
+--             buildFieldInstances configGroup fieldCode maybeFieldInstance
+--     in
+--         case fieldType of
+--             FieldStringType ->
+--                 FieldStringInstance fieldCode (fieldInstances noop)
+--
+--             FieldPercentageType ->
+--                 FieldPercentageInstance fieldCode (fieldInstances noop)
+--
+--             FieldIntegerType ->
+--                 FieldIntegerInstance fieldCode (fieldInstances noop)
+--
+--             FieldOnOffType ->
+--                 FieldOnOffInstance fieldCode (fieldInstances noop)
+--
+--             FieldAccountType accountClass ->
+--                 FieldAccountInstance fieldCode
+--                     (fieldInstances (initAccountSelectize configGroup accountClass))
+--
+--             FieldCurrencyType ->
+--                 FieldCurrencyInstance fieldType
+--                     (fieldInstances (initCurrencySelectize configGroup))
+--
+--             FieldLanguageType ->
+--                 FieldLanguageInstance fieldType
+--                     (fieldInstances (initLanguageSelectize configGroup))
+--
+--
+-- initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
+-- initFieldInstancesPerEntry configGroup fieldDescriptor =
+--     List.map (initFieldInstance configGroup fieldDescriptor)
+--
+--
+-- initFieldInstances : ConfigGroup -> List FieldInstance
+-- initFieldInstances configGroup =
+--     List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
+--
+--
+-- pickFieldInstance : FieldLocator -> List FieldInstance -> Maybe FieldInstance
+-- pickFieldInstance fieldLocator fieldInstances =
+--     let
+--         sameLocation targetFieldLocator fieldInstance =
+--             fieldInstance.fieldLocator == targetFieldLocator
+--     in
+--         List.filter (sameLocation fieldLocator) fieldInstances
+--             |> List.head
+--
 -- fieldInstanceToMaybeFieldValue : FieldInstance -> Maybe FieldValue
 -- fieldInstanceToMaybeFieldValue fieldInstance =
 --     case fieldInstance.fieldValue of
@@ -696,11 +702,11 @@ update msg model =
                 webConfigGroup =
                     RemoteData.map .data configGroupResponse
 
-                fieldInstances : List FieldInstance
-                fieldInstances =
+                fieldGroups : List FieldGroup
+                fieldGroups =
                     case webConfigGroup of
                         Success configGroup ->
-                            initFieldInstances configGroup
+                            initFieldGroups configGroup
 
                         _ ->
                             []
@@ -725,7 +731,7 @@ update msg model =
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
-                    , fieldInstances = fieldInstances
+                    , fieldGroups = fieldGroups
                     , status = status
                     , crypto = (Debug.log "DEBUG3" crypto)
                   }
