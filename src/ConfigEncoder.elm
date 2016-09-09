@@ -60,20 +60,30 @@ encodeFieldLocator fieldLocator =
 
 encodeValue : FieldHolder valueType -> Maybe valueType -> (valueType -> Value) -> Maybe Value
 encodeValue fieldHolder maybeLoadedValue encoder =
-    let
-        onlyDirty maybeValue =
-            if (maybeLoadedValue == maybeValue) then
-                Nothing
-            else
-                case maybeValue of
-                    Nothing ->
-                        Just null
+    case fieldHolder of
+        Nothing ->
+            case maybeLoadedValue of
+                Nothing ->
+                    Nothing
 
-                    Just value ->
-                        Just (encoder value)
-    in
-        Result.toMaybe fieldHolder
-            `Maybe.andThen` onlyDirty
+                Just _ ->
+                    Just null
+
+        Just result ->
+            case result of
+                Ok value ->
+                    case maybeLoadedValue of
+                        Nothing ->
+                            Just (encoder value)
+
+                        Just loadedValue ->
+                            if (loadedValue == value) then
+                                Nothing
+                            else
+                                Just (encoder value)
+
+                Err _ ->
+                    Nothing
 
 
 encodeFieldInstance :

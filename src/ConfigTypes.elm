@@ -44,7 +44,7 @@ type FieldError
 
 
 type alias FieldHolder valueType =
-    Result FieldError (Maybe valueType)
+    Maybe (Result FieldError valueType)
 
 
 type alias FieldScope =
@@ -103,7 +103,7 @@ type alias FieldCode =
 
 
 type SelectizeFieldType
-    = FieldAccountType String
+    = FieldAccountType
     | FieldCurrencyType
     | FieldLanguageType
 
@@ -132,7 +132,7 @@ type alias ConfigSchema =
     , display : String
     , cryptoScope : ConfigScope
     , machineScope : ConfigScope
-    , entries : List FieldDescriptor
+    , fieldDescriptors : List FieldDescriptor
     }
 
 

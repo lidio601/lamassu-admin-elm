@@ -112,7 +112,7 @@ selectizeFieldTypeDecoder : String -> Decoder FieldType
 selectizeFieldTypeDecoder s =
     (case s of
         "account" ->
-            map FieldAccountType ("accountClass" := string)
+            succeed FieldAccountType
 
         "currency" ->
             succeed FieldCurrencyType
@@ -154,11 +154,13 @@ configSchemaDecoder =
         ("entries" := list fieldDescriptorDecoder)
 
 
-fieldDecoder : Decoder Field
-fieldDecoder =
-    object2 Field
+fieldsDecoder : Decoder (List Field)
+fieldsDecoder =
+    (object2 Field
         ("fieldLocator" := fieldLocatorDecoder)
         ("fieldValue" := value)
+    )
+        |> list
 
 
 accountRecDecoder : Decoder AccountRec

@@ -38,7 +38,7 @@ type SavingStatus
 
 type alias Model =
     { webConfigGroup : WebConfigGroup
-    , fieldInstances : List FieldGroup
+    , fieldGroups : List FieldGroup
     , crypto : Maybe Crypto
     , status : SavingStatus
     , focused : Maybe FieldLocator
@@ -47,7 +47,7 @@ type alias Model =
 
 type alias ResolvedModel =
     { configGroup : ConfigGroup
-    , fieldInstances : List FieldGroup
+    , fieldGroups : List FieldGroup
     , crypto : Crypto
     , status : SavingStatus
     , focused : Maybe FieldLocator
@@ -169,19 +169,11 @@ updateInput fieldLocator string model =
 
         fieldGroups =
             List.map
-                (\fieldGroup ->
-                    case fieldGroup of
-                        UnclassedFieldGroup group ->
-                            updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
-                                List.map
-                                (updateCluster << .fieldCluster)
-                                group
-
-                        ClassedFieldGroup group ->
-                            updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
-                                List.map
-                                (updateCluster << .fieldCluster)
-                                group
+                (\group ->
+                    updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
+                        List.map
+                        (updateCluster << .fieldCluster)
+                        group
                 )
                 model.fieldGroups
     in
@@ -431,24 +423,32 @@ buildFieldInstance configGroup fieldCode maybeFieldInstance initComponent fieldS
                 fieldInstance
 
 
-buildFieldInstances :
-    ConfigGroup
-    -> String
-    -> FieldType
-    -> Maybe fieldInstance
-    -> (FieldScope -> Maybe valueType -> componentModel)
-    -> FieldInstance valueType componentModel
-buildFieldInstances configGroup fieldCode maybeFieldInstance initComponent =
-    List.map buildFieldInstance (fieldScopes configGroup)
 
+-- buildCluster :
+--     ConfigGroup
+--     -> FieldDescriptor
+--     -> FieldScope
+--     -> FieldCluster
+-- buildCluster configGroup fieldDescriptor fieldScope =
+--     let
+--         maybeValue =
+--             List.filter (((==) fieldDescriptor) << .fieldDescriptor)
+--                 configGroup.fieldValues
+--
+--     in
+--         case fieldDescriptor.fieldType of
+--             FieldTypeInput fieldType ->
+--                 case fieldType of
+--                     FieldStringType string ->
+--
+--
 
-initFieldGroup : ConfigGroup -> FieldDescriptor -> FieldGroup
-initFieldGroup configGroup fieldDescriptor =
-    let
 
 initFieldGroups : ConfigGroup -> List FieldGroup
 initFieldGroups configGroup =
-    List.concatMap (initFieldGroup configGroup) configGroup.schema.entries
+    List.concatMap (initFieldGroup configGroup) configGroup.schema.fieldDescriptors
+
+
 
 -- initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldInstance
 -- initFieldInstance configGroup fieldDescriptor =
