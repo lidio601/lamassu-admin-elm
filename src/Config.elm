@@ -143,7 +143,7 @@ updateWhen predicate updater item =
         item
 
 
-updateInput : InputInstance -> FieldScope -> String -> Model -> ( Model, Cmd Msg )
+updateInput : FieldScope -> String -> Model -> ( Model, Cmd Msg )
 updateInput fieldLocator valueString model =
     let
         updateInstance generalInstance =
@@ -562,6 +562,66 @@ determineSelectizeFocus fieldLocator selectizeMsg model =
             model.focused
     else
         model.focused
+
+
+updateSelectizeRec :
+    (List String -> Maybe valueType)
+    -> SelectizeMsgType
+    -> FieldInstanceRec valueType
+    -> ( FieldInstanceRec valueType, Cmd Msg )
+updateSelectizeRec converter selectizeMsg instanceRec =
+    let
+        ( selectizeModel, selectizeCmd ) =
+            Selectize.update selectizeMsg instanceRec.fieldComponent
+    in
+        ( { instanceRec
+            | value = toFieldHolder converter (Selectize.selectedIds selectizeModel)
+            , fieldComponent = selectizeModel
+          }
+        , Cmd.map SelectizeMsg selectizeCmd
+        )
+
+
+updateSelectizeInstance : SelectizeMsgType -> SelectizeInstance -> ( SelectizeInstance, Cmd Msg )
+updateSelectizeInstance selectizeMsg instance =
+    case instance of
+        FieldAccountInstance instanceRec ->
+            updateSelectizeRec List.head selectizeMsg instanceRec
+
+
+updateSelectize : FieldLocator -> SelectizeMsgType -> Model -> ( Model, Cmd Msg )
+updateSelectize fieldLocator selectizeMsg model =
+    let
+        updateInstance generalInstance =
+            updateWhen (((==) fieldLocator.fieldScope) << .fieldScope)
+                (case generalInstance of
+                    FieldInputInstance instance ->
+                        instance
+
+                    FieldSelectizeInstance instance ->
+                        updateSelectizeInstance
+                )
+                generalInstance
+
+        fieldGroups =
+            List.map
+                (\fieldGroup ->
+                    case fieldGroup of
+                        UnclassedFieldGroup group ->
+                            updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
+                                List.map
+                                (updateInstance << .fieldInstances)
+                                group
+
+                        ClassedFieldGroup group ->
+                            updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
+                                List.map
+                                (updateInstance << .fieldInstances)
+                                group
+                )
+                model.fieldGroups
+    in
+        { model | fieldGroups = fieldGroups } ! []
 
 
 
