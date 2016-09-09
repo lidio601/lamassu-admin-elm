@@ -74,9 +74,9 @@ string2ConfigScope s =
             Err ("No such ConfigScope " ++ s)
 
 
-basicFieldTypeDecoder : String -> Decoder FieldType
-basicFieldTypeDecoder s =
-    case s of
+inputFieldTypeDecoder : String -> Decoder FieldType
+inputFieldTypeDecoder s =
+    (case s of
         "string" ->
             succeed FieldStringType
 
@@ -89,14 +89,28 @@ basicFieldTypeDecoder s =
         "onOff" ->
             succeed FieldOnOffType
 
+        _ ->
+            fail ("No such FieldType " ++ s)
+    )
+        |> map FieldTypeInput
+
+
+selectizeFieldTypeDecoder : String -> Decoder FieldType
+selectizeFieldTypeDecoder s =
+    (case s of
+        "account" ->
+            map FieldAccountType ("accountClass" := string)
+
         "currency" ->
             succeed FieldCurrencyType
 
-        "languages" ->
+        "language" ->
             succeed FieldLanguageType
 
         _ ->
             fail ("No such FieldType " ++ s)
+    )
+        |> map FieldTypeSelectize
 
 
 configScopeDecoder : Decoder ConfigScope
@@ -106,12 +120,7 @@ configScopeDecoder =
 
 fieldTypeDecoder : String -> Decoder FieldType
 fieldTypeDecoder fieldType =
-    case fieldType of
-        "account" ->
-            map FieldAccountType ("accountClass" := string)
-
-        _ ->
-            basicFieldTypeDecoder fieldType
+    oneOf [ inputFieldTypeDecoder fieldType, selectizeFieldTypeDecoder fieldType ]
 
 
 fieldDescriptorDecoder : Decoder FieldDescriptor

@@ -88,30 +88,22 @@ type alias FieldInstance valueType componentModel =
     }
 
 
-type alias ResolvedFieldInstance =
-    { fieldLocator : FieldLocator
-    , fieldValue : Maybe FieldValue
-    }
-
-
-type FieldType
-    = FieldStringType
-    | FieldPercentageType
-    | FieldIntegerType
-    | FieldOnOffType
-    | FieldAccountType String
+type SelectizeFieldType
+    = FieldAccountType String
     | FieldCurrencyType
     | FieldLanguageType
 
 
-type FieldValue
-    = FieldStringValue String
-    | FieldPercentageValue Float
-    | FieldIntegerValue Int
-    | FieldOnOffValue Bool
-    | FieldAccountValue String String
-    | FieldCurrencyValue String
-    | FieldLanguageValue (List String)
+type InputFieldType
+    = FieldStringType
+    | FieldPercentageType
+    | FieldIntegerType
+    | FieldOnOffType
+
+
+type FieldType
+    = FieldTypeInput InputFieldType
+    | FieldTypeSelectize SelectizeFieldType
 
 
 type alias FieldDescriptor =
@@ -168,60 +160,33 @@ globalMachineDisplay =
     }
 
 
-fieldValueToString : FieldValue -> String
-fieldValueToString fieldValue =
-    case fieldValue of
-        FieldStringValue v ->
-            v
 
-        FieldPercentageValue v ->
-            toString v
-
-        FieldIntegerValue v ->
-            toString v
-
-        FieldOnOffValue v ->
-            if v then
-                "on"
-            else
-                "off"
-
-        FieldAccountValue _ v ->
-            v
-
-        FieldCurrencyValue v ->
-            v
-
-        FieldLanguageValue v ->
-            Debug.crash "Can't turn languages into string"
-
-
-fieldValueToList : FieldValue -> List String
-fieldValueToList fieldValue =
-    case fieldValue of
-        FieldStringValue v ->
-            [ v ]
-
-        FieldPercentageValue v ->
-            [ toString v ]
-
-        FieldIntegerValue v ->
-            [ toString v ]
-
-        FieldOnOffValue v ->
-            if v then
-                [ "on" ]
-            else
-                [ "off" ]
-
-        FieldAccountValue _ v ->
-            [ v ]
-
-        FieldCurrencyValue v ->
-            [ v ]
-
-        FieldLanguageValue v ->
-            v
+-- fieldValueToString : FieldValue -> String
+-- fieldValueToString fieldValue =
+--     case fieldValue of
+--         FieldStringValue v ->
+--             v
+--
+--         FieldPercentageValue v ->
+--             toString v
+--
+--         FieldIntegerValue v ->
+--             toString v
+--
+--         FieldOnOffValue v ->
+--             if v then
+--                 "on"
+--             else
+--                 "off"
+--
+--         FieldAccountValue _ v ->
+--             v
+--
+--         FieldCurrencyValue v ->
+--             v
+--
+--         FieldLanguageValue v ->
+--             Debug.crash "Can't turn languages into string"
 
 
 machineToString : Machine -> String
