@@ -61,8 +61,8 @@ initAccountSelectize configData accountClass fieldScope maybeValue =
         Selectize.init 1 5 selectedCodes availableItems
 
 
-initCurrencySelectize : ConfigData -> () -> FieldScope -> Maybe String -> SelectizeModel
-initCurrencySelectize configData _ fieldScope maybeCurrency =
+initCurrencySelectize : ConfigData -> FieldScope -> Maybe String -> SelectizeModel
+initCurrencySelectize configData fieldScope maybeCurrency =
     let
         currencies =
             configData.currencies
@@ -76,8 +76,8 @@ initCurrencySelectize configData _ fieldScope maybeCurrency =
         Selectize.init 1 5 selectedCodes availableItems
 
 
-initLanguageSelectize : ConfigData -> () -> FieldScope -> Maybe (List String) -> SelectizeModel
-initLanguageSelectize configData _ fieldScope maybeLanguages =
+initLanguageSelectize : ConfigData -> FieldScope -> Maybe (List String) -> SelectizeModel
+initLanguageSelectize configData fieldScope maybeLanguages =
     let
         languages =
             configData.languages

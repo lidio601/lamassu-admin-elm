@@ -62,7 +62,7 @@ type alias SelectizeModel =
     Selectize.Model String
 
 
-type alias ComponentFieldInstance valueType componentModel =
+type alias ComponentFieldInstanceRec valueType componentModel =
     { fieldScope : FieldScope
     , fieldValue : FieldHolder valueType
     , loadedValue : Maybe valueType
@@ -70,7 +70,7 @@ type alias ComponentFieldInstance valueType componentModel =
     }
 
 
-type alias FieldInstance valueType =
+type alias FieldInstanceRec valueType =
     { fieldScope : FieldScope
     , fieldValue : FieldHolder valueType
     , loadedValue : Maybe valueType
@@ -78,32 +78,32 @@ type alias FieldInstance valueType =
 
 
 type InputInstance
-    = FieldStringInstance (FieldInstance String)
-    | FieldPercentageInstance (FieldInstance Float)
-    | FieldIntegerInstance (FieldInstance Int)
-    | FieldOnOffInstance (FieldInstance Bool)
+    = FieldStringInstance (FieldInstanceRec String)
+    | FieldPercentageInstance (FieldInstanceRec Float)
+    | FieldIntegerInstance (FieldInstanceRec Int)
+    | FieldOnOffInstance (FieldInstanceRec Bool)
 
 
 type SelectizeInstance
-    = FieldAccountInstance (ComponentFieldInstance String SelectizeModel)
-    | FieldCurrencyInstance (ComponentFieldInstance String SelectizeModel)
-    | FieldLanguageInstance (ComponentFieldInstance (List String) SelectizeModel)
+    = FieldAccountInstance (ComponentFieldInstanceRec String SelectizeModel)
+    | FieldCurrencyInstance (ComponentFieldInstanceRec String SelectizeModel)
+    | FieldLanguageInstance (ComponentFieldInstanceRec (List String) SelectizeModel)
 
 
-type GeneralFieldInstance
+type FieldInstance
     = FieldInputInstance InputInstance
     | FieldSelectizeInstance SelectizeInstance
 
 
 type alias UnclassedFieldGroupType =
     { fieldCode : String
-    , fieldInstances : List GeneralFieldInstance
+    , fieldInstances : List FieldInstance
     }
 
 
 type alias ClassedFieldGroupType =
     { fieldCode : String
-    , fieldInstances : List GeneralFieldInstance
+    , fieldInstances : List FieldInstance
     , class : String
     }
 

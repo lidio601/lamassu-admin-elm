@@ -166,6 +166,7 @@ updateInput fieldLocator valueString model =
         instances =
             updateWhen (((==) fieldLocator.fieldScope) << .fieldScope)
                 (updateInputInstance inputCluster fieldScope valueString)
+                cluster.fieldInstances
 
         clusters =
             updateWhen (((==) inputCluster))

@@ -146,97 +146,171 @@ stringTuple =
     tuple2 (,) string string
 
 
-fieldInstanceDecoderHelper :
-    (valueType -> comModParam)
-    -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
-    -> ( FieldScope, valueType )
-    -> Decoder (FieldInstance valueType componentModel)
-fieldInstanceDecoderHelper comModParamMapper comModMapper ( fieldScope, fieldValue ) =
-    succeed
-        { fieldScope = fieldScope
-        , fieldValue = Ok (Just fieldValue)
-        , loadedValue = Just fieldValue
-        , componentModel = comModMapper (comModParamMapper fieldValue) fieldScope (Just fieldValue)
-        }
+
+-- fieldInstanceDecoderHelper :
+--     (valueType -> comModParam)
+--     -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
+--     -> ( FieldScope, valueType )
+--     -> Decoder (FieldInstance valueType componentModel)
+-- fieldInstanceDecoderHelper comModParamMapper comModMapper ( fieldScope, fieldValue ) =
+--     succeed
+--         { fieldScope = fieldScope
+--         , fieldValue = Ok (Just fieldValue)
+--         , loadedValue = Just fieldValue
+--         , componentModel = comModMapper (comModParamMapper fieldValue) fieldScope (Just fieldValue)
+--         }
+--
+--
+-- fieldInstanceDecoder :
+--     Decoder valueType
+--     -> (valueType -> comModParam)
+--     -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
+--     -> Decoder (FieldInstance valueType componentModel)
+-- fieldInstanceDecoder typeDecoder comModParamMapper comModMapper =
+--     ((object2 (,)
+--         ("fieldScope" := fieldScopeDecoder)
+--         ("fieldValue" := typeDecoder)
+--      )
+--     )
+--         `andThen` fieldInstanceDecoderHelper comModParamMapper comModMapper
+--
+--
+-- componentModelNoop : comModParam -> FieldScope -> Maybe valueType -> ()
+-- componentModelNoop _ _ _ =
+--     ()
+--
+-- type alias FieldInstanceRec valueType =
+--     { fieldScope : FieldScope
+--     , fieldValue : FieldHolder valueType
+--     , loadedValue : Maybe valueType
+--     }
 
 
-fieldInstanceDecoder :
-    Decoder valueType
-    -> (valueType -> comModParam)
-    -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
-    -> Decoder (FieldInstance valueType componentModel)
-fieldInstanceDecoder typeDecoder comModParamMapper comModMapper =
-    ((object2 (,)
-        ("fieldScope" := fieldScopeDecoder)
-        ("fieldValue" := typeDecoder)
-     )
-    )
-        `andThen` fieldInstanceDecoderHelper comModParamMapper comModMapper
+componentFieldInstanceRecDecoder :
+    (FieldScope -> Maybe valueType -> componentType)
+    -> valueType
+    -> Decoder (ComponentFieldInstanceRec valueType componentType)
+componentFieldInstanceRecDecoder initComponent val =
+    ("fieldScope" := fieldScopeDecoder)
+        `andThen`
+            (\fieldScope ->
+                succeed
+                    { fieldScope = fieldScope
+                    , fieldValue = Ok (Just val)
+                    , loadedValue = Just val
+                    , componentModel = initComponent fieldScope (Just val)
+                    }
+            )
 
 
-componentModelNoop : comModParam -> FieldScope -> Maybe valueType -> ()
-componentModelNoop _ _ _ =
-    ()
+fieldInstanceRecDecoder : valueType -> Decoder (FieldInstanceRec valueType)
+fieldInstanceRecDecoder val =
+    ("fieldScope" := fieldScopeDecoder)
+        `andThen`
+            (\fieldScope ->
+                succeed
+                    { fieldScope = fieldScope
+                    , fieldValue = Ok (Just val)
+                    , loadedValue = Just val
+                    }
+            )
 
 
-fieldClusterDecoderHelper : ConfigData -> String -> Decoder FieldCluster
-fieldClusterDecoderHelper configData clusterTypeString =
-    case clusterTypeString of
-        "string" ->
-            ("fieldInstances" := list (fieldInstanceDecoder string identity componentModelNoop))
-                |> map FieldStringCluster
-                |> map FieldInputCluster
-
-        "percentage" ->
-            ("fieldInstances" := list (fieldInstanceDecoder float identity componentModelNoop))
-                |> map FieldPercentageCluster
-                |> map FieldInputCluster
-
-        "integer" ->
-            ("fieldInstances" := list (fieldInstanceDecoder int identity componentModelNoop))
-                |> map FieldIntegerCluster
-                |> map FieldInputCluster
-
-        "onOff" ->
-            ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
-                |> map FieldOnOffCluster
-                |> map FieldInputCluster
-
-        "account" ->
-            ("accountClass" := string)
-                `andThen`
-                    (\accountClass ->
-                        object2 FieldAccountCluster
-                            (succeed accountClass)
-                            ("fieldInstances" := list (fieldInstanceDecoder string (always accountClass) (initAccountSelectize configData)))
-                    )
-                |> map FieldSelectizeCluster
-
-        "currency" ->
-            ("fieldInstances" := list (fieldInstanceDecoder string (always ()) (initCurrencySelectize configData)))
-                |> map FieldCurrencyCluster
-                |> map FieldSelectizeCluster
-
-        "language" ->
-            ("fieldInstances" := list (fieldInstanceDecoder (list string) (always ()) (initLanguageSelectize configData)))
-                |> map FieldLanguageCluster
-                |> map FieldSelectizeCluster
-
-        _ ->
-            fail ("Unsupported " ++ clusterTypeString)
-
-
-fieldClusterDecoder : ConfigData -> Decoder FieldCluster
-fieldClusterDecoder configData =
+classedFieldInstanceDecoder : ConfigData -> String -> Decoder FieldInstance
+classedFieldInstanceDecoder configData class =
     ("fieldType" := string)
-        `andThen` (fieldClusterDecoderHelper configData)
+        `andThen`
+            (\fieldType ->
+                case fieldType of
+                    "currency" ->
+                        ("fieldValue" := string)
+                            `andThen` (componentFieldInstanceRecDecoder (initAccountSelectize configData class))
+                            |> map FieldAccountInstance
+                            |> map FieldSelectizeInstance
+
+                    _ ->
+                        fail ("Unsupported " ++ fieldType)
+            )
+
+
+fieldInstanceDecoder : ConfigData -> Decoder FieldInstance
+fieldInstanceDecoder configData =
+    ("fieldType" := string)
+        `andThen`
+            (\fieldType ->
+                case fieldType of
+                    "string" ->
+                        ("fieldValue" := string)
+                            `andThen` fieldInstanceRecDecoder
+                            |> map FieldStringInstance
+                            |> map FieldInputInstance
+
+                    "percentage" ->
+                        ("fieldValue" := float)
+                            `andThen` fieldInstanceRecDecoder
+                            |> map FieldPercentageInstance
+                            |> map FieldInputInstance
+
+                    "integer" ->
+                        ("fieldValue" := int)
+                            `andThen` fieldInstanceRecDecoder
+                            |> map FieldIntegerInstance
+                            |> map FieldInputInstance
+
+                    "onOff" ->
+                        ("fieldValue" := bool)
+                            `andThen` fieldInstanceRecDecoder
+                            |> map FieldOnOffInstance
+                            |> map FieldInputInstance
+
+                    "currency" ->
+                        ("fieldValue" := string)
+                            `andThen` (componentFieldInstanceRecDecoder (initCurrencySelectize configData))
+                            |> map FieldCurrencyInstance
+                            |> map FieldSelectizeInstance
+
+                    "language" ->
+                        ("fieldValue" := list string)
+                            `andThen` (componentFieldInstanceRecDecoder (initLanguageSelectize configData))
+                            |> map FieldLanguageInstance
+                            |> map FieldSelectizeInstance
+
+                    _ ->
+                        fail ("Unsupported " ++ fieldType)
+            )
+
+
+
+-- fieldClusterDecoder : ConfigData -> Decoder FieldCluster
+-- fieldClusterDecoder configData =
+--     ("fieldType" := string)
+--         `andThen` (fieldClusterDecoderHelper configData)
 
 
 fieldGroupDecoder : ConfigData -> Decoder FieldGroup
 fieldGroupDecoder configData =
-    object2 FieldGroup
-        ("fieldCode" := string)
-        ("fieldCluster" := fieldClusterDecoder configData)
+    ("fieldCode" := string)
+        `andThen`
+            (\fieldCode ->
+                if fieldCode == "account" then
+                    (("fieldClass" := string)
+                        `andThen`
+                            (\fieldClass ->
+                                (object3 ClassedFieldGroupType
+                                    ("fieldCode" := string)
+                                    ("fieldInstances" := list (classedFieldInstanceDecoder configData fieldClass))
+                                    (succeed fieldClass)
+                                )
+                            )
+                    )
+                        |> map ClassedFieldGroup
+                else
+                    (object2 UnclassedFieldGroupType
+                        ("fieldCode" := string)
+                        ("fieldInstances" := list (fieldInstanceDecoder configData))
+                    )
+                        |> map UnclassedFieldGroup
+            )
 
 
 configGroupDecoderHelper : ConfigData -> Decoder ConfigGroup
