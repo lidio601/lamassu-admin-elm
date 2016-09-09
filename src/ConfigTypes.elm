@@ -79,7 +79,7 @@ type InputCluster
 
 
 type SelectizeCluster
-    = FieldAccountCluster String (List (FieldInstance String SelectizeModel))
+    = FieldAccountCluster (List (FieldInstance String SelectizeModel))
     | FieldCurrencyCluster (List (FieldInstance String SelectizeModel))
     | FieldLanguageCluster (List (FieldInstance (List String) SelectizeModel))
 

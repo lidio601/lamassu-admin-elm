@@ -10,17 +10,20 @@ fieldScopeDecoder =
         ("crypto" := cryptoDecoder)
         ("machine" := machineDecoder)
 
+
 fieldCodeDecoder : Decoder FieldCode
 fieldCodeDecoder =
-    oneOf [
-    (object2 FieldCode
-        ("fieldName" := string)
-        (map Just ("fieldClass" := fieldCodeDecoder) )
-        ,
-    (object2 FieldCode
-        ("fieldName" := string)
-        (succeed Nothing))
-    ]
+    oneOf
+        [ (object2 FieldCode
+            ("fieldName" := string)
+            (("fieldClass" := string) |> map Just)
+          )
+        , (object2 FieldCode
+            ("fieldName" := string)
+            (succeed Nothing)
+          )
+        ]
+
 
 fieldLocatorDecoder : Decoder FieldLocator
 fieldLocatorDecoder =
@@ -136,7 +139,7 @@ fieldTypeDecoder fieldType =
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
     object3 FieldDescriptor
-        ("code" := string)
+        ("fieldCode" := fieldCodeDecoder)
         ("display" := string)
         (("fieldType" := string) `andThen` fieldTypeDecoder)
 
