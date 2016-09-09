@@ -62,7 +62,7 @@ type alias SelectizeModel =
     Selectize.Model String
 
 
-type alias FieldInstance valueType componentModel =
+type alias ComponentFieldInstance valueType componentModel =
     { fieldScope : FieldScope
     , fieldValue : FieldHolder valueType
     , loadedValue : Maybe valueType
@@ -70,28 +70,47 @@ type alias FieldInstance valueType componentModel =
     }
 
 
-type InputCluster
-    = FieldStringCluster (List (FieldInstance String ()))
-    | FieldPercentageCluster (List (FieldInstance Float ()))
-    | FieldIntegerCluster (List (FieldInstance Int ()))
-    | FieldOnOffCluster (List (FieldInstance Bool ()))
-
-
-type SelectizeCluster
-    = FieldAccountCluster String (List (FieldInstance String SelectizeModel))
-    | FieldCurrencyCluster (List (FieldInstance String SelectizeModel))
-    | FieldLanguageCluster (List (FieldInstance (List String) SelectizeModel))
-
-
-type FieldCluster
-    = FieldInputCluster InputCluster
-    | FieldSelectizeCluster SelectizeCluster
-
-
-type alias FieldGroup =
-    { fieldCode : String
-    , fieldCluster : FieldCluster
+type alias FieldInstance valueType =
+    { fieldScope : FieldScope
+    , fieldValue : FieldHolder valueType
+    , loadedValue : Maybe valueType
     }
+
+
+type InputInstance
+    = FieldStringInstance (FieldInstance String)
+    | FieldPercentageInstance (FieldInstance Float)
+    | FieldIntegerInstance (FieldInstance Int)
+    | FieldOnOffInstance (FieldInstance Bool)
+
+
+type SelectizeInstance
+    = FieldAccountInstance (ComponentFieldInstance String SelectizeModel)
+    | FieldCurrencyInstance (ComponentFieldInstance String SelectizeModel)
+    | FieldLanguageInstance (ComponentFieldInstance (List String) SelectizeModel)
+
+
+type GeneralFieldInstance
+    = FieldInputInstance InputInstance
+    | FieldSelectizeInstance SelectizeInstance
+
+
+type alias UnclassedFieldGroupType =
+    { fieldCode : String
+    , fieldInstances : List GeneralFieldInstance
+    }
+
+
+type alias ClassedFieldGroupType =
+    { fieldCode : String
+    , fieldInstances : List GeneralFieldInstance
+    , class : String
+    }
+
+
+type FieldGroup
+    = UnclassedFieldGroup UnclassedFieldGroupType
+    | ClassedFieldGroup ClassedFieldGroupType
 
 
 type SelectizeFieldType
