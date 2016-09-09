@@ -385,7 +385,7 @@ isField fieldCode field =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | Input FieldLocator FieldType String
+    | Input FieldLocator InputFieldType String
     | CryptoSwitch Crypto
     | SelectizeMsg FieldLocator SelectizeMsgType
     | Blur FieldLocator
@@ -679,8 +679,8 @@ update msg model =
                 _ ->
                     model ! []
 
-        Input fieldLocator fieldType valueString ->
-            updateInput fieldLocator fieldType valueString model
+        Input fieldLocator fieldTypeInput valueString ->
+            updateInput fieldLocator fieldTypeInput valueString model
 
         CryptoSwitch crypto ->
             case model.webConfigGroup of
