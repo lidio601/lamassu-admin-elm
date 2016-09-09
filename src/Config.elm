@@ -569,44 +569,51 @@ determineSelectizeFocus fieldLocator selectizeMsg model =
         model.focused
 
 
-updateSelectizeRec :
-    (List String -> Maybe valueType)
-    -> SelectizeMsgType
-    -> FieldInstanceRec valueType
-    -> ( FieldInstanceRec valueType, Cmd Msg )
-updateSelectizeRec converter selectizeMsg instanceRec =
+updateSelectizeComponent :
+    SelectizeMsgType
+    -> FieldInstance keyValue componentType
+    -> ( FieldInstance keyValue componentModel, Cmd Msg )
+updateSelectizeComponent selectizeMsg instance converter =
     let
         ( selectizeModel, selectizeCmd ) =
-            Selectize.update selectizeMsg instanceRec.fieldComponent
+            Selectize.update selectizeMsg instance.fieldComponent
     in
-        ( { instanceRec
+        { instance
             | value = toFieldHolder converter (Selectize.selectedIds selectizeModel)
             , fieldComponent = selectizeModel
-          }
-        , Cmd.map SelectizeMsg selectizeCmd
+        }
+
+
+updateSelectizeInstances :
+    FieldScope
+    -> SelectizeMsgType
+    -> List (FieldInstance keyValue componentModel)
+    -> (List String -> keyValue)
+    -> List (FieldInstance keyValue componentModel)
+updateSelectizeInstances fieldScope selectizeMsg instances converter =
+    (\instance ->
+        (updateWhen (((==) fieldScope) << .fieldScope)
+            (updateSelectizeComponent selectizeMsg instance converter)
         )
-
-
-updateSelectizeInstance : SelectizeMsgType -> SelectizeInstance -> ( SelectizeInstance, Cmd Msg )
-updateSelectizeInstance selectizeMsg instance =
-    case instance of
-        FieldAccountInstance instanceRec ->
-            updateSelectizeRec List.head selectizeMsg instanceRec
+    )
+        |> List.map instances
 
 
 updateSelectize : FieldLocator -> SelectizeMsgType -> Model -> ( Model, Cmd Msg )
 updateSelectize fieldLocator selectizeMsg model =
     let
-        updateInstance generalInstance =
-            updateWhen (((==) fieldLocator.fieldScope) << .fieldScope)
-                (case generalInstance of
-                    FieldInputInstance instance ->
-                        instance
+        updateInstances =
+            updateSelectizeInstances fieldLocator.fieldScope selectizeMsg
 
-                    FieldSelectizeInstance instance ->
-                        updateSelectizeInstance
-                )
-                generalInstance
+        updateCluster generalCluster =
+            case generalCluster of
+                FieldSelectizeCluster cluster ->
+                    case cluster of
+                        FieldCurrencyCluster instances ->
+                            updateInstances instances List.head
+
+                _ ->
+                    generalCluster
 
         fieldGroups =
             List.map
@@ -615,13 +622,13 @@ updateSelectize fieldLocator selectizeMsg model =
                         UnclassedFieldGroup group ->
                             updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
                                 List.map
-                                (updateInstance << .fieldInstances)
+                                (updateCluster << .fieldCluster)
                                 group
 
                         ClassedFieldGroup group ->
                             updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
                                 List.map
-                                (updateInstance << .fieldInstances)
+                                (updateCluster << .fieldCluster)
                                 group
                 )
                 model.fieldGroups
