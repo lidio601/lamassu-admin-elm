@@ -106,26 +106,30 @@ stringTuple ( x, y ) =
 encodeFieldCluster : FieldCluster -> Maybe Value
 encodeFieldCluster fieldCluster =
     case fieldCluster of
-        FieldStringCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode string fieldInstances
+        FieldInputCluster inputCluster ->
+            case inputCluster of
+                FieldStringCluster fieldCode fieldInstances ->
+                    encodeFieldClusterHelper fieldCode string fieldInstances
 
-        FieldPercentageCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode float fieldInstances
+                FieldPercentageCluster fieldCode fieldInstances ->
+                    encodeFieldClusterHelper fieldCode float fieldInstances
 
-        FieldIntegerCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode int fieldInstances
+                FieldIntegerCluster fieldCode fieldInstances ->
+                    encodeFieldClusterHelper fieldCode int fieldInstances
 
-        FieldOnOffCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode bool fieldInstances
+                FieldOnOffCluster fieldCode fieldInstances ->
+                    encodeFieldClusterHelper fieldCode bool fieldInstances
 
-        FieldAccountCluster fieldCode accountClass fieldInstances ->
-            encodeAccountClusterHelper fieldCode accountClass string fieldInstances
+        FieldSelectizeCluster selectizeCluster ->
+            case selectizeCluster of
+                FieldAccountCluster fieldCode accountClass fieldInstances ->
+                    encodeAccountClusterHelper fieldCode accountClass string fieldInstances
 
-        FieldCurrencyCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode string fieldInstances
+                FieldCurrencyCluster fieldCode fieldInstances ->
+                    encodeFieldClusterHelper fieldCode string fieldInstances
 
-        FieldLanguageCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode (list << (List.map string)) fieldInstances
+                FieldLanguageCluster fieldCode fieldInstances ->
+                    encodeFieldClusterHelper fieldCode (list << (List.map string)) fieldInstances
 
 
 encodeResults : String -> List FieldCluster -> Value

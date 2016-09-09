@@ -177,21 +177,25 @@ fieldClusterDecoderHelper configData clusterTypeString =
             object2 FieldStringCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder string identity componentModelNoop))
+                |> map FieldInputCluster
 
         "percentage" ->
             object2 FieldPercentageCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder float identity componentModelNoop))
+                |> map FieldInputCluster
 
         "integer" ->
             object2 FieldIntegerCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder int identity componentModelNoop))
+                |> map FieldInputCluster
 
         "onOff" ->
             object2 FieldOnOffCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
+                |> map FieldInputCluster
 
         "account" ->
             ("accountClass" := string)
@@ -202,16 +206,19 @@ fieldClusterDecoderHelper configData clusterTypeString =
                             (succeed accountClass)
                             ("fieldInstances" := list (fieldInstanceDecoder string (always accountClass) (initAccountSelectize configData)))
                     )
+                |> map FieldSelectizeCluster
 
         "currency" ->
             object2 FieldCurrencyCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder string (always ()) (initCurrencySelectize configData)))
+                |> map FieldSelectizeCluster
 
         "language" ->
             object2 FieldLanguageCluster
                 ("fieldCode" := string)
                 ("fieldInstances" := list (fieldInstanceDecoder (list string) (always ()) (initLanguageSelectize configData)))
+                |> map FieldSelectizeCluster
 
         _ ->
             fail ("Unsupported " ++ clusterTypeString)

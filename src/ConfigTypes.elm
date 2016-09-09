@@ -62,14 +62,22 @@ type alias SelectizeModel =
     Selectize.Model String
 
 
-type FieldCluster
+type InputCluster
     = FieldStringCluster String (List (FieldInstance String ()))
     | FieldPercentageCluster String (List (FieldInstance Float ()))
     | FieldIntegerCluster String (List (FieldInstance Int ()))
     | FieldOnOffCluster String (List (FieldInstance Bool ()))
-    | FieldAccountCluster String String (List (FieldInstance String SelectizeModel))
+
+
+type SelectizeCluster
+    = FieldAccountCluster String String (List (FieldInstance String SelectizeModel))
     | FieldCurrencyCluster String (List (FieldInstance String SelectizeModel))
     | FieldLanguageCluster String (List (FieldInstance (List String) SelectizeModel))
+
+
+type FieldCluster
+    = FieldInputCluster InputCluster
+    | FieldSelectizeCluster SelectizeCluster
 
 
 type alias FieldInstance valueType componentModel =
