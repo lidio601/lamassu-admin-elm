@@ -51,100 +51,99 @@ encodeValue fieldHolder maybeLoadedValue encoder =
             `Maybe.andThen` onlyDirty
 
 
-encodeFieldInstance : (valueType -> Value) -> FieldInstance valueType componentModel -> Maybe Value
-encodeFieldInstance encoder fieldInstance =
-    let
-        encode value =
-            Json.Encode.object
-                [ ( "fieldScope", encodeFieldScope fieldInstance.fieldScope )
-                , ( "fieldValue", value )
-                ]
-    in
-        encodeValue fieldInstance.fieldValue fieldInstance.loadedValue encoder
-
-
-encodeFieldClusterHelper : (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
-encodeFieldClusterHelper encoder fieldInstances =
-    let
-        instances =
-            List.filterMap (encodeFieldInstance encoder) fieldInstances
-    in
-        if List.isEmpty instances then
-            Nothing
-        else
-            Just
+encodeComponentInstanceRec :
+    (valueType -> Value)
+    -> ComponentFieldInstanceRec valueType componentType
+    -> Maybe Value
+encodeComponentInstanceRec encoder instance =
+    encodeValue instance.fieldValue instance.loadedValue encoder
+        |> Maybe.map
+            (\fieldValue ->
                 (object
-                    [ ( "fieldInstances", list instances )
+                    [ ( "fieldScope", encodeFieldScope instance.fieldScope )
+                    , ( "fieldValue", fieldValue )
                     ]
                 )
+            )
 
 
-encodeAccountClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
-encodeAccountClusterHelper accountClass encoder fieldInstances =
-    let
-        instances =
-            List.filterMap (encodeFieldInstance encoder) fieldInstances
-    in
-        if List.isEmpty instances then
-            Nothing
-        else
-            Just
+encodeInstanceRec : (valueType -> Value) -> FieldInstanceRec valueType -> Maybe Value
+encodeInstanceRec encoder instance =
+    encodeValue instance.fieldValue instance.loadedValue encoder
+        |> Maybe.map
+            (\fieldValue ->
                 (object
-                    [ ( "accountClass", string accountClass )
-                    , ( "fieldInstances", list instances )
+                    [ ( "fieldScope", encodeFieldScope instance.fieldScope )
+                    , ( "fieldValue", fieldValue )
                     ]
                 )
+            )
 
 
-stringTuple : ( String, String ) -> Value
-stringTuple ( x, y ) =
-    list [ string x, string y ]
+encodeFieldInstance : FieldInstance -> Maybe Value
+encodeFieldInstance fieldInstance =
+    case fieldInstance of
+        FieldInputInstance inputInstance ->
+            case inputInstance of
+                FieldStringInstance instance ->
+                    encodeInstanceRec string instance
 
+                FieldPercentageInstance instance ->
+                    encodeInstanceRec float instance
 
-encodeFieldCluster : FieldCluster -> Maybe Value
-encodeFieldCluster fieldCluster =
-    case fieldCluster of
-        FieldInputCluster inputCluster ->
-            case inputCluster of
-                FieldStringCluster fieldInstances ->
-                    encodeFieldClusterHelper string fieldInstances
+                FieldIntegerInstance instance ->
+                    encodeInstanceRec int instance
 
-                FieldPercentageCluster fieldInstances ->
-                    encodeFieldClusterHelper float fieldInstances
+                FieldOnOffInstance instance ->
+                    encodeInstanceRec bool instance
 
-                FieldIntegerCluster fieldInstances ->
-                    encodeFieldClusterHelper int fieldInstances
+        FieldSelectizeInstance selectizeInstance ->
+            case selectizeInstance of
+                FieldAccountInstance instance ->
+                    encodeComponentInstanceRec string instance
 
-                FieldOnOffCluster fieldInstances ->
-                    encodeFieldClusterHelper bool fieldInstances
+                FieldCurrencyInstance instance ->
+                    encodeComponentInstanceRec string instance
 
-        FieldSelectizeCluster selectizeCluster ->
-            case selectizeCluster of
-                FieldAccountCluster accountClass fieldInstances ->
-                    encodeAccountClusterHelper accountClass string fieldInstances
-
-                FieldCurrencyCluster fieldInstances ->
-                    encodeFieldClusterHelper string fieldInstances
-
-                FieldLanguageCluster fieldInstances ->
-                    encodeFieldClusterHelper (list << (List.map string)) fieldInstances
+                FieldLanguageInstance instance ->
+                    encodeComponentInstanceRec (list << (List.map string)) instance
 
 
 encodeFieldGroup : FieldGroup -> Maybe Value
 encodeFieldGroup fieldGroup =
-    let
-        encode encodedFieldCluster =
-            object
-                [ ( "fieldCode", string fieldGroup.fieldCode )
-                , ( "fieldCluster", encodedFieldCluster )
-                ]
-    in
-        Maybe.map encode (encodeFieldCluster fieldGroup.fieldCluster)
+    case fieldGroup of
+        UnclassedFieldGroup fieldGroup ->
+            List.filterMap encodeFieldInstance fieldGroup.fieldInstances
+                |> (\instances ->
+                        if List.isEmpty instances then
+                            Nothing
+                        else
+                            Just
+                                (object
+                                    [ ( "fieldCode", string fieldGroup.fieldCode )
+                                    , ( "fieldInstances", list instances )
+                                    ]
+                                )
+                   )
+
+        ClassedFieldGroup fieldGroup ->
+            List.filterMap encodeFieldInstance fieldGroup.fieldInstances
+                |> (\instances ->
+                        if List.isEmpty instances then
+                            Nothing
+                        else
+                            Just
+                                (object
+                                    [ ( "fieldCode", string fieldGroup.fieldCode )
+                                    , ( "fieldInstances", list instances )
+                                    ]
+                                )
+                   )
 
 
 encodeResults : String -> List FieldGroup -> Value
 encodeResults configGroupCode fieldGroups =
     object
         [ ( "groupCode", string configGroupCode )
-        , ( "fieldClusters", list (List.filterMap encodeFieldGroup fieldGroups) )
+        , ( "fieldGroups", list (List.filterMap encodeFieldGroup fieldGroups) )
         ]

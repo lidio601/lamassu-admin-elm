@@ -146,46 +146,6 @@ stringTuple =
     tuple2 (,) string string
 
 
-
--- fieldInstanceDecoderHelper :
---     (valueType -> comModParam)
---     -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
---     -> ( FieldScope, valueType )
---     -> Decoder (FieldInstance valueType componentModel)
--- fieldInstanceDecoderHelper comModParamMapper comModMapper ( fieldScope, fieldValue ) =
---     succeed
---         { fieldScope = fieldScope
---         , fieldValue = Ok (Just fieldValue)
---         , loadedValue = Just fieldValue
---         , componentModel = comModMapper (comModParamMapper fieldValue) fieldScope (Just fieldValue)
---         }
---
---
--- fieldInstanceDecoder :
---     Decoder valueType
---     -> (valueType -> comModParam)
---     -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
---     -> Decoder (FieldInstance valueType componentModel)
--- fieldInstanceDecoder typeDecoder comModParamMapper comModMapper =
---     ((object2 (,)
---         ("fieldScope" := fieldScopeDecoder)
---         ("fieldValue" := typeDecoder)
---      )
---     )
---         `andThen` fieldInstanceDecoderHelper comModParamMapper comModMapper
---
---
--- componentModelNoop : comModParam -> FieldScope -> Maybe valueType -> ()
--- componentModelNoop _ _ _ =
---     ()
---
--- type alias FieldInstanceRec valueType =
---     { fieldScope : FieldScope
---     , fieldValue : FieldHolder valueType
---     , loadedValue : Maybe valueType
---     }
-
-
 componentFieldInstanceRecDecoder :
     (FieldScope -> Maybe valueType -> componentType)
     -> valueType
@@ -278,13 +238,6 @@ fieldInstanceDecoder configData =
                     _ ->
                         fail ("Unsupported " ++ fieldType)
             )
-
-
-
--- fieldClusterDecoder : ConfigData -> Decoder FieldCluster
--- fieldClusterDecoder configData =
---     ("fieldType" := string)
---         `andThen` (fieldClusterDecoderHelper configData)
 
 
 fieldGroupDecoder : ConfigData -> Decoder FieldGroup
