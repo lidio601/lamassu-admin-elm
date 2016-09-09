@@ -1,6 +1,7 @@
 module ConfigTypes exposing (..)
 
 import Selectize
+import Json.Decode
 
 
 type alias DisplayRec =
@@ -54,7 +55,7 @@ type alias FieldScope =
 
 type alias FieldLocator =
     { fieldScope : FieldScope
-    , code : String
+    , fieldCode : FieldCode
     }
 
 
@@ -88,22 +89,17 @@ type FieldCluster
     | FieldSelectizeCluster SelectizeCluster
 
 
-type alias UnclassedFieldGroupType =
-    { fieldCode : String
-    , fieldCluster : FieldCluster
-    }
-
-
-type alias ClassedFieldGroupType =
-    { fieldCode : String
+type alias FieldGroup =
+    { fieldCode : FieldCode
     , fieldCluster : FieldCluster
     , fieldClass : String
     }
 
 
-type FieldGroup
-    = UnclassedFieldGroup UnclassedFieldGroupType
-    | ClassedFieldGroup ClassedFieldGroupType
+type alias FieldCode =
+    { fieldName : String
+    , fieldClass : Maybe String
+    }
 
 
 type SelectizeFieldType
@@ -125,7 +121,7 @@ type FieldType
 
 
 type alias FieldDescriptor =
-    { code : String
+    { fieldCode : FieldCode
     , display : String
     , fieldType : FieldType
     }
@@ -140,9 +136,15 @@ type alias ConfigSchema =
     }
 
 
+type alias Field =
+    { fieldLocator : FieldLocator
+    , fieldValue : Json.Decode.Value
+    }
+
+
 type alias ConfigGroup =
     { schema : ConfigSchema
-    , values : List FieldGroup
+    , fieldValues : List Field
     , data : ConfigData
     }
 

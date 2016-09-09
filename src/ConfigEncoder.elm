@@ -101,8 +101,8 @@ stringTuple ( x, y ) =
     list [ string x, string y ]
 
 
-encodeFieldCluster : FieldCluster -> Maybe Value
-encodeFieldCluster fieldCluster =
+encodeFieldCluster : FieldGroup -> FieldCluster -> Maybe Value
+encodeFieldCluster fieldGroup fieldCluster =
     case fieldCluster of
         FieldInputCluster inputCluster ->
             case inputCluster of
@@ -131,33 +131,18 @@ encodeFieldCluster fieldCluster =
 
 
 encodeFieldGroup : FieldGroup -> Maybe Value
-encodeFieldGroup fieldGroup =
-    case fieldGroup of
+encodeFieldGroup generalFieldGroup =
+    case generalFieldGroup of
         ClassedFieldGroup fieldGroup ->
-            encodeFieldCluster fieldGroup.fieldCluster
-                |> Maybe.map
-                    (\encodedFieldCluster ->
-                        object
-                            [ ( "fieldCode", string fieldGroup.fieldCode )
-                            , ( "fieldCluster", encodedFieldCluster )
-                            , ( "fieldClass", string fieldGroup.fieldClass )
-                            ]
-                    )
+            encodeFieldCluster fieldGroup fieldGroup.fieldCluster
 
         UnclassedFieldGroup fieldGroup ->
-            encodeFieldCluster fieldGroup.fieldCluster
-                |> Maybe.map
-                    (\encodedFieldCluster ->
-                        object
-                            [ ( "fieldCode", string fieldGroup.fieldCode )
-                            , ( "fieldCluster", encodedFieldCluster )
-                            ]
-                    )
+            encodeFieldCluster fieldGroup fieldGroup.fieldCluster
 
 
 encodeResults : String -> List FieldGroup -> Value
 encodeResults configGroupCode fieldGroups =
     object
         [ ( "groupCode", string configGroupCode )
-        , ( "fieldGroups", list (List.filterMap encodeFieldGroup fieldGroups) )
+        , ( "fieldValues", list (List.filterMap encodeFieldGroup fieldGroups) )
         ]

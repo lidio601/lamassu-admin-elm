@@ -2,7 +2,6 @@ module ConfigDecoder exposing (..)
 
 import Json.Decode exposing (..)
 import ConfigTypes exposing (..)
-import SelectizeHelpers exposing (..)
 
 
 fieldScopeDecoder : Decoder FieldScope
@@ -11,12 +10,23 @@ fieldScopeDecoder =
         ("crypto" := cryptoDecoder)
         ("machine" := machineDecoder)
 
+fieldCodeDecoder : Decoder FieldCode
+fieldCodeDecoder =
+    oneOf [
+    (object2 FieldCode
+        ("fieldName" := string)
+        (map Just ("fieldClass" := fieldCodeDecoder) )
+        ,
+    (object2 FieldCode
+        ("fieldName" := string)
+        (succeed Nothing))
+    ]
 
 fieldLocatorDecoder : Decoder FieldLocator
 fieldLocatorDecoder =
     object2 FieldLocator
         ("fieldScope" := fieldScopeDecoder)
-        ("code" := string)
+        ("fieldCode" := fieldCodeDecoder)
 
 
 string2machine : String -> Machine
@@ -141,134 +151,11 @@ configSchemaDecoder =
         ("entries" := list fieldDescriptorDecoder)
 
 
-stringTuple : Decoder ( String, String )
-stringTuple =
-    tuple2 (,) string string
-
-
-fieldInstanceDecoderHelper :
-    (valueType -> comModParam)
-    -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
-    -> ( FieldScope, valueType )
-    -> Decoder (FieldInstance valueType componentModel)
-fieldInstanceDecoderHelper comModParamMapper comModMapper ( fieldScope, fieldValue ) =
-    succeed
-        { fieldScope = fieldScope
-        , fieldValue = Ok (Just fieldValue)
-        , loadedValue = Just fieldValue
-        , componentModel = comModMapper (comModParamMapper fieldValue) fieldScope (Just fieldValue)
-        }
-
-
-fieldInstanceDecoder :
-    Decoder valueType
-    -> (valueType -> comModParam)
-    -> (comModParam -> FieldScope -> Maybe valueType -> componentModel)
-    -> Decoder (FieldInstance valueType componentModel)
-fieldInstanceDecoder typeDecoder comModParamMapper comModMapper =
-    ((object2 (,)
-        ("fieldScope" := fieldScopeDecoder)
-        ("fieldValue" := typeDecoder)
-     )
-    )
-        `andThen` fieldInstanceDecoderHelper comModParamMapper comModMapper
-
-
-componentModelNoop : comModParam -> FieldScope -> Maybe valueType -> ()
-componentModelNoop _ _ _ =
-    ()
-
-
-fieldClusterDecoderHelper : ConfigData -> String -> Decoder FieldCluster
-fieldClusterDecoderHelper configData clusterTypeString =
-    case clusterTypeString of
-        "string" ->
-            ("fieldInstances" := list (fieldInstanceDecoder string identity componentModelNoop))
-                |> map FieldStringCluster
-                |> map FieldInputCluster
-
-        "percentage" ->
-            ("fieldInstances" := list (fieldInstanceDecoder float identity componentModelNoop))
-                |> map FieldPercentageCluster
-                |> map FieldInputCluster
-
-        "integer" ->
-            ("fieldInstances" := list (fieldInstanceDecoder int identity componentModelNoop))
-                |> map FieldIntegerCluster
-                |> map FieldInputCluster
-
-        "onOff" ->
-            ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
-                |> map FieldOnOffCluster
-                |> map FieldInputCluster
-
-        "account" ->
-            ("accountClass" := string)
-                `andThen`
-                    (\accountClass ->
-                        object2 FieldAccountCluster
-                            (succeed accountClass)
-                            ("fieldInstances" := list (fieldInstanceDecoder string (always accountClass) (initAccountSelectize configData)))
-                    )
-                |> map FieldSelectizeCluster
-
-        "currency" ->
-            ("fieldInstances" := list (fieldInstanceDecoder string (always ()) (initCurrencySelectize configData)))
-                |> map FieldCurrencyCluster
-                |> map FieldSelectizeCluster
-
-        "language" ->
-            ("fieldInstances" := list (fieldInstanceDecoder (list string) (always ()) (initLanguageSelectize configData)))
-                |> map FieldLanguageCluster
-                |> map FieldSelectizeCluster
-
-        _ ->
-            fail ("Unsupported " ++ clusterTypeString)
-
-
-fieldClusterDecoder : ConfigData -> Decoder FieldCluster
-fieldClusterDecoder configData =
-    ("fieldType" := string)
-        `andThen` (fieldClusterDecoderHelper configData)
-
-
-fieldGroupDecoder : ConfigData -> Decoder FieldGroup
-fieldGroupDecoder configData =
-    ("fieldCode" := string)
-        `andThen`
-            (\fieldCode ->
-                if fieldCode == "account" then
-                    ("fieldClass" := string)
-                        `andThen`
-                            (\fieldClass ->
-                                (object3 ClassedFieldGroupType
-                                    ("fieldCode" := string)
-                                    ("fieldCluster" := fieldClusterDecoder configData)
-                                    (succeed fieldClass)
-                                )
-                                    |> map ClassedFieldGroup
-                            )
-                else
-                    (object2 UnclassedFieldGroupType
-                        ("fieldCode" := string)
-                        ("fieldCluster" := fieldClusterDecoder configData)
-                    )
-                        |> map UnclassedFieldGroup
-            )
-
-
-configGroupDecoderHelper : ConfigData -> Decoder ConfigGroup
-configGroupDecoderHelper configData =
-    object3 ConfigGroup
-        ("schema" := configSchemaDecoder)
-        ("values" := list (fieldGroupDecoder configData))
-        (succeed configData)
-
-
-configGroupDecoder : Decoder ConfigGroup
-configGroupDecoder =
-    ("data" := configDataDecoder)
-        `andThen` configGroupDecoderHelper
+fieldDecoder : Decoder Field
+fieldDecoder =
+    object2 Field
+        ("fieldLocator" := fieldLocatorDecoder)
+        ("fieldValue" := value)
 
 
 accountRecDecoder : Decoder AccountRec
