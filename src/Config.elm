@@ -161,10 +161,11 @@ updateWhen predicate updater list =
 
 
 updateInput : InputCluster -> FieldScope -> String -> Model -> ( Model, Cmd Msg )
-updateInput inputCluster fieldScope valueString model =
+updateInput fieldLocator valueString model =
     let
         instances =
-            updateWhen (((==) fieldScope) << .fieldScope) (updateInputInstance inputCluster fieldScope valueString)
+            updateWhen (((==) fieldLocator.fieldScope) << .fieldScope)
+                (updateInputInstance inputCluster fieldScope valueString)
 
         clusters =
             updateWhen (((==) inputCluster))
@@ -397,8 +398,8 @@ isField fieldCode field =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | Input InputCluster FieldScope String
-    | SelectizeMsg SelectizeCluster FieldScope SelectizeMsgType
+    | Input FieldLocator String
+    | SelectizeMsg FieldLocator SelectizeMsgType
     | CryptoSwitch Crypto
     | Blur FieldLocator
     | Focus FieldLocator
@@ -691,8 +692,11 @@ update msg model =
                 _ ->
                     model ! []
 
-        Input inputCluster fieldScope valueString ->
-            updateInput inputCluster fieldScope model
+        Input fieldLocator valueString ->
+            updateInput fieldLocator model
+
+        SelectizeMsg fieldLocator selectizeMsg ->
+            updateSelectize fieldLocator selectizeMsg model
 
         CryptoSwitch crypto ->
             case model.webConfigGroup of
@@ -708,9 +712,6 @@ update msg model =
 
                 _ ->
                     model ! []
-
-        SelectizeMsg selectizeCluster fieldScope selectizeMsg ->
-            updateSelectize selectizeCluster fieldScope selectizeMsg model
 
         Focus fieldLocator ->
             updateFocus fieldLocator True model
