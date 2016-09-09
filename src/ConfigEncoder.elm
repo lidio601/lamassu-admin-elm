@@ -132,19 +132,32 @@ encodeFieldCluster fieldCluster =
 
 encodeFieldGroup : FieldGroup -> Maybe Value
 encodeFieldGroup fieldGroup =
-    let
-        encode encodedFieldCluster =
-            object
-                [ ( "fieldCode", string fieldGroup.fieldCode )
-                , ( "fieldCluster", encodedFieldCluster )
-                ]
-    in
-        Maybe.map encode (encodeFieldCluster fieldGroup.fieldCluster)
+    case fieldGroup of
+        ClassedFieldGroup fieldGroup ->
+            encodeFieldCluster fieldGroup.fieldCluster
+                |> Maybe.map
+                    (\encodedFieldCluster ->
+                        object
+                            [ ( "fieldCode", string fieldGroup.fieldCode )
+                            , ( "fieldCluster", encodedFieldCluster )
+                            , ( "fieldClass", string fieldGroup.fieldClass )
+                            ]
+                    )
+
+        UnclassedFieldGroup fieldGroup ->
+            encodeFieldCluster fieldGroup.fieldCluster
+                |> Maybe.map
+                    (\encodedFieldCluster ->
+                        object
+                            [ ( "fieldCode", string fieldGroup.fieldCode )
+                            , ( "fieldCluster", encodedFieldCluster )
+                            ]
+                    )
 
 
 encodeResults : String -> List FieldGroup -> Value
 encodeResults configGroupCode fieldGroups =
     object
         [ ( "groupCode", string configGroupCode )
-        , ( "fieldClusters", list (List.filterMap encodeFieldGroup fieldGroups) )
+        , ( "fieldGroups", list (List.filterMap encodeFieldGroup fieldGroups) )
         ]

@@ -88,10 +88,22 @@ type FieldCluster
     | FieldSelectizeCluster SelectizeCluster
 
 
-type alias FieldGroup =
+type alias UnclassedFieldGroupType =
     { fieldCode : String
     , fieldCluster : FieldCluster
     }
+
+
+type alias ClassedFieldGroupType =
+    { fieldCode : String
+    , fieldCluster : FieldCluster
+    , fieldClass : String
+    }
+
+
+type FieldGroup
+    = UnclassedFieldGroup UnclassedFieldGroupType
+    | ClassedFieldGroup ClassedFieldGroupType
 
 
 type SelectizeFieldType

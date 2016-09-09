@@ -234,9 +234,27 @@ fieldClusterDecoder configData =
 
 fieldGroupDecoder : ConfigData -> Decoder FieldGroup
 fieldGroupDecoder configData =
-    object2 FieldGroup
-        ("fieldCode" := string)
-        ("fieldCluster" := fieldClusterDecoder configData)
+    ("fieldCode" := string)
+        `andThen`
+            (\fieldCode ->
+                if fieldCode == "account" then
+                    ("fieldClass" := string)
+                        `andThen`
+                            (\fieldClass ->
+                                (object3 ClassedFieldGroupType
+                                    ("fieldCode" := string)
+                                    ("fieldCluster" := fieldClusterDecoder configData)
+                                    (succeed fieldClass)
+                                )
+                                    |> map ClassedFieldGroup
+                            )
+                else
+                    (object2 UnclassedFieldGroupType
+                        ("fieldCode" := string)
+                        ("fieldCluster" := fieldClusterDecoder configData)
+                    )
+                        |> map UnclassedFieldGroup
+            )
 
 
 configGroupDecoderHelper : ConfigData -> Decoder ConfigGroup
