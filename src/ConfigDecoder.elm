@@ -194,9 +194,14 @@ fieldClusterDecoderHelper configData clusterTypeString =
                 ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
 
         "account" ->
-            object2 FieldAccountCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder stringTuple fst (initAccountSelectize configData)))
+            ("accountClass" := string)
+                `andThen`
+                    (\accountClass ->
+                        object3 FieldAccountCluster
+                            ("fieldCode" := string)
+                            (succeed accountClass)
+                            ("fieldInstances" := list (fieldInstanceDecoder string (always accountClass) (initAccountSelectize configData)))
+                    )
 
         "currency" ->
             object2 FieldCurrencyCluster

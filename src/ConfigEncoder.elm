@@ -80,6 +80,24 @@ encodeFieldClusterHelper fieldCode encoder fieldInstances =
                 )
 
 
+encodeAccountClusterHelper : String -> String -> (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
+encodeAccountClusterHelper fieldCode accountClass encoder fieldInstances =
+    let
+        instances =
+            List.filterMap (encodeFieldInstance encoder) fieldInstances
+    in
+        if List.isEmpty instances then
+            Nothing
+        else
+            Just
+                (object
+                    [ ( "fieldCode", string fieldCode )
+                    , ( "accountClass", string accountClass )
+                    , ( "fieldInstances", list instances )
+                    ]
+                )
+
+
 stringTuple : ( String, String ) -> Value
 stringTuple ( x, y ) =
     list [ string x, string y ]
@@ -100,8 +118,8 @@ encodeFieldCluster fieldCluster =
         FieldOnOffCluster fieldCode fieldInstances ->
             encodeFieldClusterHelper fieldCode bool fieldInstances
 
-        FieldAccountCluster fieldCode fieldInstances ->
-            encodeFieldClusterHelper fieldCode stringTuple fieldInstances
+        FieldAccountCluster fieldCode accountClass fieldInstances ->
+            encodeAccountClusterHelper fieldCode accountClass string fieldInstances
 
         FieldCurrencyCluster fieldCode fieldInstances ->
             encodeFieldClusterHelper fieldCode string fieldInstances

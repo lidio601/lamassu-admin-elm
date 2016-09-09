@@ -67,7 +67,7 @@ type FieldCluster
     | FieldPercentageCluster String (List (FieldInstance Float ()))
     | FieldIntegerCluster String (List (FieldInstance Int ()))
     | FieldOnOffCluster String (List (FieldInstance Bool ()))
-    | FieldAccountCluster String (List (FieldInstance ( String, String ) SelectizeModel))
+    | FieldAccountCluster String String (List (FieldInstance String SelectizeModel))
     | FieldCurrencyCluster String (List (FieldInstance String SelectizeModel))
     | FieldLanguageCluster String (List (FieldInstance (List String) SelectizeModel))
 

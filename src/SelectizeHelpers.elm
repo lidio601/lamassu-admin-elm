@@ -27,7 +27,7 @@ selectizeItem displayRec =
         Selectize.selectizeItem code code displayRec.display searchWords
 
 
-initAccountSelectize : ConfigData -> String -> FieldScope -> Maybe ( String, String ) -> SelectizeModel
+initAccountSelectize : ConfigData -> String -> FieldScope -> Maybe String -> SelectizeModel
 initAccountSelectize configData accountClass fieldScope maybeValue =
     let
         matches accountRec =
@@ -56,8 +56,7 @@ initAccountSelectize configData accountClass fieldScope maybeValue =
             List.filterMap toItem configData.accounts
 
         selectedCodes =
-            Maybe.map snd maybeValue
-                |> maybeToList
+            maybeToList maybeValue
     in
         Selectize.init 1 5 selectedCodes availableItems
 
