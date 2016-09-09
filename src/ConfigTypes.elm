@@ -104,7 +104,7 @@ type alias UnclassedFieldGroupType =
 type alias ClassedFieldGroupType =
     { fieldCode : String
     , fieldInstances : List FieldInstance
-    , class : String
+    , fieldClass : String
     }
 
 

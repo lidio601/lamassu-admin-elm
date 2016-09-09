@@ -136,6 +136,7 @@ encodeFieldGroup fieldGroup =
                                 (object
                                     [ ( "fieldCode", string fieldGroup.fieldCode )
                                     , ( "fieldInstances", list instances )
+                                    , ( "fieldClass", string fieldGroup.fieldClass )
                                     ]
                                 )
                    )
