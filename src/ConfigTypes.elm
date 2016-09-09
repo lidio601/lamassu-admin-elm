@@ -62,17 +62,25 @@ type alias SelectizeModel =
     Selectize.Model String
 
 
+type alias FieldInstance valueType componentModel =
+    { fieldScope : FieldScope
+    , fieldValue : FieldHolder valueType
+    , loadedValue : Maybe valueType
+    , componentModel : componentModel
+    }
+
+
 type InputCluster
-    = FieldStringCluster String (List (FieldInstance String ()))
-    | FieldPercentageCluster String (List (FieldInstance Float ()))
-    | FieldIntegerCluster String (List (FieldInstance Int ()))
-    | FieldOnOffCluster String (List (FieldInstance Bool ()))
+    = FieldStringCluster (List (FieldInstance String ()))
+    | FieldPercentageCluster (List (FieldInstance Float ()))
+    | FieldIntegerCluster (List (FieldInstance Int ()))
+    | FieldOnOffCluster (List (FieldInstance Bool ()))
 
 
 type SelectizeCluster
-    = FieldAccountCluster String String (List (FieldInstance String SelectizeModel))
-    | FieldCurrencyCluster String (List (FieldInstance String SelectizeModel))
-    | FieldLanguageCluster String (List (FieldInstance (List String) SelectizeModel))
+    = FieldAccountCluster String (List (FieldInstance String SelectizeModel))
+    | FieldCurrencyCluster (List (FieldInstance String SelectizeModel))
+    | FieldLanguageCluster (List (FieldInstance (List String) SelectizeModel))
 
 
 type FieldCluster
@@ -80,11 +88,9 @@ type FieldCluster
     | FieldSelectizeCluster SelectizeCluster
 
 
-type alias FieldInstance valueType componentModel =
-    { fieldScope : FieldScope
-    , fieldValue : FieldHolder valueType
-    , loadedValue : Maybe valueType
-    , componentModel : componentModel
+type alias FieldGroup =
+    { fieldCode : String
+    , fieldCluster : FieldCluster
     }
 
 
@@ -124,7 +130,7 @@ type alias ConfigSchema =
 
 type alias ConfigGroup =
     { schema : ConfigSchema
-    , values : List FieldCluster
+    , values : List FieldGroup
     , data : ConfigData
     }
 

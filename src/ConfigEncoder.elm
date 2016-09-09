@@ -63,8 +63,8 @@ encodeFieldInstance encoder fieldInstance =
         encodeValue fieldInstance.fieldValue fieldInstance.loadedValue encoder
 
 
-encodeFieldClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
-encodeFieldClusterHelper fieldCode encoder fieldInstances =
+encodeFieldClusterHelper : (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
+encodeFieldClusterHelper encoder fieldInstances =
     let
         instances =
             List.filterMap (encodeFieldInstance encoder) fieldInstances
@@ -74,14 +74,13 @@ encodeFieldClusterHelper fieldCode encoder fieldInstances =
         else
             Just
                 (object
-                    [ ( "fieldCode", string fieldCode )
-                    , ( "fieldInstances", list instances )
+                    [ ( "fieldInstances", list instances )
                     ]
                 )
 
 
-encodeAccountClusterHelper : String -> String -> (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
-encodeAccountClusterHelper fieldCode accountClass encoder fieldInstances =
+encodeAccountClusterHelper : String -> (valueType -> Value) -> List (FieldInstance valueType componentModel) -> Maybe Value
+encodeAccountClusterHelper accountClass encoder fieldInstances =
     let
         instances =
             List.filterMap (encodeFieldInstance encoder) fieldInstances
@@ -91,8 +90,7 @@ encodeAccountClusterHelper fieldCode accountClass encoder fieldInstances =
         else
             Just
                 (object
-                    [ ( "fieldCode", string fieldCode )
-                    , ( "accountClass", string accountClass )
+                    [ ( "accountClass", string accountClass )
                     , ( "fieldInstances", list instances )
                     ]
                 )
@@ -108,33 +106,45 @@ encodeFieldCluster fieldCluster =
     case fieldCluster of
         FieldInputCluster inputCluster ->
             case inputCluster of
-                FieldStringCluster fieldCode fieldInstances ->
-                    encodeFieldClusterHelper fieldCode string fieldInstances
+                FieldStringCluster fieldInstances ->
+                    encodeFieldClusterHelper string fieldInstances
 
-                FieldPercentageCluster fieldCode fieldInstances ->
-                    encodeFieldClusterHelper fieldCode float fieldInstances
+                FieldPercentageCluster fieldInstances ->
+                    encodeFieldClusterHelper float fieldInstances
 
-                FieldIntegerCluster fieldCode fieldInstances ->
-                    encodeFieldClusterHelper fieldCode int fieldInstances
+                FieldIntegerCluster fieldInstances ->
+                    encodeFieldClusterHelper int fieldInstances
 
-                FieldOnOffCluster fieldCode fieldInstances ->
-                    encodeFieldClusterHelper fieldCode bool fieldInstances
+                FieldOnOffCluster fieldInstances ->
+                    encodeFieldClusterHelper bool fieldInstances
 
         FieldSelectizeCluster selectizeCluster ->
             case selectizeCluster of
-                FieldAccountCluster fieldCode accountClass fieldInstances ->
-                    encodeAccountClusterHelper fieldCode accountClass string fieldInstances
+                FieldAccountCluster accountClass fieldInstances ->
+                    encodeAccountClusterHelper accountClass string fieldInstances
 
-                FieldCurrencyCluster fieldCode fieldInstances ->
-                    encodeFieldClusterHelper fieldCode string fieldInstances
+                FieldCurrencyCluster fieldInstances ->
+                    encodeFieldClusterHelper string fieldInstances
 
-                FieldLanguageCluster fieldCode fieldInstances ->
-                    encodeFieldClusterHelper fieldCode (list << (List.map string)) fieldInstances
+                FieldLanguageCluster fieldInstances ->
+                    encodeFieldClusterHelper (list << (List.map string)) fieldInstances
 
 
-encodeResults : String -> List FieldCluster -> Value
-encodeResults configGroupCode fieldClusters =
-    Json.Encode.object
+encodeFieldGroup : FieldGroup -> Maybe Value
+encodeFieldGroup fieldGroup =
+    let
+        encode encodedFieldCluster =
+            object
+                [ ( "fieldCode", string fieldGroup.fieldCode )
+                , ( "fieldCluster", encodedFieldCluster )
+                ]
+    in
+        Maybe.map encode (encodeFieldCluster fieldGroup.fieldCluster)
+
+
+encodeResults : String -> List FieldGroup -> Value
+encodeResults configGroupCode fieldGroups =
+    object
         [ ( "groupCode", string configGroupCode )
-        , ( "fieldClusters", list (List.filterMap encodeFieldCluster fieldClusters) )
+        , ( "fieldClusters", list (List.filterMap encodeFieldGroup fieldGroups) )
         ]

@@ -183,50 +183,43 @@ fieldClusterDecoderHelper : ConfigData -> String -> Decoder FieldCluster
 fieldClusterDecoderHelper configData clusterTypeString =
     case clusterTypeString of
         "string" ->
-            object2 FieldStringCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder string identity componentModelNoop))
+            ("fieldInstances" := list (fieldInstanceDecoder string identity componentModelNoop))
+                |> map FieldStringCluster
                 |> map FieldInputCluster
 
         "percentage" ->
-            object2 FieldPercentageCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder float identity componentModelNoop))
+            ("fieldInstances" := list (fieldInstanceDecoder float identity componentModelNoop))
+                |> map FieldPercentageCluster
                 |> map FieldInputCluster
 
         "integer" ->
-            object2 FieldIntegerCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder int identity componentModelNoop))
+            ("fieldInstances" := list (fieldInstanceDecoder int identity componentModelNoop))
+                |> map FieldIntegerCluster
                 |> map FieldInputCluster
 
         "onOff" ->
-            object2 FieldOnOffCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
+            ("fieldInstances" := list (fieldInstanceDecoder bool identity componentModelNoop))
+                |> map FieldOnOffCluster
                 |> map FieldInputCluster
 
         "account" ->
             ("accountClass" := string)
                 `andThen`
                     (\accountClass ->
-                        object3 FieldAccountCluster
-                            ("fieldCode" := string)
+                        object2 FieldAccountCluster
                             (succeed accountClass)
                             ("fieldInstances" := list (fieldInstanceDecoder string (always accountClass) (initAccountSelectize configData)))
                     )
                 |> map FieldSelectizeCluster
 
         "currency" ->
-            object2 FieldCurrencyCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder string (always ()) (initCurrencySelectize configData)))
+            ("fieldInstances" := list (fieldInstanceDecoder string (always ()) (initCurrencySelectize configData)))
+                |> map FieldCurrencyCluster
                 |> map FieldSelectizeCluster
 
         "language" ->
-            object2 FieldLanguageCluster
-                ("fieldCode" := string)
-                ("fieldInstances" := list (fieldInstanceDecoder (list string) (always ()) (initLanguageSelectize configData)))
+            ("fieldInstances" := list (fieldInstanceDecoder (list string) (always ()) (initLanguageSelectize configData)))
+                |> map FieldLanguageCluster
                 |> map FieldSelectizeCluster
 
         _ ->
@@ -239,11 +232,18 @@ fieldClusterDecoder configData =
         `andThen` (fieldClusterDecoderHelper configData)
 
 
+fieldGroupDecoder : ConfigData -> Decoder FieldGroup
+fieldGroupDecoder configData =
+    object2 FieldGroup
+        ("fieldCode" := string)
+        ("fieldCluster" := fieldClusterDecoder configData)
+
+
 configGroupDecoderHelper : ConfigData -> Decoder ConfigGroup
 configGroupDecoderHelper configData =
     object3 ConfigGroup
         ("schema" := configSchemaDecoder)
-        ("values" := list (fieldClusterDecoder configData))
+        ("values" := list (fieldGroupDecoder configData))
         (succeed configData)
 
 
