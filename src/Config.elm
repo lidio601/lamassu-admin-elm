@@ -70,7 +70,7 @@ type alias SelectizeMsgType =
 toResolvedModel : Model -> ConfigGroup -> ResolvedModel
 toResolvedModel model configGroup =
     { configGroup = configGroup
-    , fieldInstances = model.fieldInstances
+    , fieldGroups = model.fieldGroups
     , crypto = Maybe.withDefault GlobalCrypto model.crypto
     , status = model.status
     , focused = model.focused
@@ -118,18 +118,18 @@ load model code maybeCryptoCodeString =
 -- UPDATE
 
 
-toFieldHolder : (String -> Result valueType) -> String -> FieldHolder valueType
+toFieldHolder : (String -> Result String valueType) -> String -> FieldHolder valueType
 toFieldHolder converter string =
     if String.isEmpty string then
-        Ok Nothing
+        Nothing
     else
-        Result.map Just (converter string)
+        Just (Result.formatError FieldParsingError (converter string))
 
 
 updateWhen : (x -> Bool) -> (x -> x) -> x -> x
 updateWhen predicate updater item =
     if predicate item then
-        update item
+        updater item
     else
         item
 
@@ -181,34 +181,6 @@ updateInput fieldLocator string model =
         { model | fieldGroups = fieldGroups } ! []
 
 
-
--- View
--- textInput : FieldLocator -> FieldType -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
--- textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
---     let
---         maybeSpecificString =
---             Maybe.map fieldValueToString maybeFieldValue
---
---         maybeFallbackString =
---             Maybe.map fieldValueToString maybeFallbackFieldValue
---
---         defaultString =
---             Maybe.withDefault "" maybeSpecificString
---
---         fallbackString =
---             Maybe.withDefault "" maybeFallbackString
---     in
---         input
---             [ onInput (Input fieldLocator fieldType)
---             , onFocus (Focus fieldLocator)
---             , onBlur (Blur fieldLocator)
---             , defaultValue defaultString
---             , placeholder fallbackString
---             , class [ Css.Classes.BasicInput ]
---             ]
---             []
-
-
 selectizeHtmlClasses : Selectize.HtmlClasses
 selectizeHtmlClasses =
     Css.Selectize.classes
@@ -225,113 +197,7 @@ selectizeHtmlOptions =
     }
 
 
-
--- fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
--- fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
---     case fieldInstance.component of
---         InputBoxComponent fieldType ->
---             textInput fieldInstance.fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue
---
---         SelectizeComponent fieldType selectizeModel ->
---             let
---                 fallbackCodes =
---                     case maybeFallbackFieldValue of
---                         Nothing ->
---                             []
---
---                         Just fallbackFieldValue ->
---                             fieldValueToList fallbackFieldValue
---             in
---                 Html.App.map (SelectizeMsg (Debug.log "DEBUG11" fieldInstance.fieldLocator))
---                     (Selectize.view selectizeHtmlOptions fallbackCodes selectizeModel)
--- fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
--- fieldComponent model fieldInstance =
---     let
---         fieldLocator =
---             fieldInstance.fieldLocator
---
---         fieldScope =
---             fieldLocator.fieldScope
---
---         fieldCode =
---             fieldLocator.code
---
---         instances : List FieldInstance
---         instances =
---             model.fieldInstances
---
---         maybeGlobal =
---             pickFieldInstanceValue GlobalCrypto GlobalMachine fieldCode instances
---
---         maybeGlobalCrypto =
---             pickFieldInstanceValue GlobalCrypto fieldScope.machine fieldCode instances
---
---         maybeGlobalMachine =
---             pickFieldInstanceValue fieldScope.crypto GlobalMachine fieldCode instances
---
---         maybeSpecific =
---             case fieldInstance.fieldValue of
---                 Ok maybeFieldValue ->
---                     maybeFieldValue
---
---                 _ ->
---                     Nothing
---
---         maybeFallbackFieldValue =
---             oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
---     in
---         fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue
--- cellView : ResolvedModel -> FieldInstance -> Html Msg
--- cellView model fieldInstance =
---     -- Note: keying here is needed to clear out fields when switching cryptos
---     let
---         fieldLocator =
---             fieldInstance.fieldLocator
---
---         fieldScope =
---             fieldLocator.fieldScope
---
---         machine =
---             fieldScope.machine
---
---         crypto =
---             fieldScope.crypto
---
---         focused =
---             (Just fieldLocator) == model.focused
---     in
---         Html.Keyed.node "td"
---             []
---             [ ( (cryptoToString crypto)
---                     ++ "-"
---                     ++ (machineToString machine)
---                     ++ "-"
---                     ++ fieldLocator.code
---               , div [ classList [ ( Css.Classes.Component, True ), ( Css.Classes.FocusedComponent, focused ) ] ]
---                     [ fieldComponent model fieldInstance ]
---               )
---             ]
--- cellView : ResolvedModel -> Machine -> FieldGroup -> Html Msg
--- cellView model machine fieldGroup =
---     let
---         case fieldGroup of
---             UnclassedFieldGroup group ->
---                 let
---                     fieldCode = group.fieldCode
---                     maybeInstance =
---         Html.Keyed.node "td"
---             []
---             [ ( (cryptoToString crypto)
---                     ++ "-"
---                     ++ (machineToString machine)
---                     ++ "-"
---                     ++ fieldLocator.code
---               , div [ classList [ ( Css.Classes.Component, True ), ( Css.Classes.FocusedComponent, focused ) ] ]
---                     [ fieldComponent model fieldInstance ]
---               )
---             ]
-
-
+maybeFieldHolderToMaybe : Maybe (FieldHolder valueType) -> Maybe valueType
 maybeFieldHolderToMaybe maybeFieldHolder =
     case maybeFieldHolder of
         Nothing ->
@@ -351,17 +217,38 @@ maybeFieldHolderToMaybe maybeFieldHolder =
                             Nothing
 
 
-pickSpecific fieldScope instances =
+pickSpecific :
+    List (FieldInstance keyValue componentModel)
+    -> FieldScope
+    -> Maybe (FieldInstance keyValue componentModel)
+pickSpecific instances fieldScope =
     List.filter (((==) fieldScope) << .fieldScope) instances
         |> List.head
-        |> (maybeFieldHolderToMaybe << .fieldValue)
 
 
+pickSpecificValue :
+    List (FieldInstance keyValue componentModel)
+    -> FieldScope
+    -> Maybe keyValue
+pickSpecificValue instances fieldScope =
+    pickSpecific instances fieldScope
+        |> (maybeFieldHolderToMaybe << (Maybe.map .fieldValue))
+
+
+pickValue :
+    List (FieldInstance keyValue componentModel)
+    -> Crypto
+    -> Machine
+    -> Maybe keyValue
 pickValue instances crypto machine =
-    pickSpecific { crypto = crypto, machine = machine } instances
+    pickSpecificValue instances { crypto = crypto, machine = machine }
 
 
-pickFallback fieldScope instances =
+pickFallbackValue :
+    List (FieldInstance keyValue componentModel)
+    -> FieldScope
+    -> Maybe keyValue
+pickFallbackValue instances fieldScope =
     let
         pick =
             pickValue instances
@@ -380,6 +267,33 @@ pickFallback fieldScope instances =
             ]
 
 
+selectizeView :
+    FieldLocator
+    -> (Maybe valueType -> List valueType)
+    -> List (FieldInstance valueType SelectizeModel)
+    -> Html Msg
+selectizeView fieldLocator converter instances =
+    let
+        fieldScope =
+            fieldLocator.fieldScope
+
+        maybeSpecific =
+            pickSpecific instances fieldScope
+
+        maybeFallbackValue =
+            pickFallbackValue instances fieldScope
+
+        fallbackCodes =
+            converter maybeFallbackValue
+
+        selectizeModel =
+            Maybe.map .componentModel maybeSpecific
+                |> Maybe.withDefault (Debug.crash "No fieldInstance for fieldLocator")
+    in
+        Html.App.map (SelectizeMsg fieldLocator)
+            (Selectize.view selectizeHtmlOptions fallbackCodes selectizeModel)
+
+
 inputView :
     FieldLocator
     -> (valueType -> String)
@@ -391,16 +305,16 @@ inputView fieldLocator converter instances =
             fieldLocator.fieldScope
 
         maybeSpecific =
-            pickSpecific fieldScope instances
+            pickSpecific instances fieldScope
 
-        maybeFallback =
-            pickFallback instances
+        maybeFallbackValue =
+            pickFallbackValue instances fieldScope
 
         maybeSpecificString =
             Maybe.map converter maybeSpecific
 
         maybeFallbackString =
-            Maybe.map converter maybeFallback
+            Maybe.map converter maybeFallbackValue
 
         defaultString =
             Maybe.withDefault "" maybeSpecificString
@@ -421,33 +335,24 @@ inputView fieldLocator converter instances =
 
 inputClusterView : FieldLocator -> InputCluster -> Html Msg
 inputClusterView fieldLocator cluster =
-    case cluster of
-        FieldStringCluster instances ->
-            inputView identity instances
+    let
+        localView =
+            (inputView fieldLocator)
+    in
+        case cluster of
+            FieldStringCluster instances ->
+                localView identity instances
 
 
-
---     maybeSpecificString =
---         Maybe.map fieldValueToString maybeFieldValue
---
---     maybeFallbackString =
---         Maybe.map fieldValueToString maybeFallbackFieldValue
---
---     defaultString =
---         Maybe.withDefault "" maybeSpecificString
---
---     fallbackString =
---         Maybe.withDefault "" maybeFallbackString
--- in
---     input
---         [ onInput (Input fieldLocator fieldType)
---         , onFocus (Focus fieldLocator)
---         , onBlur (Blur fieldLocator)
---         , defaultValue defaultString
---         , placeholder fallbackString
---         , class [ Css.Classes.BasicInput ]
---         ]
---         []
+selectizeClusterView : FieldLocator -> SelectizeCluster -> Html Msg
+selectizeClusterView fieldLocator cluster =
+    let
+        localView =
+            (selectizeView fieldLocator)
+    in
+        case cluster of
+            FieldAccountCluster instances ->
+                localView maybeToList instances
 
 
 cellView : ResolvedModel -> Machine -> FieldGroup -> Html Msg
@@ -464,10 +369,10 @@ cellView model machine fieldGroup =
     in
         case fieldCluster of
             FieldInputCluster cluster ->
-                inputView fieldLocator fieldGroup cluster
+                inputClusterView fieldLocator cluster
 
             FieldSelectizeCluster cluster ->
-                selectizeView model machine fieldGroup cluster
+                selectizeClusterView fieldLocator cluster
 
 
 rowView : ResolvedModel -> MachineDisplay -> Html Msg
@@ -616,6 +521,7 @@ determineSelectizeFocus fieldLocator selectizeMsg model =
 updateSelectizeComponent :
     SelectizeMsgType
     -> FieldInstance keyValue componentType
+    -> (List keyValue -> Maybe keyValue)
     -> ( FieldInstance keyValue componentModel, Cmd Msg )
 updateSelectizeComponent selectizeMsg instance converter =
     let
