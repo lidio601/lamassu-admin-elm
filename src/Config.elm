@@ -98,7 +98,7 @@ postForm configGroupCode fieldGroups =
 init : Model
 init =
     { webConfigGroup = RemoteData.NotAsked
-    , fieldInstances = []
+    , fieldGroups = []
     , crypto = Nothing
     , status = NotSaving
     , focused = Nothing
@@ -138,7 +138,7 @@ updateFieldInstances :
     FieldScope
     -> String
     -> List (FieldInstance keyValue componentModel)
-    -> (String -> keyValue)
+    -> (String -> Result String keyValue)
     -> List (FieldInstance keyValue componentModel)
 updateFieldInstances fieldScope string instances converter =
     (\instance ->
@@ -160,20 +160,26 @@ updateInput fieldLocator string model =
                 FieldInputCluster cluster ->
                     case cluster of
                         FieldStringCluster instances ->
-                            updateInstances instances identity
+                            updateInstances instances (Ok << identity)
+                                |> FieldStringCluster
+                                |> FieldInputCluster
 
                         FieldPercentageCluster instances ->
                             updateInstances instances String.toFloat
+                                |> FieldPercentageCluster
+                                |> FieldInputCluster
 
                 _ ->
                     generalCluster
+
+        updateFieldGroup fieldGroup =
+            { fieldGroup | fieldCluster = updateCluster fieldGroup.fieldCluster }
 
         fieldGroups =
             List.map
                 (\group ->
                     updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
-                        List.map
-                        (updateCluster << .fieldCluster)
+                        updateFieldGroup
                         group
                 )
                 model.fieldGroups
@@ -520,10 +526,10 @@ determineSelectizeFocus fieldLocator selectizeMsg model =
 
 updateSelectizeComponent :
     SelectizeMsgType
-    -> FieldInstance keyValue componentType
     -> (List keyValue -> Maybe keyValue)
+    -> FieldInstance keyValue componentType
     -> ( FieldInstance keyValue componentModel, Cmd Msg )
-updateSelectizeComponent selectizeMsg instance converter =
+updateSelectizeComponent selectizeMsg converter instance =
     let
         ( selectizeModel, selectizeCmd ) =
             Selectize.update selectizeMsg instance.fieldComponent
@@ -541,12 +547,14 @@ updateSelectizeInstances :
     -> (List String -> keyValue)
     -> List (FieldInstance keyValue componentModel)
 updateSelectizeInstances fieldScope selectizeMsg instances converter =
-    (\instance ->
-        (updateWhen (((==) fieldScope) << .fieldScope)
-            (updateSelectizeComponent selectizeMsg instance converter)
+    List.map
+        (\instance ->
+            (updateWhen (((==) fieldScope) << .fieldScope)
+                (updateSelectizeComponent selectizeMsg converter)
+                instance
+            )
         )
-    )
-        |> List.map instances
+        instances
 
 
 updateSelectize : FieldLocator -> SelectizeMsgType -> Model -> ( Model, Cmd Msg )
@@ -561,57 +569,25 @@ updateSelectize fieldLocator selectizeMsg model =
                     case cluster of
                         FieldCurrencyCluster instances ->
                             updateInstances instances List.head
+                                |> FieldCurrencyCluster
+                                |> FieldSelectizeCluster
 
                 _ ->
                     generalCluster
+
+        updateFieldGroup fieldGroup =
+            { fieldGroup | fieldCluster = updateCluster fieldGroup.fieldCluster }
 
         fieldGroups =
             List.map
                 (\group ->
                     updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
-                        List.map
-                        (updateCluster << .fieldCluster)
+                        updateFieldGroup
                         group
                 )
                 model.fieldGroups
     in
         { model | fieldGroups = fieldGroups } ! []
-
-
-
--- updateSelectize : FieldLocator -> SelectizeMsgType -> Model -> ( Model, Cmd Msg )
--- updateSelectize fieldLocator selectizeMsg model =
---     case (pickFieldInstance fieldLocator model.fieldInstances) of
---         Nothing ->
---             model ! []
---
---         Just fieldInstance ->
---             case fieldInstance.component of
---                 SelectizeComponent fieldType selectizeModel ->
---                     let
---                         ( newSelectizeModel, selectizeCmd ) =
---                             Selectize.update selectizeMsg selectizeModel
---
---                         newValue =
---                             updateSelectizeValue fieldType newSelectizeModel
---
---                         modifyInstance currentFieldInstance =
---                             if currentFieldInstance.fieldLocator == fieldLocator then
---                                 { currentFieldInstance
---                                     | component = SelectizeComponent fieldType newSelectizeModel
---                                     , fieldValue = Ok newValue
---                                 }
---                             else
---                                 currentFieldInstance
---                     in
---                         { model
---                             | fieldInstances = List.map modifyInstance model.fieldInstances
---                             , focused = determineSelectizeFocus fieldLocator selectizeMsg model
---                         }
---                             ! []
---
---                 _ ->
---                     model ! []
 
 
 updateFocus : FieldLocator -> Bool -> Model -> ( Model, Cmd Msg )
@@ -678,13 +654,13 @@ update msg model =
             case model.webConfigGroup of
                 Success configGroup ->
                     { model | status = Saving }
-                        ! [ postForm configGroup.schema.code model.fieldInstances ]
+                        ! [ postForm configGroup.schema.code model.fieldGroups ]
 
                 _ ->
                     model ! []
 
         Input fieldLocator valueString ->
-            updateInput fieldLocator model
+            updateInput fieldLocator valueString model
 
         SelectizeMsg fieldLocator selectizeMsg ->
             updateSelectize fieldLocator selectizeMsg model
