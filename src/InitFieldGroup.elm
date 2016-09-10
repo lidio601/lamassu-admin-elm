@@ -1,4 +1,4 @@
-module InitFieldGroup exposing (..)
+module InitFieldGroup exposing (initFieldCluster)
 
 import Json.Decode exposing (..)
 import ConfigTypes exposing (..)

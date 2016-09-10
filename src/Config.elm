@@ -19,6 +19,7 @@ import Css.Selectize
 import Maybe exposing (oneOf)
 import String
 import SelectizeHelpers exposing (..)
+import InitFieldGroup exposing (initFieldCluster)
 
 
 type alias ConfigGroupResponse =
@@ -331,6 +332,144 @@ selectizeHtmlOptions =
 --             ]
 
 
+maybeFieldHolderToMaybe maybeFieldHolder =
+    case maybeFieldHolder of
+        Nothing ->
+            Nothing
+
+        Just fieldHolder ->
+            case fieldHolder of
+                Nothing ->
+                    Nothing
+
+                Just result ->
+                    case result of
+                        Ok val ->
+                            Just val
+
+                        Err _ ->
+                            Nothing
+
+
+pickSpecific fieldScope instances =
+    List.filter (((==) fieldScope) << .fieldScope) instances
+        |> List.head
+        |> (maybeFieldHolderToMaybe << .fieldValue)
+
+
+pickValue instances crypto machine =
+    pickSpecific { crypto = crypto, machine = machine } instances
+
+
+pickFallback fieldScope instances =
+    let
+        pick =
+            pickValue instances
+
+        crypto =
+            fieldScope.crypto
+
+        machine =
+            fieldScope.machine
+    in
+        oneOf
+            [ pick crypto machine
+            , pick crypto GlobalMachine
+            , pick GlobalCrypto machine
+            , pick GlobalCrypto GlobalMachine
+            ]
+
+
+inputView :
+    FieldLocator
+    -> (valueType -> String)
+    -> List (FieldInstance valueType componentModel)
+    -> Html Msg
+inputView fieldLocator converter instances =
+    let
+        fieldScope =
+            fieldLocator.fieldScope
+
+        maybeSpecific =
+            pickSpecific fieldScope instances
+
+        maybeFallback =
+            pickFallback instances
+
+        maybeSpecificString =
+            Maybe.map converter maybeSpecific
+
+        maybeFallbackString =
+            Maybe.map converter maybeFallback
+
+        defaultString =
+            Maybe.withDefault "" maybeSpecificString
+
+        fallbackString =
+            Maybe.withDefault "" maybeFallbackString
+    in
+        input
+            [ onInput (Input fieldLocator)
+            , onFocus (Focus fieldLocator)
+            , onBlur (Blur fieldLocator)
+            , defaultValue defaultString
+            , placeholder fallbackString
+            , class [ Css.Classes.BasicInput ]
+            ]
+            []
+
+
+inputClusterView : FieldLocator -> InputCluster -> Html Msg
+inputClusterView fieldLocator cluster =
+    case cluster of
+        FieldStringCluster instances ->
+            inputView identity instances
+
+
+
+--     maybeSpecificString =
+--         Maybe.map fieldValueToString maybeFieldValue
+--
+--     maybeFallbackString =
+--         Maybe.map fieldValueToString maybeFallbackFieldValue
+--
+--     defaultString =
+--         Maybe.withDefault "" maybeSpecificString
+--
+--     fallbackString =
+--         Maybe.withDefault "" maybeFallbackString
+-- in
+--     input
+--         [ onInput (Input fieldLocator fieldType)
+--         , onFocus (Focus fieldLocator)
+--         , onBlur (Blur fieldLocator)
+--         , defaultValue defaultString
+--         , placeholder fallbackString
+--         , class [ Css.Classes.BasicInput ]
+--         ]
+--         []
+
+
+cellView : ResolvedModel -> Machine -> FieldGroup -> Html Msg
+cellView model machine fieldGroup =
+    let
+        fieldCluster =
+            fieldGroup.fieldCluster
+
+        fieldScope =
+            { crypto = model.crypto, machine = machine }
+
+        fieldLocator =
+            { fieldCode = fieldGroup.fieldCode, fieldScope = fieldScope }
+    in
+        case fieldCluster of
+            FieldInputCluster cluster ->
+                inputView fieldLocator fieldGroup cluster
+
+            FieldSelectizeCluster cluster ->
+                selectizeView model machine fieldGroup cluster
+
+
 rowView : ResolvedModel -> MachineDisplay -> Html Msg
 rowView model machineDisplay =
     let
@@ -398,7 +537,7 @@ type Msg
 
 initFieldGroups : ConfigGroup -> List FieldGroup
 initFieldGroups configGroup =
-    List.concatMap (initFieldGroup configGroup) configGroup.schema.fieldDescriptors
+    List.concatMap (initFieldCluster configGroup) configGroup.schema.fieldDescriptors
 
 
 
@@ -522,19 +661,11 @@ updateSelectize fieldLocator selectizeMsg model =
 
         fieldGroups =
             List.map
-                (\fieldGroup ->
-                    case fieldGroup of
-                        UnclassedFieldGroup group ->
-                            updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
-                                List.map
-                                (updateCluster << .fieldCluster)
-                                group
-
-                        ClassedFieldGroup group ->
-                            updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
-                                List.map
-                                (updateCluster << .fieldCluster)
-                                group
+                (\group ->
+                    updateWhen (((==) fieldLocator.fieldCode) << .fieldCode)
+                        List.map
+                        (updateCluster << .fieldCluster)
+                        group
                 )
                 model.fieldGroups
     in

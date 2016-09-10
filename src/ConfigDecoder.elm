@@ -154,13 +154,11 @@ configSchemaDecoder =
         ("entries" := list fieldDescriptorDecoder)
 
 
-fieldsDecoder : Decoder (List Field)
-fieldsDecoder =
-    (object2 Field
+fieldDecoder : Decoder Field
+fieldDecoder =
+    object2 Field
         ("fieldLocator" := fieldLocatorDecoder)
         ("fieldValue" := value)
-    )
-        |> list
 
 
 accountRecDecoder : Decoder AccountRec
@@ -177,6 +175,20 @@ accountRecDecoder =
             ("class" := string)
             (succeed Nothing)
         ]
+
+
+configGroupDecoderHelper : ConfigData -> Decoder ConfigGroup
+configGroupDecoderHelper configData =
+    object3 ConfigGroup
+        ("schema" := configSchemaDecoder)
+        ("values" := list fieldDecoder)
+        (succeed configData)
+
+
+configGroupDecoder : Decoder ConfigGroup
+configGroupDecoder =
+    ("data" := configDataDecoder)
+        `andThen` configGroupDecoderHelper
 
 
 configDataDecoder : Decoder ConfigData
