@@ -175,20 +175,7 @@ textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
             ]
             []
 
-
-selectizeHtmlClasses : Selectize.HtmlClasses
-selectizeHtmlClasses =
-    Css.Selectize.classes
-
-
-selectizeHtmlOptions : Selectize.HtmlOptions
-selectizeHtmlOptions =
-    { instructionsForBlank = "Start typing to see options..."
-    , atMaxLength = "Type backspace to edit"
-    , noMatches = "No matches"
-    , typeForMore = "Type for more options"
-    , classes = selectizeHtmlClasses
-    }
+selectizeView : FieldInstance ->
 
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg

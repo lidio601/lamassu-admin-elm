@@ -1,4 +1,4 @@
-module Config exposing (..)
+module Config exposing (LocalConfig)
 
 import Selectize exposing (..)
 import Css.Selectize
@@ -13,12 +13,16 @@ type alias LocalConfig msg idType itemType =
     , toId : itemType -> idType
     , selectedDisplay : itemType -> String
     , optionDisplay : itemType -> String
+    , maxItems : Int
+    , match : String -> List itemType -> List itemType
     }
 
 
-localConfig : LocalConfig msg idType itemType -> Config msg idType itemType
+localConfig :
+    LocalConfig msg idType itemType
+    -> Config msg idType itemType
 localConfig config =
-    { maxItems = 1
+    { maxItems = config.maxItems
     , boxLength = 5
     , toMsg = config.toMsg
     , onAdd = config.onAdd
@@ -28,7 +32,7 @@ localConfig config =
     , toId = config.toId
     , selectedDisplay = config.selectedDisplay
     , optionDisplay = config.optionDisplay
-    , match = (\_ _ -> [])
+    , match = config.match
     , htmlOptions =
         { instructionsForBlank = "Start typing for options"
         , noMatches = "No matches"
