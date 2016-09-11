@@ -23,12 +23,7 @@ fieldValueTypeDecoder fieldType =
             map FieldCurrencyValue ("value" := string)
 
         "account" ->
-            ("accountClass" := string)
-                `andThen`
-                    (\accountClass ->
-                        map (FieldAccountValue accountClass)
-                            ("value" := string)
-                    )
+            map FieldCurrencyValue ("value" := string)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -46,11 +41,20 @@ fieldScopeDecoder =
         ("machine" := machineDecoder)
 
 
+nullOr : Decoder a -> Decoder (Maybe a)
+nullOr decoder =
+    oneOf
+        [ null Nothing
+        , map Just decoder
+        ]
+
+
 fieldLocatorDecoder : Decoder FieldLocator
 fieldLocatorDecoder =
-    object2 FieldLocator
+    object3 FieldLocator
         ("fieldScope" := fieldScopeDecoder)
         ("code" := string)
+        ("fieldClass" := nullOr string)
 
 
 fieldDecoder : Decoder Field
@@ -144,12 +148,7 @@ configScopeDecoder =
 
 fieldTypeDecoder : String -> Decoder FieldType
 fieldTypeDecoder fieldType =
-    case fieldType of
-        "account" ->
-            map FieldAccountType ("accountClass" := string)
-
-        _ ->
-            basicFieldTypeDecoder fieldType
+    basicFieldTypeDecoder fieldType
 
 
 fieldDescriptorDecoder : Decoder FieldDescriptor

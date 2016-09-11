@@ -56,6 +56,7 @@ type alias FieldScope =
 type alias FieldLocator =
     { fieldScope : FieldScope
     , code : String
+    , fieldclass : Maybe String
     }
 
 
@@ -89,7 +90,7 @@ type FieldType
     | FieldPercentageType
     | FieldIntegerType
     | FieldOnOffType
-    | FieldAccountType String
+    | FieldAccountType
     | FieldCurrencyType
 
 
@@ -98,7 +99,7 @@ type FieldValue
     | FieldPercentageValue Float
     | FieldIntegerValue Int
     | FieldOnOffValue Bool
-    | FieldAccountValue String String
+    | FieldAccountValue String
     | FieldCurrencyValue String
 
 
@@ -174,7 +175,7 @@ fieldValueToString fieldValue =
             else
                 "off"
 
-        FieldAccountValue _ v ->
+        FieldAccountValue v ->
             v
 
         FieldCurrencyValue v ->
@@ -284,8 +285,8 @@ stringToFieldValue fieldType s =
                     _ ->
                         Err (FieldParsingError ("Unsupported value for OnOff: " ++ s))
 
-            FieldAccountType accountClass ->
-                Ok (Just (FieldAccountValue accountClass s))
+            FieldAccountType ->
+                Ok (Just (FieldAccountValue s))
 
             FieldCurrencyType ->
                 Ok (Just (FieldCurrencyValue s))

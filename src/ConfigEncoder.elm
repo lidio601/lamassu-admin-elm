@@ -30,12 +30,8 @@ encodeFieldValue maybeFieldValue =
                 FieldOnOffValue value ->
                     encodeFieldValueObject "onOff" (bool value)
 
-                FieldAccountValue accountClass value ->
-                    object
-                        [ ( "fieldType", string "account" )
-                        , ( "accountClass", string accountClass )
-                        , ( "value", string value )
-                        ]
+                FieldAccountValue value ->
+                    encodeFieldValueObject "account" (string value)
 
                 FieldCurrencyValue value ->
                     encodeFieldValueObject "currency" (string value)
