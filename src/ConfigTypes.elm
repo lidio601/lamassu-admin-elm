@@ -56,7 +56,7 @@ type alias FieldScope =
 type alias FieldLocator =
     { fieldScope : FieldScope
     , code : String
-    , fieldclass : Maybe String
+    , fieldClass : Maybe String
     }
 
 

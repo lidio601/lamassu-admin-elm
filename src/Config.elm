@@ -409,25 +409,11 @@ initCurrencySelectize configGroup fieldScope maybeFieldValue =
         Selectize.init 1 5 selectedCodes availableItems
 
 
-initAccountSelectize : ConfigGroup -> String -> FieldScope -> Maybe FieldValue -> Selectize.Model
-initAccountSelectize configGroup accountClass fieldScope maybeFieldValue =
+initAccountSelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> Selectize.Model
+initAccountSelectize configGroup fieldScope maybeFieldValue =
     let
-        matches accountRec =
-            (accountClass
-                == accountRec.class
-            )
-                && case accountRec.cryptos of
-                    Nothing ->
-                        True
-
-                    Just cryptos ->
-                        List.member fieldScope.crypto cryptos
-
         toDisplayRec accountRec =
-            if matches accountRec then
-                Just { code = accountRec.code, display = accountRec.display }
-            else
-                Nothing
+            Nothing
 
         availableItems =
             List.filterMap toDisplayRec configGroup.data.accounts
@@ -455,9 +441,9 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
         FieldOnOffType ->
             InputBoxComponent fieldType
 
-        FieldAccountType accountClass ->
+        FieldAccountType ->
             SelectizeComponent fieldType
-                (initAccountSelectize configGroup accountClass fieldScope fieldValue)
+                (initAccountSelectize configGroup fieldScope fieldValue)
 
         FieldCurrencyType ->
             SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope fieldValue)
@@ -466,8 +452,9 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
 initFieldInstance configGroup fieldDescriptor fieldScope =
     let
+        fieldLocator : FieldLocator
         fieldLocator =
-            { fieldScope = fieldScope, code = fieldDescriptor.code }
+            { fieldScope = fieldScope, code = fieldDescriptor.code, fieldClass = Nothing }
 
         value =
             List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
@@ -520,8 +507,9 @@ pickFieldInstanceValue crypto machine fieldCode fieldInstances =
         fieldScope =
             { crypto = crypto, machine = machine }
 
+        fieldLocator : FieldLocator
         fieldLocator =
-            { fieldScope = fieldScope, code = fieldCode }
+            { fieldScope = fieldScope, code = fieldCode, fieldClass = Nothing }
     in
         (Debug.log "DEBUG13" (pickFieldInstance fieldLocator fieldInstances))
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
@@ -535,10 +523,10 @@ updateSelectizeValue fieldType selectizeModel =
                 |> List.head
                 |> Maybe.map FieldCurrencyValue
 
-        FieldAccountType accountClass ->
+        FieldAccountType ->
             Selectize.selectedItemCodes selectizeModel
                 |> List.head
-                |> Maybe.map (FieldAccountValue accountClass)
+                |> Maybe.map FieldAccountValue
 
         _ ->
             Debug.crash "Not a selectize field"
