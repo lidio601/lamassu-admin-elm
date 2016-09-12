@@ -1,4 +1,4 @@
-module Config exposing (LocalConfig)
+module SelectizeHelper exposing (LocalConfig, buildConfig)
 
 import Selectize exposing (..)
 import Css.Selectize
@@ -11,7 +11,11 @@ type alias LocalConfig msg idType itemType =
     , onFocus : State -> msg
     , onBlur : State -> msg
     , toId : itemType -> idType
-    , selectedDisplay : itemType -> String
+    }
+
+
+type alias SpecificConfig itemType =
+    { selectedDisplay : itemType -> String
     , optionDisplay : itemType -> String
     , maxItems : Int
     , match : String -> List itemType -> List itemType
@@ -20,19 +24,20 @@ type alias LocalConfig msg idType itemType =
 
 buildConfig :
     LocalConfig msg idType itemType
+    -> SpecificConfig itemType
     -> Config msg idType itemType
-buildConfig config =
-    { maxItems = config.maxItems
+buildConfig localConfig specificConfig =
+    { maxItems = specificConfig.maxItems
     , boxLength = 5
-    , toMsg = config.toMsg
-    , onAdd = config.onAdd
-    , onRemove = config.onRemove
-    , onFocus = config.onFocus
-    , onBlur = config.onBlur
-    , toId = config.toId
-    , selectedDisplay = config.selectedDisplay
-    , optionDisplay = config.optionDisplay
-    , match = config.match
+    , toMsg = localConfig.toMsg
+    , onAdd = localConfig.onAdd
+    , onRemove = localConfig.onRemove
+    , onFocus = localConfig.onFocus
+    , onBlur = localConfig.onBlur
+    , toId = localConfig.toId
+    , selectedDisplay = specificConfig.selectedDisplay
+    , optionDisplay = specificConfig.optionDisplay
+    , match = specificConfig.match
     , htmlOptions =
         { instructionsForBlank = "Start typing for options"
         , noMatches = "No matches"

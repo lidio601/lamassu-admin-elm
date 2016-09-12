@@ -4,7 +4,6 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (defaultValue, placeholder)
-import Html.App
 import Html.Keyed
 import Navigation
 import RemoteData exposing (..)
@@ -15,8 +14,9 @@ import ConfigEncoder exposing (..)
 import Css.Admin exposing (..)
 import Css.Classes
 import Selectize
-import Css.Selectize
 import Maybe exposing (oneOf)
+import FuzzyMatch
+import SelectizeHelper exposing (buildConfig)
 
 
 type alias ConfigGroupResponse =
@@ -176,8 +176,63 @@ textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
             []
 
 
+type alias LocalConfig =
+    SelectizeHelper.LocalConfig Msg String DisplayRec
+
+
+accountSelectizeView :
+    ResolvedModel
+    -> LocalConfig
+    -> FieldInstance
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+    let
+        specificConfig =
+            { maxItems = 1
+            , selectedDisplay = .display
+            , optionDisplay = .display
+            , match = FuzzyMatch.match
+            }
+
+        matchAccount accountRec =
+            case fieldInstance.fieldLocator.fieldClass of
+                Nothing ->
+                    True
+
+                Just fieldClass ->
+                    accountRec.class
+                        == fieldClass
+                        && case accountRec.cryptos of
+                            Nothing ->
+                                True
+
+                            Just cryptos ->
+                                List.member model.crypto cryptos
+
+        availableItems =
+            List.filter matchAccount model.configGroup.data.accounts
+                |> List.map accountRecToDisplayRec
+
+        selectedIds =
+            Maybe.map fieldValueToString maybeFieldValue
+                |> maybeToList
+
+        fallbackIds =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+                |> maybeToList
+    in
+        Selectize.view (buildConfig localConfig specificConfig)
+            selectedIds
+            availableItems
+            fallbackIds
+            selectizeState
+
+
 selectizeView :
-    ResovedMode
+    ResolvedModel
     -> FieldInstance
     -> FieldType
     -> Selectize.State
@@ -189,26 +244,23 @@ selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybe
         fieldLocator =
             fieldInstance.fieldLocator
 
-        case fieldType of
-            FieldAccountType ->
-                -- break out non-type-specific stuff into another sub-record and call Selectize.view with type-specific params
         localConfig =
             { toMsg = SelectizeMsg fieldLocator
             , onAdd = Add fieldLocator
             , onRemove = Remove fieldLocator
-            , onFocus = Focus fieldLocator
-            , onBlur = Blur fieldLocator
+            , onFocus = FocusSelectize fieldLocator
+            , onBlur = BlurSelectize fieldLocator
             , toId = .code
-            , selectedDisplay = selectedDisplay
-            , optionDisplay = optionDisplay
-            , maxItems = maxItems
-            , match = match
             }
-
-        config =
-            buildConfig localConfig
     in
-        Selectize.view config selectedIds availableItems fallbackIds selectizeState
+        case fieldType of
+            FieldAccountType ->
+                accountSelectizeView model
+                    localConfig
+                    fieldInstance
+                    selectizeState
+                    maybeFieldValue
+                    maybeFallbackFieldValue
 
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
@@ -217,15 +269,14 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
         InputBoxComponent fieldType ->
             textInput fieldInstance.fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue
 
-        SelectizeComponent fieldType selectizeModel ->
+        SelectizeComponent fieldType selectizeState ->
             let
                 fallbackCodes =
                     maybeFallbackFieldValue
                         |> maybeToList
                         |> List.map fieldValueToString
             in
-                Html.App.map (SelectizeMsg (Debug.log "DEBUG11" fieldInstance.fieldLocator))
-                    (Selectize.view selectizeHtmlOptions (Debug.log "DEBUG10" fallbackCodes) selectizeModel)
+                selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybeFallbackFieldValue
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -390,9 +441,11 @@ type Msg
     | Input FieldLocator FieldType String
     | CryptoSwitch Crypto
     | SelectizeMsg FieldLocator Selectize.State
-    | Blur FieldLocator Selectize.State
-    | Focus FieldLocator Selectize.State
-    | Add FieldLocator DisplayRec Selectize.State
+    | Blur FieldLocator
+    | Focus FieldLocator
+    | BlurSelectize FieldLocator Selectize.State
+    | FocusSelectize FieldLocator Selectize.State
+    | Add FieldLocator String Selectize.State
     | Remove FieldLocator Selectize.State
 
 
@@ -404,39 +457,6 @@ maybeToList maybe =
 
         Just x ->
             [ x ]
-
-
-initCurrencySelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> Selectize.Model
-initCurrencySelectize configGroup fieldScope maybeFieldValue =
-    let
-        currencies =
-            configGroup.data.currencies
-
-        availableItems =
-            List.map selectizeItem currencies
-
-        selectedCodes =
-            maybeToList maybeFieldValue
-                |> List.map fieldValueToString
-    in
-        Selectize.init 1 5 selectedCodes availableItems
-
-
-initAccountSelectize : ConfigGroup -> FieldScope -> Maybe FieldValue -> Selectize.Model
-initAccountSelectize configGroup fieldScope maybeFieldValue =
-    let
-        toDisplayRec accountRec =
-            Nothing
-
-        availableItems =
-            List.filterMap toDisplayRec configGroup.data.accounts
-                |> List.map selectizeItem
-
-        selectedCodes =
-            maybeToList maybeFieldValue
-                |> List.map fieldValueToString
-    in
-        Selectize.init 1 5 selectedCodes availableItems
 
 
 buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> Maybe FieldValue -> FieldComponent
@@ -455,11 +475,10 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             InputBoxComponent fieldType
 
         FieldAccountType ->
-            SelectizeComponent fieldType
-                (initAccountSelectize configGroup fieldScope fieldValue)
+            SelectizeComponent fieldType Selectize.initialSelectize
 
         FieldCurrencyType ->
-            SelectizeComponent fieldType (initCurrencySelectize configGroup fieldScope fieldValue)
+            SelectizeComponent fieldType Selectize.initialSelectize
 
 
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
@@ -526,71 +545,6 @@ pickFieldInstanceValue crypto machine fieldCode fieldInstances =
     in
         (Debug.log "DEBUG13" (pickFieldInstance fieldLocator fieldInstances))
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
-
-
-updateSelectizeValue : FieldType -> Selectize.Model -> Maybe FieldValue
-updateSelectizeValue fieldType selectizeModel =
-    case fieldType of
-        FieldCurrencyType ->
-            Selectize.selectedItemCodes selectizeModel
-                |> List.head
-                |> Maybe.map FieldCurrencyValue
-
-        FieldAccountType ->
-            Selectize.selectedItemCodes selectizeModel
-                |> List.head
-                |> Maybe.map FieldAccountValue
-
-        _ ->
-            Debug.crash "Not a selectize field"
-
-
-determineSelectizeFocus : FieldLocator -> Selectize.Msg -> Model -> Maybe FieldLocator
-determineSelectizeFocus fieldLocator selectizeMsg model =
-    if Selectize.focused selectizeMsg then
-        Just fieldLocator
-    else if (Selectize.blurred selectizeMsg) then
-        if model.focused == (Just fieldLocator) then
-            Nothing
-        else
-            model.focused
-    else
-        model.focused
-
-
-updateSelectize : FieldLocator -> Selectize.Msg -> Model -> ( Model, Cmd Msg )
-updateSelectize fieldLocator selectizeMsg model =
-    case (pickFieldInstance fieldLocator model.fieldInstances) of
-        Nothing ->
-            model ! []
-
-        Just fieldInstance ->
-            case fieldInstance.component of
-                SelectizeComponent fieldType selectizeModel ->
-                    let
-                        ( newSelectizeModel, selectizeCmd ) =
-                            Selectize.update selectizeMsg selectizeModel
-
-                        newValue =
-                            updateSelectizeValue fieldType newSelectizeModel
-
-                        modifyInstance currentFieldInstance =
-                            if currentFieldInstance.fieldLocator == fieldLocator then
-                                { currentFieldInstance
-                                    | component = SelectizeComponent fieldType newSelectizeModel
-                                    , fieldValue = Ok newValue
-                                }
-                            else
-                                currentFieldInstance
-                    in
-                        { model
-                            | fieldInstances = List.map modifyInstance model.fieldInstances
-                            , focused = determineSelectizeFocus fieldLocator selectizeMsg model
-                        }
-                            ! []
-
-                _ ->
-                    model ! []
 
 
 updateFocus : FieldLocator -> Bool -> Model -> ( Model, Cmd Msg )
@@ -679,9 +633,6 @@ update msg model =
 
                 _ ->
                     model ! []
-
-        SelectizeMsg fieldLocator selectizeMsg ->
-            updateSelectize fieldLocator selectizeMsg model
 
         Focus fieldLocator ->
             updateFocus fieldLocator True model

@@ -62,7 +62,7 @@ type alias FieldLocator =
 
 type FieldComponent
     = InputBoxComponent FieldType
-    | SelectizeComponent FieldType Selectize.Model
+    | SelectizeComponent FieldType Selectize.State
 
 
 type alias FieldInstance =
@@ -131,6 +131,13 @@ type alias AccountRec =
     , display : String
     , class : String
     , cryptos : Maybe (List Crypto)
+    }
+
+
+accountRecToDisplayRec : AccountRec -> DisplayRec
+accountRecToDisplayRec accountRec =
+    { code = accountRec.code
+    , display = accountRec.display
     }
 
 
