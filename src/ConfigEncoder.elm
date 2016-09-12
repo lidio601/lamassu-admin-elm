@@ -27,7 +27,7 @@ encodeMachine machine =
 
 encodeFieldScope : FieldScope -> Value
 encodeFieldScope fieldScope =
-    Json.Encode.object
+    object
         [ ( "crypto", encodeCrypto fieldScope.crypto )
         , ( "machine", encodeMachine fieldScope.machine )
         ]
@@ -43,12 +43,37 @@ maybeString maybeString =
             string s
 
 
+encodeFieldType : FieldType -> Value
+encodeFieldType fieldType =
+    case fieldType of
+        StringType ->
+            string "string"
+
+        PercentageType ->
+            string "percentage"
+
+        IntegerType ->
+            string "integer"
+
+        OnOffType ->
+            string "onOff"
+
+        AccountType ->
+            string "account"
+
+        CurrencyType ->
+            string "currency"
+
+        LanguageType ->
+            string "language"
+
+
 encodeFieldLocator : FieldLocator -> Value
 encodeFieldLocator fieldLocator =
-    Json.Encode.object
+    object
         [ ( "fieldScope", encodeFieldScope fieldLocator.fieldScope )
         , ( "code", string fieldLocator.code )
-        , ( "fieldType", fieldTypeEncoder fieldLocator.fieldType )
+        , ( "fieldType", encodeFieldType fieldLocator.fieldType )
         , ( "fieldClass", maybeString fieldLocator.fieldClass )
         ]
 
@@ -56,6 +81,27 @@ encodeFieldLocator fieldLocator =
 encodeFieldValue : FieldValue -> Value
 encodeFieldValue fieldValue =
     case fieldValue of
+        StringValue v ->
+            string v
+
+        PercentageValue v ->
+            float v
+
+        IntegerValue v ->
+            int v
+
+        OnOffValue v ->
+            bool v
+
+        AccountValue v ->
+            string v
+
+        CurrencyValue v ->
+            string v
+
+        LanguageValue v ->
+            list (List.map string v)
+
 
 encodeField : Field -> Value
 encodeField field =
@@ -67,7 +113,7 @@ encodeField field =
 
 encodeResults : String -> List Field -> Value
 encodeResults configGroupCode fields =
-    Json.Encode.object
+    object
         [ ( "groupCode", string configGroupCode )
-        , ( "values", list (List.filterMap encodeField fields) )
+        , ( "values", list (List.map encodeField fields) )
         ]

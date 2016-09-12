@@ -8,25 +8,25 @@ fieldValueTypeDecoder : String -> Decoder FieldValue
 fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldStringValue ("value" := string)
+            map StringValue ("value" := string)
 
         "percentage" ->
-            map FieldPercentageValue ("value" := float)
+            map PercentageValue ("value" := float)
 
         "integer" ->
-            map FieldIntegerValue ("value" := int)
+            map IntegerValue ("value" := int)
 
         "onOff" ->
-            map FieldOnOffValue ("value" := bool)
+            map OnOffValue ("value" := bool)
 
         "account" ->
-            map FieldCurrencyValue ("value" := string)
+            map CurrencyValue ("value" := string)
 
         "currency" ->
-            map FieldCurrencyValue ("value" := string)
+            map CurrencyValue ("value" := string)
 
         "language" ->
-            map FieldLanguageValue ("value" := list string)
+            map LanguageValue ("value" := list string)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -127,25 +127,25 @@ basicFieldTypeDecoder : String -> Decoder FieldType
 basicFieldTypeDecoder s =
     case s of
         "string" ->
-            succeed FieldStringType
+            succeed StringType
 
         "percentage" ->
-            succeed FieldPercentageType
+            succeed PercentageType
 
         "integer" ->
-            succeed FieldIntegerType
+            succeed IntegerType
 
         "onOff" ->
-            succeed FieldOnOffType
+            succeed OnOffType
 
         "account" ->
-            succeed FieldAccountType
+            succeed AccountType
 
         "currency" ->
-            succeed FieldCurrencyType
+            succeed CurrencyType
 
         "language" ->
-            succeed FieldLanguageType
+            succeed LanguageType
 
         _ ->
             fail ("No such FieldType " ++ s)

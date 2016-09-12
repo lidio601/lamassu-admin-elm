@@ -96,23 +96,23 @@ type alias Field =
 
 
 type FieldType
-    = FieldStringType
-    | FieldPercentageType
-    | FieldIntegerType
-    | FieldOnOffType
-    | FieldAccountType
-    | FieldCurrencyType
-    | FieldLanguageType
+    = StringType
+    | PercentageType
+    | IntegerType
+    | OnOffType
+    | AccountType
+    | CurrencyType
+    | LanguageType
 
 
 type FieldValue
-    = FieldStringValue String
-    | FieldPercentageValue Float
-    | FieldIntegerValue Int
-    | FieldOnOffValue Bool
-    | FieldAccountValue String
-    | FieldCurrencyValue String
-    | FieldLanguageValue (List String)
+    = StringValue String
+    | PercentageValue Float
+    | IntegerValue Int
+    | OnOffValue Bool
+    | AccountValue String
+    | CurrencyValue String
+    | LanguageValue (List String)
 
 
 type alias FieldDescriptor =
@@ -175,34 +175,6 @@ globalMachineDisplay =
     { machine = GlobalMachine
     , display = "Global"
     }
-
-
-fieldValueToString : FieldValue -> String
-fieldValueToString fieldValue =
-    case fieldValue of
-        FieldStringValue v ->
-            v
-
-        FieldPercentageValue v ->
-            toString v
-
-        FieldIntegerValue v ->
-            toString v
-
-        FieldOnOffValue v ->
-            if v then
-                "on"
-            else
-                "off"
-
-        FieldAccountValue v ->
-            v
-
-        FieldCurrencyValue v ->
-            v
-
-        FieldLanguageValue v ->
-            Debug.crash "N/A for language"
 
 
 machineToString : Machine -> String
