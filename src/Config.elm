@@ -136,19 +136,19 @@ updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
 
 updateInput : FieldLocator -> Maybe String -> Model -> Model
 updateInput fieldLocator maybeValueString model =
-    case maybeValueString of
-        Nothing ->
-            model
+    let
+        fieldHolder =
+            case maybeValueString of
+                Nothing ->
+                    Ok Nothing
 
-        Just valueString ->
-            let
-                fieldValue =
-                    stringToFieldValue fieldLocator.fieldType valueString
+                Just valueString ->
+                    stringToFieldHolder fieldLocator.fieldType valueString
 
-                fieldInstances =
-                    List.map (updateStringFieldInstance fieldLocator fieldValue) model.fieldInstances
-            in
-                { model | fieldInstances = fieldInstances }
+        fieldInstances =
+            List.map (updateStringFieldInstance fieldLocator fieldHolder) model.fieldInstances
+    in
+        { model | fieldInstances = fieldInstances }
 
 
 

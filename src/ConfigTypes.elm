@@ -262,8 +262,8 @@ stringToCrypto string =
             CryptoCode string
 
 
-stringToFieldValue : FieldType -> String -> FieldHolder
-stringToFieldValue fieldType s =
+stringToFieldHolder : FieldType -> String -> FieldHolder
+stringToFieldHolder fieldType s =
     if (String.isEmpty s) then
         Ok Nothing
     else
