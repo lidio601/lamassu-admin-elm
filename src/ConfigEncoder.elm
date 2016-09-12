@@ -78,29 +78,34 @@ encodeFieldLocator fieldLocator =
         ]
 
 
-encodeFieldValue : FieldValue -> Value
+encodeFieldValue : Maybe FieldValue -> Value
 encodeFieldValue fieldValue =
     case fieldValue of
-        StringValue v ->
-            string v
+        Nothing ->
+            null
 
-        PercentageValue v ->
-            float v
+        Just value ->
+            case value of
+                StringValue v ->
+                    string v
 
-        IntegerValue v ->
-            int v
+                PercentageValue v ->
+                    float v
 
-        OnOffValue v ->
-            bool v
+                IntegerValue v ->
+                    int v
 
-        AccountValue v ->
-            string v
+                OnOffValue v ->
+                    bool v
 
-        CurrencyValue v ->
-            string v
+                AccountValue v ->
+                    string v
 
-        LanguageValue v ->
-            list (List.map string v)
+                CurrencyValue v ->
+                    string v
+
+                LanguageValue v ->
+                    list (List.map string v)
 
 
 encodeField : Field -> Value

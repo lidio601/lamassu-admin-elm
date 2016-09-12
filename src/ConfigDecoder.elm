@@ -32,9 +32,12 @@ fieldValueTypeDecoder fieldType =
             fail ("Unsupported field type: " ++ fieldType)
 
 
-fieldValueDecoder : Decoder FieldValue
+fieldValueDecoder : Decoder (Maybe FieldValue)
 fieldValueDecoder =
-    ("fieldType" := string) `andThen` fieldValueTypeDecoder
+    oneOf
+        [ ("fieldType" := string) `andThen` fieldValueTypeDecoder |> map Just
+        , succeed Nothing
+        ]
 
 
 fieldScopeDecoder : Decoder FieldScope

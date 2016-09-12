@@ -62,16 +62,16 @@ type alias FieldLocator =
 
 type alias SelectizeFieldInstance valueType =
     { fieldLocator : FieldLocator
-    , fieldValue : FieldHolder valueType
-    , loadedFieldValue : Maybe valueType
+    , fieldHolder : FieldHolder valueType
+    , loadedValue : Maybe valueType
     , component : Selectize.State
     }
 
 
 type alias InputFieldInstance valueType =
     { fieldLocator : FieldLocator
-    , fieldValue : FieldHolder valueType
-    , loadedFieldValue : Maybe valueType
+    , fieldHolder : FieldHolder valueType
+    , loadedValue : Maybe valueType
     }
 
 
@@ -96,7 +96,7 @@ type alias FieldGroup =
 
 type alias Field =
     { fieldLocator : FieldLocator
-    , fieldValue : FieldValue
+    , fieldValue : Maybe FieldValue
     }
 
 
