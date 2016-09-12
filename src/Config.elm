@@ -36,7 +36,7 @@ type SavingStatus
 
 type alias Model =
     { webConfigGroup : WebConfigGroup
-    , fieldInstances : List FieldInstance
+    , fieldGroup : FieldGroup
     , crypto : Maybe Crypto
     , status : SavingStatus
     , focused : Maybe FieldLocator
@@ -45,7 +45,7 @@ type alias Model =
 
 type alias ResolvedModel =
     { configGroup : ConfigGroup
-    , fieldInstances : List FieldInstance
+    , fieldGroup : FieldGroup
     , crypto : Crypto
     , status : SavingStatus
     , focused : Maybe FieldLocator
@@ -70,7 +70,7 @@ getForm code =
         |> Cmd.map Load
 
 
-postForm : String -> List FieldInstance -> Cmd Msg
+postForm : String -> List Field -> Cmd Msg
 postForm configGroupCode fieldInstances =
     post "http://localhost:8093/config"
         |> withHeader "Content-Type" "application/json"

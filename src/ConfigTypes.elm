@@ -76,11 +76,11 @@ type alias InputFieldInstance valueType =
 
 
 type SelectizeCluster
-    = AccountCluster List (SelectizeFieldInstance String)
+    = AccountCluster (List (SelectizeFieldInstance String))
 
 
 type InputCluster
-    = StringCluster List (InputFieldInstance String)
+    = StringCluster (List (InputFieldInstance String))
 
 
 type alias FieldGroup =
