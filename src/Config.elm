@@ -230,10 +230,13 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
         fallbackIds =
             Maybe.map fieldValueToString maybeFallbackFieldValue
                 |> maybeToList
+
+        _ =
+            Debug.log "DEBUG26" ( fieldInstance.fieldLocator.fieldScope.machine, fallbackIds )
     in
         Selectize.view (buildConfig localConfig specificConfig)
             selectedIds
-            (Debug.log "DEBUG1" availableItems)
+            availableItems
             fallbackIds
             selectizeState
 
@@ -283,7 +286,7 @@ selectizeView :
 selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         fieldLocator =
-            Debug.log "DEBUG22" fieldInstance.fieldLocator
+            fieldInstance.fieldLocator
 
         localConfig =
             { toMsg = SelectizeMsg fieldLocator
@@ -343,6 +346,9 @@ fieldComponent model fieldInstance =
         fieldCode =
             fieldLocator.code
 
+        fieldClass =
+            fieldLocator.fieldClass
+
         instances : List FieldInstance
         instances =
             model.fieldInstances
@@ -351,7 +357,7 @@ fieldComponent model fieldInstance =
             fieldLocator.fieldType
 
         pick =
-            pickFieldInstanceValue fieldType fieldCode instances
+            pickFieldInstanceValue fieldType fieldCode fieldClass instances
 
         maybeGlobal =
             pick GlobalCrypto GlobalMachine
@@ -464,7 +470,7 @@ tableView model =
             model.configGroup
 
         crypto =
-            (Debug.log "DEBUG8" model.crypto)
+            model.crypto
 
         headerRow =
             headerRowView configGroup crypto
@@ -595,8 +601,8 @@ fieldInstanceToMaybeFieldValue fieldInstance =
             Nothing
 
 
-pickFieldInstanceValue : FieldType -> String -> List FieldInstance -> Crypto -> Machine -> Maybe FieldValue
-pickFieldInstanceValue fieldType fieldCode fieldInstances crypto machine =
+pickFieldInstanceValue : FieldType -> String -> Maybe String -> List FieldInstance -> Crypto -> Machine -> Maybe FieldValue
+pickFieldInstanceValue fieldType fieldCode fieldClass fieldInstances crypto machine =
     let
         fieldScope =
             { crypto = crypto, machine = machine }
@@ -606,10 +612,10 @@ pickFieldInstanceValue fieldType fieldCode fieldInstances crypto machine =
             { fieldScope = fieldScope
             , code = fieldCode
             , fieldType = fieldType
-            , fieldClass = Nothing
+            , fieldClass = fieldClass
             }
     in
-        (Debug.log "DEBUG13" (pickFieldInstance fieldLocator fieldInstances))
+        (pickFieldInstance fieldLocator fieldInstances)
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
 
 
@@ -688,7 +694,7 @@ update msg model =
                     | webConfigGroup = webConfigGroup
                     , fieldInstances = fieldInstances
                     , status = status
-                    , crypto = (Debug.log "DEBUG3" crypto)
+                    , crypto = crypto
                   }
                 , Cmd.none
                 )

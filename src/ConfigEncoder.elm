@@ -87,12 +87,23 @@ fieldTypeEncoder fieldType =
             string "currency"
 
 
+maybeString : Maybe String -> Value
+maybeString maybeString =
+    case maybeString of
+        Nothing ->
+            null
+
+        Just s ->
+            string s
+
+
 encodeFieldLocator : FieldLocator -> Value
 encodeFieldLocator fieldLocator =
     Json.Encode.object
         [ ( "fieldScope", encodeFieldScope fieldLocator.fieldScope )
         , ( "code", string fieldLocator.code )
         , ( "fieldType", fieldTypeEncoder fieldLocator.fieldType )
+        , ( "fieldClass", maybeString fieldLocator.fieldClass )
         ]
 
 

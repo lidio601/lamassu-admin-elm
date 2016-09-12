@@ -185,7 +185,7 @@ itemView config isFallback item =
                 , ( c.fallbackItem, isFallback )
                 ]
             ]
-            [ text (config.selectedDisplay item) ]
+            [ text (Debug.log "DEBUG57" (config.selectedDisplay (Debug.log "DEBUG56" item))) ]
 
 
 fallbackItemsView : Config msg idType itemType -> Items itemType -> List itemType -> State -> Html msg
@@ -366,7 +366,7 @@ view config selectedIds availableItems fallbackIds state =
                 List.filterMap (mapToItem config.toId availableItems) selectedIds
 
             fallbackItems =
-                List.filterMap (mapToItem config.toId availableItems) fallbackIds
+                List.filterMap (mapToItem config.toId availableItems) (Debug.log "DEBUG55" fallbackIds)
 
             remainingItems =
                 diffItems config availableItems selectedItems
