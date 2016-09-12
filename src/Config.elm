@@ -557,6 +557,26 @@ updateFocus fieldLocator focused model =
         model ! []
 
 
+updateSelectize : ResolvedModel -> FieldLocator -> Selectize.State -> List FieldInstance
+updateSelectize model fieldLocator state =
+    let
+        fieldInstances =
+            model.fieldInstances
+
+        updateInstance fieldInstance =
+            if (fieldInstance.fieldLocator == fieldLocator) then
+                case fieldInstance.component of
+                    InputBoxComponent _ ->
+                        Debug.crash "Shouldn't be here"
+
+                    SelectizeComponent fieldType _ ->
+                        { fieldInstance | component = SelectizeComponent fieldType state }
+            else
+                fieldInstance
+    in
+        { model | fieldInstances = List.map updateInstance fieldInstances }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -639,6 +659,9 @@ update msg model =
 
         Blur fieldLocator ->
             updateFocus fieldLocator False model
+
+        SelectizeMsg fieldLocator selectizeState ->
+            updateSelectize model fieldLocator selectizeState ! []
 
 
 cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg
