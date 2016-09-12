@@ -93,6 +93,7 @@ type FieldType
     | FieldOnOffType
     | FieldAccountType
     | FieldCurrencyType
+    | FieldLanguageType
 
 
 type FieldValue
@@ -102,6 +103,7 @@ type FieldValue
     | FieldOnOffValue Bool
     | FieldAccountValue String
     | FieldCurrencyValue String
+    | FieldLanguageValue (List String)
 
 
 type alias FieldDescriptor =
@@ -189,6 +191,9 @@ fieldValueToString fieldValue =
 
         FieldCurrencyValue v ->
             v
+
+        FieldLanguageValue v ->
+            Debug.crash "N/A for language"
 
 
 machineToString : Machine -> String
@@ -299,3 +304,6 @@ stringToFieldHolder fieldType s =
 
             FieldCurrencyType ->
                 Ok (Just (FieldCurrencyValue s))
+
+            FieldLanguageType ->
+                Ok (Just (FieldLanguageValue [ s ]))

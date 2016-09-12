@@ -19,11 +19,14 @@ fieldValueTypeDecoder fieldType =
         "onOff" ->
             map FieldOnOffValue ("value" := bool)
 
+        "account" ->
+            map FieldCurrencyValue ("value" := string)
+
         "currency" ->
             map FieldCurrencyValue ("value" := string)
 
-        "account" ->
-            map FieldCurrencyValue ("value" := string)
+        "language" ->
+            map FieldLanguageValue ("value" := list string)
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -140,6 +143,9 @@ basicFieldTypeDecoder s =
 
         "currency" ->
             succeed FieldCurrencyType
+
+        "language" ->
+            succeed FieldLanguageType
 
         _ ->
             fail ("No such FieldType " ++ s)

@@ -126,10 +126,34 @@ placeField fieldList field =
         newField :: (List.filter (not << (similar .fieldLocator field)) fieldList)
 
 
-updateStringFieldInstance : FieldLocator -> FieldHolder -> FieldInstance -> FieldInstance
-updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
+updateStringFieldInstance : FieldLocator -> Maybe String -> FieldInstance -> FieldInstance
+updateStringFieldInstance fieldLocator maybeString fieldInstance =
     if fieldInstance.fieldLocator == fieldLocator then
-        { fieldInstance | fieldValue = fieldHolder }
+        case fieldLocator.fieldType of
+            FieldLanguageType ->
+                let
+                    fieldHolder =
+                        case maybeString of
+                            Nothing ->
+                                Result.map (Maybe.map (\l -> List.take ((List.length l) - 1) l |> FieldLanguageValue))
+                                    fieldInstance.fieldValue
+
+                            Just s ->
+                                Result.map (Maybe.map (\l -> List.append l [ s ] |> FieldLanguageValue)) fieldInstance.fieldValue
+                in
+                    { fieldInstance | fieldValue = fieldHolder }
+
+            _ ->
+                let
+                    fieldHolder =
+                        case maybeString of
+                            Nothing ->
+                                Ok Nothing
+
+                            Just s ->
+                                stringToFieldHolder fieldLocator.fieldType s
+                in
+                    { fieldInstance | fieldValue = fieldHolder }
     else
         fieldInstance
 
@@ -137,16 +161,8 @@ updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
 updateInput : FieldLocator -> Maybe String -> Model -> Model
 updateInput fieldLocator maybeValueString model =
     let
-        fieldHolder =
-            case maybeValueString of
-                Nothing ->
-                    Ok Nothing
-
-                Just valueString ->
-                    stringToFieldHolder fieldLocator.fieldType valueString
-
         fieldInstances =
-            List.map (updateStringFieldInstance fieldLocator fieldHolder) model.fieldInstances
+            List.map (updateStringFieldInstance fieldLocator maybeValueString) model.fieldInstances
     in
         { model | fieldInstances = fieldInstances }
 
@@ -276,6 +292,52 @@ currencySelectizeView model localConfig fieldInstance selectizeState maybeFieldV
             selectizeState
 
 
+languageSelectizeView :
+    ResolvedModel
+    -> LocalConfig
+    -> FieldInstance
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+languageSelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+    let
+        specificConfig =
+            { maxItems = 5
+            , selectedDisplay = .code
+            , optionDisplay = .display
+            , match = FuzzyMatch.match
+            }
+
+        availableItems =
+            model.configGroup.data.languages
+
+        toList maybeValue =
+            case maybeValue of
+                Nothing ->
+                    []
+
+                Just fieldValue ->
+                    case fieldValue of
+                        FieldLanguageValue list ->
+                            list
+
+                        _ ->
+                            Debug.crash "Shouldn't be here"
+
+        selectedIds =
+            toList maybeFieldValue
+
+        fallbackIds =
+            toList maybeFallbackFieldValue
+    in
+        Selectize.view (buildConfig localConfig specificConfig)
+            selectedIds
+            availableItems
+            fallbackIds
+            selectizeState
+
+
 selectizeView :
     ResolvedModel
     -> FieldInstance
@@ -308,6 +370,14 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
 
             FieldCurrencyType ->
                 currencySelectizeView model
+                    localConfig
+                    fieldInstance
+                    selectizeState
+                    maybeFieldValue
+                    maybeFallbackFieldValue
+
+            FieldLanguageType ->
+                languageSelectizeView model
                     localConfig
                     fieldInstance
                     selectizeState
@@ -542,6 +612,9 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             SelectizeComponent Selectize.initialSelectize
 
         FieldCurrencyType ->
+            SelectizeComponent Selectize.initialSelectize
+
+        FieldLanguageType ->
             SelectizeComponent Selectize.initialSelectize
 
 
