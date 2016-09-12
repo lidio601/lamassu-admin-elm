@@ -28,6 +28,19 @@ initSelectizeCluster fieldScopes field =
                 |> AccountCluster
                 |> Just
 
+        CurrencyValue v ->
+            List.map (initSelectizeFieldInstance field.fieldLocator v) fieldScopes
+                |> CurrencyCluster
+                |> Just
+
+        LanguageValue v ->
+            List.map (initSelectizeFieldInstance field.fieldLocator v) fieldScopes
+                |> LanguageCluster
+                |> Just
+
+        _ ->
+            Nothing
+
 
 initInputFieldInstance : FieldLocator -> valueType -> FieldScope -> InputFieldInstance valueType
 initInputFieldInstance fieldLocator value fieldScope =
@@ -44,6 +57,24 @@ initInputCluster fieldScopes field =
             List.map (initInputFieldInstance field.fieldLocator v) fieldScopes
                 |> StringCluster
                 |> Just
+
+        PercentageValue v ->
+            List.map (initInputFieldInstance field.fieldLocator v) fieldScopes
+                |> PercentageCluster
+                |> Just
+
+        IntegerValue v ->
+            List.map (initInputFieldInstance field.fieldLocator v) fieldScopes
+                |> IntegerCluster
+                |> Just
+
+        OnOffValue v ->
+            List.map (initInputFieldInstance field.fieldLocator v) fieldScopes
+                |> OnOffCluster
+                |> Just
+
+        _ ->
+            Nothing
 
 
 init : ConfigGroup -> List Field -> FieldGroup

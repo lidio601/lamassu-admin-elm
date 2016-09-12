@@ -77,10 +77,15 @@ type alias InputFieldInstance valueType =
 
 type SelectizeCluster
     = AccountCluster (List (SelectizeFieldInstance String))
+    | CurrencyCluster (List (SelectizeFieldInstance String))
+    | LanguageCluster (List (SelectizeFieldInstance (List String)))
 
 
 type InputCluster
     = StringCluster (List (InputFieldInstance String))
+    | PercentageCluster (List (InputFieldInstance Float))
+    | IntegerCluster (List (InputFieldInstance Int))
+    | OnOffCluster (List (InputFieldInstance Bool))
 
 
 type alias FieldGroup =
