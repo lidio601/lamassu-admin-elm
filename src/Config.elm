@@ -236,6 +236,41 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
             selectizeState
 
 
+currencySelectizeView :
+    ResolvedModel
+    -> LocalConfig
+    -> FieldInstance
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+currencySelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+    let
+        specificConfig =
+            { maxItems = 1
+            , selectedDisplay = .code
+            , optionDisplay = .display
+            , match = FuzzyMatch.match
+            }
+
+        availableItems =
+            model.configGroup.data.currencies
+
+        selectedIds =
+            Maybe.map fieldValueToString maybeFieldValue
+                |> maybeToList
+
+        fallbackIds =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+                |> maybeToList
+    in
+        Selectize.view (buildConfig localConfig specificConfig)
+            selectedIds
+            availableItems
+            fallbackIds
+            selectizeState
+
+
 selectizeView :
     ResolvedModel
     -> FieldInstance
@@ -265,6 +300,17 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
                     selectizeState
                     maybeFieldValue
                     maybeFallbackFieldValue
+
+            FieldCurrencyType ->
+                currencySelectizeView model
+                    localConfig
+                    fieldInstance
+                    selectizeState
+                    maybeFieldValue
+                    maybeFallbackFieldValue
+
+            _ ->
+                Debug.crash "Not a Selectize field"
 
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
