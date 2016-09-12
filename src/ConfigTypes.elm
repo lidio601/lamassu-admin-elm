@@ -62,8 +62,8 @@ type alias FieldLocator =
 
 
 type FieldComponent
-    = InputBoxComponent FieldType
-    | SelectizeComponent FieldType Selectize.State
+    = InputBoxComponent
+    | SelectizeComponent Selectize.State
 
 
 type alias FieldInstance =

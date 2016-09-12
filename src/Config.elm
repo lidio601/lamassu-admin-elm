@@ -134,24 +134,29 @@ updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
         fieldInstance
 
 
-updateInput : FieldLocator -> FieldType -> String -> Model -> Model
-updateInput fieldLocator fieldType valueString model =
-    let
-        fieldValue =
-            stringToFieldValue fieldType valueString
+updateInput : FieldLocator -> Maybe String -> Model -> Model
+updateInput fieldLocator maybeValueString model =
+    case maybeValueString of
+        Nothing ->
+            model
 
-        fieldInstances =
-            List.map (updateStringFieldInstance fieldLocator fieldValue) model.fieldInstances
-    in
-        { model | fieldInstances = fieldInstances }
+        Just valueString ->
+            let
+                fieldValue =
+                    stringToFieldValue fieldLocator.fieldType valueString
+
+                fieldInstances =
+                    List.map (updateStringFieldInstance fieldLocator fieldValue) model.fieldInstances
+            in
+                { model | fieldInstances = fieldInstances }
 
 
 
 -- View
 
 
-textInput : FieldLocator -> FieldType -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
+textInput : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
     let
         maybeSpecificString =
             Maybe.map fieldValueToString maybeFieldValue
@@ -166,7 +171,7 @@ textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
             Maybe.withDefault "" maybeFallbackString
     in
         input
-            [ onInput (Input fieldLocator fieldType)
+            [ onInput (Input fieldLocator)
             , onFocus (Focus fieldLocator)
             , onBlur (Blur fieldLocator)
             , defaultValue defaultString
@@ -234,12 +239,11 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
 selectizeView :
     ResolvedModel
     -> FieldInstance
-    -> FieldType
     -> Selectize.State
     -> Maybe FieldValue
     -> Maybe FieldValue
     -> Html Msg
-selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybeFallbackFieldValue =
+selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -253,7 +257,7 @@ selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybe
             , toId = .code
             }
     in
-        case fieldType of
+        case fieldLocator.fieldType of
             FieldAccountType ->
                 accountSelectizeView model
                     localConfig
@@ -266,17 +270,17 @@ selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybe
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
     case fieldInstance.component of
-        InputBoxComponent fieldType ->
-            textInput fieldInstance.fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue
+        InputBoxComponent ->
+            textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
-        SelectizeComponent fieldType selectizeState ->
+        SelectizeComponent selectizeState ->
             let
                 fallbackCodes =
                     maybeFallbackFieldValue
                         |> maybeToList
                         |> List.map fieldValueToString
             in
-                selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybeFallbackFieldValue
+                selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -295,14 +299,20 @@ fieldComponent model fieldInstance =
         instances =
             model.fieldInstances
 
+        fieldType =
+            fieldLocator.fieldType
+
+        pick =
+            pickFieldInstanceValue fieldType fieldCode instances
+
         maybeGlobal =
-            pickFieldInstanceValue GlobalCrypto GlobalMachine fieldCode instances
+            pick GlobalCrypto GlobalMachine
 
         maybeGlobalCrypto =
-            pickFieldInstanceValue GlobalCrypto fieldScope.machine fieldCode instances
+            pick GlobalCrypto fieldScope.machine
 
         maybeGlobalMachine =
-            pickFieldInstanceValue fieldScope.crypto GlobalMachine fieldCode instances
+            pick fieldScope.crypto GlobalMachine
 
         maybeSpecific =
             case fieldInstance.fieldValue of
@@ -438,7 +448,7 @@ isField fieldCode field =
 type Msg
     = Load ConfigGroupResponse
     | Submit
-    | Input FieldLocator FieldType String
+    | Input FieldLocator String
     | CryptoSwitch Crypto
     | SelectizeMsg FieldLocator Selectize.State
     | Blur FieldLocator
@@ -463,22 +473,22 @@ buildFieldComponent : ConfigGroup -> FieldType -> FieldScope -> Maybe FieldValue
 buildFieldComponent configGroup fieldType fieldScope fieldValue =
     case fieldType of
         FieldStringType ->
-            InputBoxComponent fieldType
+            InputBoxComponent
 
         FieldPercentageType ->
-            InputBoxComponent fieldType
+            InputBoxComponent
 
         FieldIntegerType ->
-            InputBoxComponent fieldType
+            InputBoxComponent
 
         FieldOnOffType ->
-            InputBoxComponent fieldType
+            InputBoxComponent
 
         FieldAccountType ->
-            SelectizeComponent fieldType Selectize.initialSelectize
+            SelectizeComponent Selectize.initialSelectize
 
         FieldCurrencyType ->
-            SelectizeComponent fieldType Selectize.initialSelectize
+            SelectizeComponent Selectize.initialSelectize
 
 
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
@@ -486,7 +496,11 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
     let
         fieldLocator : FieldLocator
         fieldLocator =
-            { fieldScope = fieldScope, code = fieldDescriptor.code, fieldClass = Nothing }
+            { fieldScope = fieldScope
+            , code = fieldDescriptor.code
+            , fieldType = fieldDescriptor.fieldType
+            , fieldClass = Nothing
+            }
 
         value =
             List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
@@ -533,15 +547,19 @@ fieldInstanceToMaybeFieldValue fieldInstance =
             Nothing
 
 
-pickFieldInstanceValue : Crypto -> Machine -> String -> List FieldInstance -> Maybe FieldValue
-pickFieldInstanceValue crypto machine fieldCode fieldInstances =
+pickFieldInstanceValue : FieldType -> String -> List FieldInstance -> Crypto -> Machine -> Maybe FieldValue
+pickFieldInstanceValue fieldType fieldCode fieldInstances crypto machine =
     let
         fieldScope =
             { crypto = crypto, machine = machine }
 
         fieldLocator : FieldLocator
         fieldLocator =
-            { fieldScope = fieldScope, code = fieldCode, fieldClass = Nothing }
+            { fieldScope = fieldScope
+            , code = fieldCode
+            , fieldType = fieldType
+            , fieldClass = Nothing
+            }
     in
         (Debug.log "DEBUG13" (pickFieldInstance fieldLocator fieldInstances))
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
@@ -566,11 +584,11 @@ updateSelectize fieldLocator state model =
         updateInstance fieldInstance =
             if (fieldInstance.fieldLocator == fieldLocator) then
                 case fieldInstance.component of
-                    InputBoxComponent _ ->
+                    InputBoxComponent ->
                         Debug.crash "Shouldn't be here"
 
-                    SelectizeComponent fieldType _ ->
-                        { fieldInstance | component = SelectizeComponent fieldType state }
+                    SelectizeComponent _ ->
+                        { fieldInstance | component = SelectizeComponent state }
             else
                 fieldInstance
     in
@@ -636,8 +654,8 @@ update msg model =
                 _ ->
                     model ! []
 
-        Input fieldLocator fieldType valueString ->
-            updateInput fieldLocator fieldType valueString model ! []
+        Input fieldLocator valueString ->
+            updateInput fieldLocator (Just valueString) model ! []
 
         CryptoSwitch crypto ->
             case model.webConfigGroup of
@@ -677,13 +695,13 @@ update msg model =
 
         Add fieldLocator code selectizeState ->
             (updateSelectize fieldLocator selectizeState model
-                |> updateInput fieldLocator fieldType code
+                |> updateInput fieldLocator (Just code)
             )
                 ! []
 
         Remove fieldLocator selectizeState ->
             (updateSelectize fieldLocator selectizeState model
-                |> updateInput fieldLocator fieldType Nothing
+                |> updateInput fieldLocator Nothing
             )
                 ! []
 
