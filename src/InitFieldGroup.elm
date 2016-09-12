@@ -1,28 +1,25 @@
-module InitFieldGroup exposing (..)
+module InitFieldGroup exposing (init)
 
 import ConfigTypes exposing (..)
 import Selectize
 
 
-initSelectizeFieldInstance : FieldLocator -> valueType -> FieldScope -> SelectizeFieldInstance valueType
+initSelectizeFieldInstance : FieldLocator -> valueType -> FieldScope -> FieldInstance valueType Selectize.State
 initSelectizeFieldInstance fieldLocator value fieldScope =
-    { fieldLocator = fieldLocator
+    { fieldScope = fieldLocator.fieldScope
     , fieldHolder = Ok (Just value)
     , loadedValue = Just value
     , component = Selectize.initialSelectize
     }
 
 
-initSelectizeCluster : List FieldScope -> Field -> Maybe SelectizeCluster
-initSelectizeCluster fieldScopes field =
-    case field.fieldValue of
-        Nothing ->
-            Nothing
-
-        Just value ->
+initSelectizeSuite : List FieldScope -> Field -> Suite SelectizeCluster
+initSelectizeSuite fieldScopes field =
+    let
+        instances =
             case value of
                 AccountValue v ->
-                    List.map (initSelectizeFieldInstance field.fieldLocator v) fieldScopes
+                    List.map (initFieldInstance v) fieldScopes
                         |> AccountCluster
                         |> Just
 
@@ -38,13 +35,16 @@ initSelectizeCluster fieldScopes field =
 
                 _ ->
                     Nothing
+    in
+        instances
 
 
-initInputFieldInstance : FieldLocator -> valueType -> FieldScope -> InputFieldInstance valueType
+initInputFieldInstance : FieldLocator -> valueType -> FieldScope -> FieldInstance valueType ()
 initInputFieldInstance fieldLocator value fieldScope =
-    { fieldLocator = fieldLocator
+    { fieldSCope = fieldLocator.fieldScope
     , fieldHolder = Ok (Just value)
     , loadedValue = Just value
+    , component = ()
     }
 
 
@@ -79,18 +79,33 @@ initInputCluster fieldScopes field =
                 _ ->
                     Nothing
 
+initInstance : List FieldScope -> List Field -> InputCluster
+initInstance fieldScopes fields =
 
-init : ConfigGroup -> List Field -> FieldGroup
-init configGroup fields =
+initInputSuite : List FieldScope -> List Field -> FieldDescriptor -> Suite InputCluster
+initInputSuite fieldScopes fields fieldDescriptor =
+    let
+        cluster = case fieldDescriptor.fieldType of
+            StringType ->
+                StringCluster List.map (initInstance fields) fieldScopes
+    in
+        { code = fieldDescriptor.fieldCode, cluster = cluster }
+
+
+init : ConfigGroup -> FieldGroup
+init configGroup =
     let
         scopes =
             fieldScopes configGroup
 
+        fieldDescriptors =
+            configGroup.schema.fieldDescriptors
+
         selectize =
-            List.filterMap (initSelectizeCluster scopes) fields
+            List.map (initSelectizeSuite scopes) fieldDescriptors
 
         input =
-            List.filterMap (initInputCluster scopes) fields
+            List.map (initInputSuite scopes) fieldDescriptors
     in
         { selectize = selectize
         , input = input

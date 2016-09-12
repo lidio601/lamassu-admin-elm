@@ -17,6 +17,8 @@ import Selectize
 import Maybe exposing (oneOf)
 import FuzzyMatch
 import SelectizeHelper exposing (buildConfig)
+import InitFieldGroup
+import FlattenFieldGroup
 
 
 type alias ConfigGroupResponse =
@@ -55,7 +57,7 @@ type alias ResolvedModel =
 toResolvedModel : Model -> ConfigGroup -> ResolvedModel
 toResolvedModel model configGroup =
     { configGroup = configGroup
-    , fieldInstances = model.fieldInstances
+    , fieldGroup = model.fieldGroup
     , crypto = Maybe.withDefault GlobalCrypto model.crypto
     , status = model.status
     , focused = model.focused
@@ -71,10 +73,10 @@ getForm code =
 
 
 postForm : String -> List Field -> Cmd Msg
-postForm configGroupCode fieldInstances =
+postForm configGroupCode fields =
     post "http://localhost:8093/config"
         |> withHeader "Content-Type" "application/json"
-        |> withJsonBody (encodeResults configGroupCode fieldInstances)
+        |> withJsonBody (encodeResults configGroupCode fields)
         |> send (jsonReader configGroupDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -705,8 +707,8 @@ updateFocus fieldLocator focused model =
 updateSelectize : FieldLocator -> Selectize.State -> Model -> Model
 updateSelectize fieldLocator state model =
     let
-        fieldInstances =
-            model.fieldInstances
+        fieldGroup =
+            model.fieldGroup
 
         updateInstance fieldInstance =
             if (fieldInstance.fieldLocator == fieldLocator) then
@@ -736,11 +738,11 @@ update msg model =
                 webConfigGroup =
                     RemoteData.map .data configGroupResponse
 
-                fieldInstances : List FieldInstance
-                fieldInstances =
+                fieldGroup : FieldGroup
+                fieldGroup =
                     case webConfigGroup of
                         Success configGroup ->
-                            initFieldInstances configGroup
+                            InitFieldGroup.init configGroup
 
                         _ ->
                             []
@@ -765,7 +767,7 @@ update msg model =
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
-                    , fieldInstances = fieldInstances
+                    , fieldGroup = fieldGroup
                     , status = status
                     , crypto = crypto
                   }
@@ -776,7 +778,9 @@ update msg model =
             case model.webConfigGroup of
                 Success configGroup ->
                     { model | status = Saving }
-                        ! [ postForm configGroup.schema.code model.fieldInstances ]
+                        ! [ postForm configGroup.schema.code
+                                (FlattenFieldGroup.flatten model.fieldGroup)
+                          ]
 
                 _ ->
                     model ! []

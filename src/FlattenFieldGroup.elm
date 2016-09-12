@@ -1,4 +1,4 @@
-module FlattenFieldGroup exposing (..)
+module FlattenFieldGroup exposing (flatten)
 
 import ConfigTypes exposing (..)
 

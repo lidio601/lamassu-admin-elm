@@ -60,37 +60,36 @@ type alias FieldLocator =
     }
 
 
-type alias SelectizeFieldInstance valueType =
-    { fieldLocator : FieldLocator
+type alias FieldInstance valueType componentType =
+    { fieldScope : FieldScope
     , fieldHolder : FieldHolder valueType
     , loadedValue : Maybe valueType
-    , component : Selectize.State
-    }
-
-
-type alias InputFieldInstance valueType =
-    { fieldLocator : FieldLocator
-    , fieldHolder : FieldHolder valueType
-    , loadedValue : Maybe valueType
+    , component : componentType
     }
 
 
 type SelectizeCluster
-    = AccountCluster (List (SelectizeFieldInstance String))
-    | CurrencyCluster (List (SelectizeFieldInstance String))
-    | LanguageCluster (List (SelectizeFieldInstance (List String)))
+    = AccountCluster (List (FieldInstance String Selectize.State))
+    | CurrencyCluster (List (FieldInstance String Selectize.State))
+    | LanguageCluster (List (FieldInstance (List String) Selectize.State))
 
 
 type InputCluster
-    = StringCluster (List (InputFieldInstance String))
-    | PercentageCluster (List (InputFieldInstance Float))
-    | IntegerCluster (List (InputFieldInstance Int))
-    | OnOffCluster (List (InputFieldInstance Bool))
+    = StringCluster (List (FieldInstance String ()))
+    | PercentageCluster (List (FieldInstance Float ()))
+    | IntegerCluster (List (FieldInstance Int ()))
+    | OnOffCluster (List (FieldInstance Bool ()))
+
+
+type alias Suite clusterType =
+    { code : String
+    , cluster : clusterType
+    }
 
 
 type alias FieldGroup =
-    { selectize : List SelectizeCluster
-    , input : List InputCluster
+    { selectize : List (Suite SelectizeCluster)
+    , input : List (Suite InputCluster)
     }
 
 
