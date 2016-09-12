@@ -108,6 +108,7 @@ type alias FieldDescriptor =
     { code : String
     , display : String
     , fieldType : FieldType
+    , fieldClass : Maybe String
     }
 
 

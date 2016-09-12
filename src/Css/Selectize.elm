@@ -103,6 +103,7 @@ type Class
     | BoxContainer
     | Info
     | InfoNoMatches
+    | NoOptions
 
 
 classes : Selectize.HtmlClasses
@@ -122,4 +123,5 @@ classes =
     , info = className Info
     , infoNoMatches = className InfoNoMatches
     , inputEditing = className InputEditing
+    , noOptions = className NoOptions
     }

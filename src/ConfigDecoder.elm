@@ -135,6 +135,9 @@ basicFieldTypeDecoder s =
         "onOff" ->
             succeed FieldOnOffType
 
+        "account" ->
+            succeed FieldAccountType
+
         "currency" ->
             succeed FieldCurrencyType
 
@@ -154,10 +157,11 @@ fieldTypeDecoder fieldType =
 
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
-    object3 FieldDescriptor
+    object4 FieldDescriptor
         ("code" := string)
         ("display" := string)
         (("fieldType" := string) `andThen` fieldTypeDecoder)
+        ("fieldClass" := nullOr string)
 
 
 configSchemaDecoder : Decoder ConfigSchema

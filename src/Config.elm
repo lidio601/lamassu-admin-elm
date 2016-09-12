@@ -208,14 +208,16 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
                     True
 
                 Just fieldClass ->
-                    accountRec.class
+                    (accountRec.class
                         == fieldClass
-                        && case accountRec.cryptos of
-                            Nothing ->
-                                True
+                    )
+                        && (case accountRec.cryptos of
+                                Nothing ->
+                                    True
 
-                            Just cryptos ->
-                                List.member model.crypto cryptos
+                                Just cryptos ->
+                                    List.member model.crypto cryptos
+                           )
 
         availableItems =
             List.filter matchAccount model.configGroup.data.accounts
@@ -231,7 +233,7 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
     in
         Selectize.view (buildConfig localConfig specificConfig)
             selectedIds
-            availableItems
+            (Debug.log "DEBUG1" availableItems)
             fallbackIds
             selectizeState
 
@@ -281,7 +283,7 @@ selectizeView :
 selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         fieldLocator =
-            fieldInstance.fieldLocator
+            Debug.log "DEBUG22" fieldInstance.fieldLocator
 
         localConfig =
             { toMsg = SelectizeMsg fieldLocator
@@ -545,7 +547,7 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
             { fieldScope = fieldScope
             , code = fieldDescriptor.code
             , fieldType = fieldDescriptor.fieldType
-            , fieldClass = Nothing
+            , fieldClass = fieldDescriptor.fieldClass
             }
 
         value =
