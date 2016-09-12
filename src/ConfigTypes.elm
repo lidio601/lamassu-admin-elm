@@ -60,22 +60,32 @@ type alias FieldLocator =
     }
 
 
-type FieldComponent
-    = InputBoxComponent
-    | SelectizeComponent Selectize.State
-
-
-type alias FieldInstance valueType =
+type alias SelectizeFieldInstance valueType =
     { fieldLocator : FieldLocator
-    , component : FieldComponent
     , fieldValue : FieldHolder valueType
-    , loadedFieldValue : Maybe FieldValue
+    , loadedFieldValue : Maybe valueType
+    , component : Selectize.State
     }
 
 
-type alias ResolvedFieldInstance =
+type alias InputFieldInstance valueType =
     { fieldLocator : FieldLocator
-    , fieldValue : Maybe FieldValue
+    , fieldValue : FieldHolder valueType
+    , loadedFieldValue : Maybe valueType
+    }
+
+
+type SelectizeCluster
+    = AccountCluster List (SelectizeFieldInstance String)
+
+
+type InputCluster
+    = StringCluster List (InputFieldInstance String)
+
+
+type alias FieldGroup =
+    { selectize : List SelectizeCluster
+    , input : List InputCluster
     }
 
 
