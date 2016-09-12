@@ -113,7 +113,7 @@ encodeFieldLocator fieldLocator =
         ]
 
 
-encodeFieldResult : FieldInstance -> Maybe Value
+encodeFieldResult : FieldInstance valueType -> Maybe Value
 encodeFieldResult fieldInstance =
     let
         encode maybeFieldValue =
@@ -132,7 +132,7 @@ encodeFieldResult fieldInstance =
             `Maybe.andThen` onlyDirty
 
 
-encodeResults : String -> List FieldInstance -> Value
+encodeResults : String -> List (FieldInstance valueType) -> Value
 encodeResults configGroupCode fieldInstances =
     Json.Encode.object
         [ ( "groupCode", string configGroupCode )
