@@ -18,10 +18,10 @@ type alias LocalConfig msg idType itemType =
     }
 
 
-localConfig :
+buildConfig :
     LocalConfig msg idType itemType
     -> Config msg idType itemType
-localConfig config =
+buildConfig config =
     { maxItems = config.maxItems
     , boxLength = 5
     , toMsg = config.toMsg

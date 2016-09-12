@@ -175,7 +175,40 @@ textInput fieldLocator fieldType maybeFieldValue maybeFallbackFieldValue =
             ]
             []
 
-selectizeView : FieldInstance ->
+
+selectizeView :
+    ResovedMode
+    -> FieldInstance
+    -> FieldType
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+selectizeView model fieldInstance fieldType selectizeState maybeFieldValue maybeFallbackFieldValue =
+    let
+        fieldLocator =
+            fieldInstance.fieldLocator
+
+        case fieldType of
+            FieldAccountType ->
+                -- break out non-type-specific stuff into another sub-record and call Selectize.view with type-specific params
+        localConfig =
+            { toMsg = SelectizeMsg fieldLocator
+            , onAdd = Add fieldLocator
+            , onRemove = Remove fieldLocator
+            , onFocus = Focus fieldLocator
+            , onBlur = Blur fieldLocator
+            , toId = .code
+            , selectedDisplay = selectedDisplay
+            , optionDisplay = optionDisplay
+            , maxItems = maxItems
+            , match = match
+            }
+
+        config =
+            buildConfig localConfig
+    in
+        Selectize.view config selectedIds availableItems fallbackIds selectizeState
 
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
@@ -356,18 +389,11 @@ type Msg
     | Submit
     | Input FieldLocator FieldType String
     | CryptoSwitch Crypto
-    | SelectizeMsg FieldLocator Selectize.Msg
-    | Blur FieldLocator
-    | Focus FieldLocator
-
-
-selectizeItem : DisplayRec -> Selectize.Item
-selectizeItem displayRec =
-    let
-        code =
-            displayRec.code
-    in
-        Selectize.selectizeItem code displayRec.display []
+    | SelectizeMsg FieldLocator Selectize.State
+    | Blur FieldLocator Selectize.State
+    | Focus FieldLocator Selectize.State
+    | Add FieldLocator DisplayRec Selectize.State
+    | Remove FieldLocator Selectize.State
 
 
 maybeToList : Maybe a -> List a
