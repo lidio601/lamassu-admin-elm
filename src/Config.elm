@@ -134,7 +134,7 @@ updateStringFieldInstance fieldLocator fieldHolder fieldInstance =
         fieldInstance
 
 
-updateInput : FieldLocator -> FieldType -> String -> Model -> ( Model, Cmd Msg )
+updateInput : FieldLocator -> FieldType -> String -> Model -> Model
 updateInput fieldLocator fieldType valueString model =
     let
         fieldValue =
@@ -143,7 +143,7 @@ updateInput fieldLocator fieldType valueString model =
         fieldInstances =
             List.map (updateStringFieldInstance fieldLocator fieldValue) model.fieldInstances
     in
-        { model | fieldInstances = fieldInstances } ! []
+        { model | fieldInstances = fieldInstances }
 
 
 
@@ -547,18 +547,18 @@ pickFieldInstanceValue crypto machine fieldCode fieldInstances =
             `Maybe.andThen` fieldInstanceToMaybeFieldValue
 
 
-updateFocus : FieldLocator -> Bool -> Model -> ( Model, Cmd Msg )
+updateFocus : FieldLocator -> Bool -> Model -> Model
 updateFocus fieldLocator focused model =
     if focused then
-        { model | focused = Just fieldLocator } ! []
+        { model | focused = Just fieldLocator }
     else if model.focused == Just fieldLocator then
-        { model | focused = Nothing } ! []
+        { model | focused = Nothing }
     else
-        model ! []
+        model
 
 
-updateSelectize : ResolvedModel -> FieldLocator -> Selectize.State -> List FieldInstance
-updateSelectize model fieldLocator state =
+updateSelectize : FieldLocator -> Selectize.State -> Model -> Model
+updateSelectize fieldLocator state model =
     let
         fieldInstances =
             model.fieldInstances
@@ -637,7 +637,7 @@ update msg model =
                     model ! []
 
         Input fieldLocator fieldType valueString ->
-            updateInput fieldLocator fieldType valueString model
+            updateInput fieldLocator fieldType valueString model ! []
 
         CryptoSwitch crypto ->
             case model.webConfigGroup of
@@ -655,13 +655,37 @@ update msg model =
                     model ! []
 
         Focus fieldLocator ->
-            updateFocus fieldLocator True model
+            updateFocus fieldLocator True model ! []
 
         Blur fieldLocator ->
-            updateFocus fieldLocator False model
+            updateFocus fieldLocator False model ! []
 
         SelectizeMsg fieldLocator selectizeState ->
-            updateSelectize model fieldLocator selectizeState ! []
+            updateSelectize fieldLocator selectizeState model ! []
+
+        BlurSelectize fieldLocator selectizeState ->
+            (updateSelectize fieldLocator selectizeState model
+                |> updateFocus fieldLocator False
+            )
+                ! []
+
+        FocusSelectize fieldLocator selectizeState ->
+            (updateSelectize fieldLocator selectizeState model
+                |> updateFocus fieldLocator True
+            )
+                ! []
+
+        Add fieldLocator code selectizeState ->
+            (updateSelectize fieldLocator selectizeState model
+                |> updateInput fieldLocator fieldType code
+            )
+                ! []
+
+        Remove fieldLocator selectizeState ->
+            (updateSelectize fieldLocator selectizeState model
+                |> updateInput fieldLocator fieldType Nothing
+            )
+                ! []
 
 
 cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg

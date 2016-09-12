@@ -51,9 +51,10 @@ nullOr decoder =
 
 fieldLocatorDecoder : Decoder FieldLocator
 fieldLocatorDecoder =
-    object3 FieldLocator
+    object4 FieldLocator
         ("fieldScope" := fieldScopeDecoder)
         ("code" := string)
+        (("fieldType" := string) `andThen` fieldTypeDecoder)
         ("fieldClass" := nullOr string)
 
 

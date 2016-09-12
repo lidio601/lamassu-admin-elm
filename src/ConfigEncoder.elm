@@ -65,11 +65,34 @@ encodeFieldScope fieldScope =
         ]
 
 
+fieldTypeEncoder : FieldType -> Value
+fieldTypeEncoder fieldType =
+    case fieldType of
+        FieldStringType ->
+            string "string"
+
+        FieldPercentageType ->
+            string "percentage"
+
+        FieldIntegerType ->
+            string "integer"
+
+        FieldOnOffType ->
+            string "onOff"
+
+        FieldAccountType ->
+            string "account"
+
+        FieldCurrencyType ->
+            string "currency"
+
+
 encodeFieldLocator : FieldLocator -> Value
 encodeFieldLocator fieldLocator =
     Json.Encode.object
         [ ( "fieldScope", encodeFieldScope fieldLocator.fieldScope )
         , ( "code", string fieldLocator.code )
+        , ( "fieldType", fieldTypeEncoder fieldLocator.fieldType )
         ]
 
 
