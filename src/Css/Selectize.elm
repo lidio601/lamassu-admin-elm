@@ -12,12 +12,24 @@ component =
     mixin
         [ borderRadius (px 3)
         , position relative
+        , margin zero
         , descendants
-            [ (.) SelectBox
+            [ (.) NoOptions
+                [ backgroundColor Colors.lighterLightGrey
+                , fontSize (px 11)
+                , fontWeight (int 500)
+                , color Colors.sandstone
+                , padding (px 5)
+                , textAlign center
+                , cursor default
+                , property "-webkit-user-select" "none"
+                ]
+            , (.) SelectBox
                 [ displayFlex
                 , alignItems center
                 , padding2 zero (px 5)
                 , property "background-color" "inherit"
+                , width (px 60)
                 ]
             , (.) BoxContainer
                 [ position absolute
@@ -82,6 +94,7 @@ component =
                 [ textAlign left
                 , property "background-color" "inherit"
                 , padding2 (px 6) (px 2)
+                , width (em 6)
                 ]
             ]
         ]

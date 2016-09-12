@@ -10,33 +10,37 @@ type alias ColorScheme =
     , fg : Color
     , bgHover : Color
     , fgActive : Color
+    , bgActive : Color
     }
 
 
-darkGreyScheme : { bg : Color, bgHover : Color, fg : Color, fgActive : Color }
+darkGreyScheme : ColorScheme
 darkGreyScheme =
     { bg = Colors.darkGrey
     , fg = Colors.sandstone
     , bgHover = Colors.darkerGrey
     , fgActive = Colors.amazonite
+    , bgActive = Colors.darkerGrey
     }
 
 
-lightGreyScheme : { bg : Color, bgHover : Color, fg : Color, fgActive : Color }
+lightGreyScheme : ColorScheme
 lightGreyScheme =
-    { bg = Colors.lightGrey
+    { bg = Colors.darkerLightGrey
     , fg = Colors.sandstone
-    , bgHover = Colors.darkerLightGrey
+    , bgHover = Colors.lighterLightGrey
     , fgActive = Colors.sandstone
+    , bgActive = Colors.lightGrey
     }
 
 
-cobaltScheme : { bg : Color, bgHover : Color, fg : Color, fgActive : Color }
+cobaltScheme : ColorScheme
 cobaltScheme =
     { bg = Colors.cobalt
     , fg = Colors.white
     , bgHover = Colors.darkCobalt
     , fgActive = Colors.amazonite
+    , bgActive = Colors.darkCobalt
     }
 
 
@@ -53,6 +57,6 @@ colorize scheme =
         , active [ color scheme.fgActive ]
         , withClass Active
             [ color scheme.fgActive
-            , backgroundColor scheme.bgHover
+            , backgroundColor scheme.bgActive
             ]
         ]
