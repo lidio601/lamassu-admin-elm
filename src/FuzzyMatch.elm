@@ -19,11 +19,8 @@ type alias DisplayRec =
 score : String -> DisplayRec -> ( Int, DisplayRec )
 score needle hay =
     let
-        cleanNeedle =
-            clean needle
-
         match keyword =
-            Fuzzy.match [] [] cleanNeedle keyword
+            Fuzzy.match [] [] needle keyword
                 |> .score
 
         score =
@@ -36,8 +33,15 @@ score needle hay =
 
 
 match : String -> List DisplayRec -> List DisplayRec
-match s list =
-    List.map (score s) list
-        |> List.sortBy fst
-        |> List.filter (((>) 1100) << fst)
-        |> List.map snd
+match rawString list =
+    let
+        s =
+            clean rawString
+    in
+        if String.isEmpty s then
+            list
+        else
+            List.map (score s) list
+                |> List.sortBy fst
+                |> List.filter (((>) 1100) << fst)
+                |> List.map snd
