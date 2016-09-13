@@ -136,15 +136,15 @@ updateKeyDown config items state keyCode =
         case keyCode of
             -- backspace
             8 ->
-                if String.isEmpty state.string && (not << List.isEmpty) items.selectedItems then
-                    Debug.log "DEBUG3" (config.onRemove state)
+                if String.isEmpty (Debug.log "DEBUG10" state.string) && (not << List.isEmpty) items.selectedItems then
+                    config.onRemove state
                 else
-                    Debug.log "DEBUG4" (config.toMsg state)
+                    config.toMsg state
 
             _ ->
                 config.toMsg state
     else
-        case (Debug.log "DEBUG20" keyCode) of
+        case keyCode of
             -- up
             38 ->
                 config.toMsg { state | boxPosition = (max -1 (state.boxPosition - 1)) }
@@ -172,10 +172,7 @@ updateKeyDown config items state keyCode =
 
             -- tab
             9 ->
-                if (config.maxItems > 1) then
-                    addSelection config items state
-                else
-                    config.toMsg state
+                addSelection config items state
 
             _ ->
                 config.toMsg state
@@ -400,8 +397,11 @@ view config selectedIds availableItems fallbackIds state =
                 onFocus config state
 
             keyDown =
-                if String.isEmpty state.string then
-                    onKeyDownNoDelete config items state
+                if config.maxItems > 1 then
+                    if String.isEmpty state.string then
+                        onKeyDownNoDelete config items state
+                    else
+                        onKeyDownDelete config items state
                 else
                     onKeyDown config items state
 
@@ -480,6 +480,11 @@ onFocus config state =
 
 onKeyDown : Config msg idType itemType -> Items itemType -> State -> Attribute msg
 onKeyDown config items state =
+    rawOnKeyDownNoPrevent (updateKeyDown config items state)
+
+
+onKeyDownDelete : Config msg idType itemType -> Items itemType -> State -> Attribute msg
+onKeyDownDelete config items state =
     rawOnKeyDown deleteSpecialKeys (updateKeyDown config items state)
 
 
@@ -522,6 +527,11 @@ rawOnKeyDown specialKeys tagger =
             { stopPropagation = False, preventDefault = True }
     in
         onWithOptions "keydown" options (Json.map tagger (preventSpecialDecoder specialKeys))
+
+
+rawOnKeyDownNoPrevent : (Int -> msg) -> Attribute msg
+rawOnKeyDownNoPrevent tagger =
+    on "keydown" (Json.map tagger E.keyCode)
 
 
 rawOnKeyUp : (Int -> msg) -> Attribute msg
