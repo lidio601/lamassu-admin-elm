@@ -66,7 +66,8 @@ component =
                     [ (.) SelectedItem
                         [ backgroundColor Colors.cobalt
                         , color Colors.white
-                        , padding3 (px 2) (px 3) (px 1)
+                        , padding2 (px 3) (px 4)
+                        , margin2 zero (px 1)
                         , fontFamilies [ "Inconsolata" ]
                         , fontSize (pct 70)
                         , fontWeight bold

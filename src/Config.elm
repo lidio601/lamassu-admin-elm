@@ -142,6 +142,9 @@ fieldHolderToList fieldHolder =
                         FieldLanguageValue v ->
                             v
 
+                        _ ->
+                            Debug.crash "Only works for FieldLanguage"
+
 
 emptyToNothing : List x -> Maybe (List x)
 emptyToNothing list =
@@ -168,7 +171,7 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
                             Just s ->
                                 list ++ [ s ]
                 in
-                    { fieldInstance | fieldValue = Ok (Maybe.map FieldLanguageValue (emptyToNothing list)) }
+                    { fieldInstance | fieldValue = Ok (Maybe.map FieldLanguageValue (emptyToNothing newList)) }
 
             _ ->
                 let
@@ -422,13 +425,7 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
             textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
         SelectizeComponent selectizeState ->
-            let
-                fallbackCodes =
-                    maybeFallbackFieldValue
-                        |> maybeToList
-                        |> List.map fieldValueToString
-            in
-                selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
+            selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
