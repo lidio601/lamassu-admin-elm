@@ -1,14 +1,5 @@
 module FieldSetTypes exposing (..)
 
-import Result
-import String
-
-
-type FieldStatus
-    = FieldUpdated
-    | FieldError String
-    | FieldIdle
-
 
 type alias Field =
     { code : String
@@ -17,18 +8,12 @@ type alias Field =
     , required : Bool
     , value : FieldValue
     , loadedValue : FieldValue
-    , status : FieldStatus
     }
 
 
 type FieldValue
     = FieldString String
     | FieldPassword (Maybe String)
-
-
-type alias FieldSet =
-    { fields : List Field
-    }
 
 
 updateFieldValue : String -> FieldValue -> FieldValue

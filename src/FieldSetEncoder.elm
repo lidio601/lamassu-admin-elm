@@ -6,43 +6,41 @@ import Maybe
 import FieldSetTypes exposing (..)
 
 
-encodeFieldValue : FieldValue -> Value
+encodeFieldValue : FieldValue -> Maybe String
 encodeFieldValue fieldValue =
-    let
-        list =
-            case fieldValue of
-                FieldString value ->
-                    [ ( "fieldType", string "string" )
-                    , ( "value", string value )
-                    ]
+    case fieldValue of
+        FieldString value ->
+            Just value
 
-                FieldPassword value ->
-                    let
-                        jsonValue =
-                            case value of
-                                Just s ->
-                                    string s
+        FieldPassword value ->
+            case value of
+                Just s ->
+                    Just s
 
-                                Nothing ->
-                                    null
-                    in
-                        [ ( "fieldType", string "password" )
-                        , ( "value", jsonValue )
-                        ]
-    in
-        Json.Encode.object list
+                Nothing ->
+                    Nothing
+
+
+maybeString : Maybe String -> Value
+maybeString maybeString =
+    case maybeString of
+        Nothing ->
+            null
+
+        Just s ->
+            string s
 
 
 encodeField : Field -> Value
 encodeField field =
-    -- No need to encode status or loadedValue field, they're for client-side only
-    Json.Encode.object
-        [ ( "code", string field.code )
-        , ( "display", string field.display )
-        , ( "secret", bool field.secret )
-        , ( "required", bool field.required )
-        , ( "value", encodeFieldValue field.value )
-        ]
+    let
+        fieldValue =
+            encodeFieldValue field.value
+    in
+        Json.Encode.object
+            [ ( "code", string field.code )
+            , ( "value", maybeString fieldValue )
+            ]
 
 
 isDirty : Field -> Bool
@@ -54,11 +52,11 @@ isDirty field =
 -- Encodes only changed fields
 
 
-encodeFieldSet : FieldSet -> Value
-encodeFieldSet fieldSet =
+encodeFieldSet : List Field -> Value
+encodeFieldSet fields =
     let
         fieldValues =
-            List.filter isDirty fieldSet.fields
+            List.filter isDirty fields
                 |> List.map encodeField
     in
         Json.Encode.object

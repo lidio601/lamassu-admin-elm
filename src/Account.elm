@@ -79,10 +79,10 @@ update msg model =
             let
                 mapper account =
                     let
-                        ( fieldSet, fieldSetCmd ) =
-                            FieldSet.update fieldSetMsg account.fieldSet
+                        ( fields, fieldSetCmd ) =
+                            FieldSet.update fieldSetMsg account.fields
                     in
-                        { account | fieldSet = fieldSet } ! [ Cmd.map FieldSetMsg fieldSetCmd ]
+                        { account | fields = fields } ! [ Cmd.map FieldSetMsg fieldSetCmd ]
             in
                 RemoteData.update mapper model
 
@@ -102,7 +102,7 @@ view model =
         Success account ->
             let
                 fieldSetView =
-                    Html.App.map FieldSetMsg (FieldSet.view account.fieldSet)
+                    Html.App.map FieldSetMsg (FieldSet.view account.fields)
             in
                 div []
                     [ div [] [ text ("Account: " ++ account.display) ]

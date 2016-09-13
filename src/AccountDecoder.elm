@@ -10,7 +10,7 @@ accountDecoder =
     object3 Account
         ("code" := string)
         ("display" := string)
-        ("fieldSet" := fieldSetDecoder)
+        ("fields" := list fieldDecoder)
 
 
 type alias AccountResult =

@@ -8,7 +8,7 @@ import List
 
 
 type alias Model =
-    FieldSet
+    List Field
 
 
 
@@ -27,16 +27,9 @@ updateField fieldCode fieldValueString field =
         field
 
 
-updateFieldSet : String -> String -> FieldSet -> FieldSet
-updateFieldSet fieldCode fieldValueString fieldSet =
-    let
-        fields =
-            fieldSet.fields
-
-        updatedFields =
-            List.map (updateField fieldCode fieldValueString) fields
-    in
-        { fieldSet | fields = updatedFields }
+updateFieldSet : String -> String -> List Field -> List Field
+updateFieldSet fieldCode fieldValueString fields =
+    List.map (updateField fieldCode fieldValueString) fields
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,7 +68,7 @@ view : Model -> Html Msg
 view model =
     let
         fields =
-            List.map fieldView model.fields
+            List.map fieldView model
     in
         div []
             [ fieldset [] fields
