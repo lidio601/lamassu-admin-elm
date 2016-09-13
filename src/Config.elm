@@ -126,22 +126,49 @@ placeField fieldList field =
         newField :: (List.filter (not << (similar .fieldLocator field)) fieldList)
 
 
+fieldHolderToList : FieldHolder -> List String
+fieldHolderToList fieldHolder =
+    case fieldHolder of
+        Err _ ->
+            []
+
+        Ok maybeValue ->
+            case maybeValue of
+                Nothing ->
+                    []
+
+                Just fieldValue ->
+                    case fieldValue of
+                        FieldLanguageValue v ->
+                            v
+
+
+emptyToNothing : List x -> Maybe (List x)
+emptyToNothing list =
+    if (List.isEmpty list) then
+        Nothing
+    else
+        Just list
+
+
 updateStringFieldInstance : FieldLocator -> Maybe String -> FieldInstance -> FieldInstance
 updateStringFieldInstance fieldLocator maybeString fieldInstance =
     if fieldInstance.fieldLocator == fieldLocator then
         case fieldLocator.fieldType of
             FieldLanguageType ->
                 let
-                    fieldHolder =
+                    list =
+                        fieldHolderToList fieldInstance.fieldValue
+
+                    newList =
                         case maybeString of
                             Nothing ->
-                                Result.map (Maybe.map (\l -> List.take ((List.length l) - 1) l |> FieldLanguageValue))
-                                    fieldInstance.fieldValue
+                                List.take ((List.length list) - 1) list
 
                             Just s ->
-                                Result.map (Maybe.map (\l -> List.append l [ s ] |> FieldLanguageValue)) fieldInstance.fieldValue
+                                list ++ [ s ]
                 in
-                    { fieldInstance | fieldValue = fieldHolder }
+                    { fieldInstance | fieldValue = Ok (Maybe.map FieldLanguageValue (emptyToNothing list)) }
 
             _ ->
                 let
