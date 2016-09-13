@@ -707,8 +707,8 @@ updateFocus fieldLocator focused model =
 updateSelectize : FieldLocator -> Selectize.State -> Model -> Model
 updateSelectize fieldLocator state model =
     let
-        fieldGroup =
-            model.fieldGroup
+        clusters =
+            model.fieldGroup.selectize
 
         updateInstance fieldInstance =
             if (fieldInstance.fieldLocator == fieldLocator) then

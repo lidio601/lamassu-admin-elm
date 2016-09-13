@@ -132,7 +132,7 @@ type alias ConfigSchema =
     , display : String
     , cryptoScope : ConfigScope
     , machineScope : ConfigScope
-    , entries : List FieldDescriptor
+    , fieldDescriptors : List FieldDescriptor
     }
 
 
