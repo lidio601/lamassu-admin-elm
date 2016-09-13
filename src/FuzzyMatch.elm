@@ -27,7 +27,7 @@ score needle hay =
                 |> .score
 
         score =
-            List.map match (String.split " " hay.display)
+            List.map match ((String.split " " hay.display) ++ [ hay.code ])
                 |> List.minimum
                 |> Maybe.withDefault
                     10000
