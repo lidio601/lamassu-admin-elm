@@ -1,10 +1,12 @@
 module FieldSet exposing (Msg, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (value, type')
 import Html.Events exposing (..)
 import FieldSetTypes exposing (..)
 import List
+import Css.Admin exposing (..)
+import Css.Classes as C
 
 
 type alias Model =
@@ -41,35 +43,30 @@ update msg model =
 
 fieldComponent : Field -> Html Msg
 fieldComponent field =
-    case field.value of
-        FieldString string ->
-            label []
-                [ text field.display
-                , input
-                    [ onInput (Input field.code), value string ]
-                    []
-                ]
+    let
+        inputEl =
+            case field.value of
+                FieldString string ->
+                    input
+                        [ onInput (Input field.code), value string ]
+                        []
 
-        FieldPassword _ ->
-            label []
-                [ text field.display
-                , input
-                    [ onInput (Input field.code), type' "password" ]
-                    []
-                ]
+                FieldPassword _ ->
+                    input
+                        [ onInput (Input field.code), type' "password" ]
+                        []
+    in
+        label []
+            [ div [] [ text field.display ]
+            , inputEl
+            ]
 
 
 fieldView : Field -> Html Msg
 fieldView field =
-    div [] [ fieldComponent field ]
+    div [ class [ C.FormRow ] ] [ fieldComponent field ]
 
 
 view : Model -> Html Msg
 view model =
-    let
-        fields =
-            List.map fieldView model
-    in
-        div []
-            [ fieldset [] fields
-            ]
+    div [ class [ C.ConfigContainer ] ] (List.map fieldView model)

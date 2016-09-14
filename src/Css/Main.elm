@@ -1,7 +1,7 @@
 module Css.Main exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button)
+import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button, label)
 import Css.Namespace exposing (namespace)
 import Css.Colors as Colors
 import Css.ColorSchemes exposing (..)
@@ -90,9 +90,38 @@ css =
             [ fontFamilies [ "Brandon Text" ]
             , margin zero
             ]
-        , (.) ConfigButtonRow
+        , (.) FormRow
+            [ margin2 (px 20) zero
+            , firstChild
+                [ margin zero
+                ]
+            , descendants
+                [ label
+                    [ fontSize (px 11)
+                    , fontWeight bold
+                    , children
+                        [ div
+                            [ margin3 zero zero (px 5)
+                            , color Colors.sandstone
+                            ]
+                        ]
+                    ]
+                , input
+                    [ border zero
+                    , backgroundColor Colors.white
+                    , borderRadius (px 3)
+                    , padding (px 6)
+                    , textAlign left
+                    , fontFamilies [ "Fira Code" ]
+                    , fontWeight (int 600)
+                    , width (pct 50)
+                    , property "outline" "none"
+                    ]
+                ]
+            ]
+        , (.) ButtonRow
             [ textAlign right ]
-        , (.) ConfigButton
+        , (.) Button
             [ colorize cobaltScheme
             , padding2 (px 10) (px 15)
             , display inlineBlock
@@ -127,13 +156,13 @@ css =
                     ]
                 ]
             ]
-        , (.) ConfigGroupLabel
+        , (.) SectionLabel
             [ fontWeight bold
             , fontSize (px 30)
             , marginBottom (px 10)
             ]
-        , (.) ConfigTableContainer
-            [ padding (px 10)
+        , (.) ConfigContainer
+            [ padding (px 20)
             , borderRadius4 (px 0) (px 7) (px 7) (px 7)
             , backgroundColor mainBackgroundColor
             , margin3 zero zero (px 10)

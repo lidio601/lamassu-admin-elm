@@ -9,6 +9,8 @@ import AccountTypes exposing (..)
 import AccountDecoder exposing (..)
 import AccountEncoder exposing (..)
 import FieldSet
+import Css.Admin exposing (..)
+import Css.Classes
 
 
 type alias AccountResponse =
@@ -105,9 +107,11 @@ view model =
                     Html.App.map FieldSetMsg (FieldSet.view account.fields)
             in
                 div []
-                    [ div [] [ text ("Account: " ++ account.display) ]
-                    , Html.form [ onSubmit Submit ]
-                        [ fieldset [] [ fieldSetView ]
-                        , button [] [ text "Submit" ]
+                    [ div [ class [ Css.Classes.SectionLabel ] ] [ text account.display ]
+                    , div []
+                        [ fieldSetView
+                        , div [ class [ Css.Classes.ButtonRow ] ]
+                            [ div [ onClick Submit, class [ Css.Classes.Button ] ] [ text "Submit" ]
+                            ]
                         ]
                     ]

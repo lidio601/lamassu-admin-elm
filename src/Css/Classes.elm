@@ -9,12 +9,13 @@ type CssClasses
     | Content
     | CryptoTabs
     | CryptoTabsActive
-    | ConfigGroupLabel
+    | SectionLabel
     | ConfigTable
     | ConfigTableGlobalRow
-    | ConfigTableContainer
-    | ConfigButton
-    | ConfigButtonRow
+    | ConfigContainer
+    | FormRow
+    | Button
+    | ButtonRow
     | Active
     | BasicInput
     | Component

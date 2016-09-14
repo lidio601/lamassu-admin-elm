@@ -901,7 +901,7 @@ view model =
                     toResolvedModel model configGroup
 
                 configGroupView =
-                    div [ class [ Css.Classes.ConfigTableContainer ] ]
+                    div [ class [ Css.Classes.ConfigContainer ] ]
                         [ tableView resolvedModel ]
 
                 statusString =
@@ -915,20 +915,20 @@ view model =
                 form =
                     Html.form []
                         [ div [] [ configGroupView ]
-                        , div [ class [ Css.Classes.ConfigButtonRow ] ]
-                            [ div [ onClick Submit, class [ Css.Classes.ConfigButton ] ] [ text "Submit" ]
+                        , div [ class [ Css.Classes.ButtonRow ] ]
+                            [ div [ onClick Submit, class [ Css.Classes.Button ] ] [ text "Submit" ]
                             , div [] [ text statusString ]
                             ]
                         ]
             in
                 if (configGroup.schema.cryptoScope == Global) then
                     div []
-                        [ div [ class [ Css.Classes.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ Css.Classes.SectionLabel ] ] [ text configGroup.schema.display ]
                         , form
                         ]
                 else
                     div []
-                        [ div [ class [ Css.Classes.ConfigGroupLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ Css.Classes.SectionLabel ] ] [ text configGroup.schema.display ]
                         , div [] [ (cryptosView model.crypto configGroup) ]
                         , form
                         ]
