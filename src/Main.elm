@@ -36,7 +36,7 @@ pageParser location =
 desiredPage : Parser (Page -> a) a
 desiredPage =
     oneOf
-        [ format AccountPage (s "account" </> string)
+        [ format (\account -> AccountPage account) (s "account" </> string)
         , format PairPage (s "pair")
         , format (\config crypto -> ConfigPage config (Just crypto)) (s "config" </> string </> string)
         , format (\config -> ConfigPage config Nothing) (s "config" </> string)
@@ -165,7 +165,7 @@ urlUpdate pageResult model =
                     AccountPage account ->
                         let
                             ( accountModel, cmd ) =
-                                Account.load (Debug.log "DEBUG13" account)
+                                Account.load account
                         in
                             { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 

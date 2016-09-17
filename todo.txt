@@ -7,3 +7,9 @@
 - fix up pairing and login, get ready for release
 
 - transactions screen
+
+---------------------------
+
+- finish up accordion:
+    - do navbar as state thing, reuse model
+    - view handles collapsing/expanding of each category

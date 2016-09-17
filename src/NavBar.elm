@@ -6,6 +6,7 @@ import Html.CssHelpers
 import Css.Classes
 import Navigation exposing (newUrl)
 import VirtualDom
+import String
 
 
 { id, class, classList } =
@@ -23,18 +24,23 @@ type Page
     | UnknownPage
 
 
+type Category
+    = Account
+    | Config
+
+
 type alias Model =
-    ()
+    { category : Maybe Category }
 
 
 initModel : Model
 initModel =
-    ()
+    { category = Nothing }
 
 
 load : ( Model, Cmd Msg )
 load =
-    ( (), Cmd.none )
+    ( { category = Nothing }, Cmd.none )
 
 
 
@@ -43,27 +49,37 @@ load =
 
 type Msg
     = NewPage Page
+    | NewCategory Category Page
+
+
+maybeUrl : String -> List (Maybe String) -> Cmd Msg
+maybeUrl root maybeStrings =
+    List.filterMap identity maybeStrings
+        |> List.append [ root ]
+        |> String.join "/"
+        |> String.cons '/'
+        |> newUrl
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update (NewPage page) model =
-    case page of
-        PairPage ->
-            model ! [ newUrl "/pair" ]
+update msg model =
+    case msg of
+        NewPage page ->
+            case page of
+                PairPage ->
+                    model ! [ newUrl "/pair" ]
 
-        AccountPage account ->
-            model ! [ newUrl ("/account/" ++ account) ]
+                AccountPage account ->
+                    model ! [ newUrl ("/account/" ++ account) ]
 
-        ConfigPage configGroup maybeCrypto ->
-            case maybeCrypto of
-                Nothing ->
-                    model ! [ newUrl ("/config/" ++ configGroup) ]
+                ConfigPage configGroup maybeCrypto ->
+                    model ! [ maybeUrl ("config/" ++ configGroup) [ maybeCrypto ] ]
 
-                Just crypto ->
-                    model ! [ newUrl ("/config/" ++ configGroup ++ "/" ++ crypto) ]
+                UnknownPage ->
+                    Debug.crash "Need unknown page"
 
-        UnknownPage ->
-            Debug.crash "Need unknown page"
+        NewCategory category page ->
+            update (NewPage page) ({ model | category = Just category })
 
 
 
@@ -82,7 +98,7 @@ activePage linkPage page =
                     linkPage == page
 
                 ConfigPage config _ ->
-                    (Debug.log "DEBUG2" linkPage) == (Debug.log "DEBUG3" (ConfigPage config Nothing))
+                    linkPage == ConfigPage config Nothing
 
                 UnknownPage ->
                     Debug.crash "Need unknown page"
@@ -93,9 +109,35 @@ activePage linkPage page =
             class []
 
 
-linkView : Page -> Page -> String -> Html Msg
-linkView currentPage linkPage desc =
-    div [ onClick (NewPage linkPage), activePage linkPage currentPage ] [ text desc ]
+type alias Link =
+    ( String, Page )
+
+
+categoryView : ( String, Category, Page ) -> Html Msg
+categoryView link =
+    let
+        ( desc, category, linkPage ) =
+            link
+    in
+        div [ onClick (NewCategory category linkPage) ] [ text desc ]
+
+
+linkView : Page -> Link -> Html Msg
+linkView currentPage link =
+    let
+        ( desc, linkPage ) =
+            link
+    in
+        div [ onClick (NewPage linkPage), activePage linkPage currentPage ] [ text desc ]
+
+
+linksView : Page -> ( String, Category, Page ) -> List Link -> Html Msg
+linksView currentPage catLink links =
+    -- only show links if model.category is supplied category, also highlight category
+    div []
+        [ categoryView catLink
+        , div [] (List.map (linkView currentPage) links)
+        ]
 
 
 view : Page -> Html Msg
@@ -103,15 +145,20 @@ view page =
     let
         l =
             linkView page
+
+        ll =
+            linksView page
     in
         nav [ class [ Css.Classes.NavBar ] ]
-            [ l PairPage "Pairing"
-            , l (AccountPage "twilio") "Accounts"
-            , l (ConfigPage "commissions" Nothing) "Commissions"
-            , l (ConfigPage "limits" Nothing) "Limits"
-            , l (ConfigPage "fiat" Nothing) "Fiat"
-            , l (ConfigPage "crypto-services" Nothing) "Crypto services"
-            , l (ConfigPage "languages" Nothing) "Languages"
+            [ l ( "Pairing", PairPage )
+            , ll ( "Accounts", Account, AccountPage "twilio" )
+                [ ( "Twilio", AccountPage "twilio" )
+                ]
+            , ll ( "Configuration", Config, ConfigPage "commissions" Nothing )
+                [ ( "Commissions", ConfigPage "commissions" Nothing )
+                , ( "Limits", ConfigPage "limits" Nothing )
+                , ( "Fiat", ConfigPage "fiat" Nothing )
+                , ( "Crypto services", ConfigPage "crypto-services" Nothing )
+                , ( "Languages", ConfigPage "languages" Nothing )
+                ]
             ]
-
-,
