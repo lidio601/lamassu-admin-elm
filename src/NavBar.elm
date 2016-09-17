@@ -93,14 +93,25 @@ activePage linkPage page =
             class []
 
 
+linkView : Page -> Page -> String -> Html Msg
+linkView currentPage linkPage desc =
+    div [ onClick (NewPage linkPage), activePage linkPage currentPage ] [ text desc ]
+
+
 view : Page -> Html Msg
 view page =
-    nav [ class [ Css.Classes.NavBar ] ]
-        [ div [ onClick (NewPage PairPage), activePage PairPage page ] [ text "Pairing" ]
-        , div [ onClick (NewPage (AccountPage "twilio")), activePage (AccountPage "twilio") page ] [ text "Accounts" ]
-        , div [ onClick (NewPage (ConfigPage "commissions" Nothing)), activePage (ConfigPage "commissions" Nothing) page ] [ text "Commissions" ]
-        , div [ onClick (NewPage (ConfigPage "limits" Nothing)), activePage (ConfigPage "limits" Nothing) page ] [ text "Limits" ]
-        , div [ onClick (NewPage (ConfigPage "fiat" Nothing)), activePage (ConfigPage "fiat" Nothing) page ] [ text "Fiat" ]
-        , div [ onClick (NewPage (ConfigPage "crypto-services" Nothing)), activePage (ConfigPage "crypto-services" Nothing) page ] [ text "Crypto services" ]
-        , div [ onClick (NewPage (ConfigPage "languages" Nothing)), activePage (ConfigPage "languages" Nothing) page ] [ text "Languages" ]
-        ]
+    let
+        l =
+            linkView page
+    in
+        nav [ class [ Css.Classes.NavBar ] ]
+            [ l PairPage "Pairing"
+            , l (AccountPage "twilio") "Accounts"
+            , l (ConfigPage "commissions" Nothing) "Commissions"
+            , l (ConfigPage "limits" Nothing) "Limits"
+            , l (ConfigPage "fiat" Nothing) "Fiat"
+            , l (ConfigPage "crypto-services" Nothing) "Crypto services"
+            , l (ConfigPage "languages" Nothing) "Languages"
+            ]
+
+,
