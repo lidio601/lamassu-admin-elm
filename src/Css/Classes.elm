@@ -6,6 +6,7 @@ type CssClasses
     | MainLeft
     | MainRight
     | NavBarItemActive
+    | NavBarCategory
     | Content
     | CryptoTabs
     | CryptoTabsActive

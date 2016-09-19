@@ -11,6 +11,7 @@ import UrlParser exposing (..)
 import Result exposing (withDefault)
 import String
 import Html.Attributes exposing (class)
+import Navigation exposing (newUrl)
 
 
 main : Program Never
@@ -49,6 +50,7 @@ desiredPage =
 
 type alias Model =
     { page : Page
+    , category : Maybe Category
     , pair : Pair.Model
     , account : Account.Model
     , config : Config.Model
@@ -61,6 +63,7 @@ init pageResult =
     let
         initModel =
             { page = withDefault UnknownPage (Debug.log "DEBUG11" pageResult)
+            , category = Nothing
             , account = Account.init
             , pair = Pair.init
             , config = Config.init
@@ -78,7 +81,8 @@ type Msg
     = AccountMsg Account.Msg
     | PairMsg Pair.Msg
     | ConfigMsg Config.Msg
-    | NavBarMsg NavBar.Msg
+    | NewPage Page
+    | NewCategory Category Page
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -105,12 +109,19 @@ update msg model =
             in
                 { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-        NavBarMsg navBarMsg ->
+        NewPage page ->
             let
-                ( navModel, cmd ) =
-                    NavBar.update navBarMsg ()
+                url =
+                    NavBar.pageToUrl page
             in
-                ( model, Cmd.map NavBarMsg cmd )
+                model ! [ newUrl url ]
+
+        NewCategory category page ->
+            let
+                url =
+                    NavBar.pageToUrl page
+            in
+                { model | category = Just category } ! [ newUrl url ]
 
 
 content : Model -> Html Msg
@@ -129,12 +140,19 @@ content model =
             div [] [ text ("No such page") ]
 
 
+navBarConfig : NavBar.Config Msg
+navBarConfig =
+    { toNewPageMsg = NewPage
+    , toNewCategoryMsg = NewCategory
+    }
+
+
 view : Model -> Html Msg
 view model =
     div []
         [ div [ class "grid" ]
             [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                [ map NavBarMsg (NavBar.view model.page) ]
+                [ NavBar.view navBarConfig model.category model.page ]
             , div [ class "unit three-quarters lamassuAdminMainRight" ]
                 [ div [ class "lamassuAdminContent" ]
                     [ content model ]

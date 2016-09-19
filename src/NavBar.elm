@@ -1,11 +1,9 @@
-module NavBar exposing (Page(..), view, update, Msg)
+module NavBar exposing (Page(..), Category(..), Config, view, pageToUrl)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
 import Html.Events exposing (onClick)
 import Html.CssHelpers
 import Css.Classes
-import Navigation exposing (newUrl)
-import VirtualDom
 import String
 
 
@@ -17,6 +15,11 @@ import String
 -- MODEL
 
 
+type Category
+    = AccountCat
+    | ConfigCat
+
+
 type Page
     = AccountPage String
     | PairPage
@@ -24,69 +27,41 @@ type Page
     | UnknownPage
 
 
-type Category
-    = Account
-    | Config
-
-
-type alias Model =
-    { category : Maybe Category }
-
-
-initModel : Model
-initModel =
-    { category = Nothing }
-
-
-load : ( Model, Cmd Msg )
-load =
-    ( { category = Nothing }, Cmd.none )
+type alias Config msg =
+    { toNewPageMsg : Page -> msg
+    , toNewCategoryMsg : Category -> Page -> msg
+    }
 
 
 
 -- UPDATE
 
 
-type Msg
-    = NewPage Page
-    | NewCategory Category Page
-
-
-maybeUrl : String -> List (Maybe String) -> Cmd Msg
+maybeUrl : String -> List (Maybe String) -> String
 maybeUrl root maybeStrings =
     List.filterMap identity maybeStrings
         |> List.append [ root ]
         |> String.join "/"
         |> String.cons '/'
-        |> newUrl
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        NewPage page ->
-            case page of
-                PairPage ->
-                    model ! [ newUrl "/pair" ]
+pageToUrl : Page -> String
+pageToUrl page =
+    case page of
+        PairPage ->
+            "/pair"
 
-                AccountPage account ->
-                    model ! [ newUrl ("/account/" ++ account) ]
+        AccountPage account ->
+            "/account/" ++ account
 
-                ConfigPage configGroup maybeCrypto ->
-                    model ! [ maybeUrl ("config/" ++ configGroup) [ maybeCrypto ] ]
+        ConfigPage configGroup maybeCrypto ->
+            maybeUrl ("config/" ++ configGroup) [ maybeCrypto ]
 
-                UnknownPage ->
-                    Debug.crash "Need unknown page"
-
-        NewCategory category page ->
-            update (NewPage page) ({ model | category = Just category })
+        UnknownPage ->
+            Debug.crash "Need unknown page"
 
 
-
--- Bit hacky, but we have to match only first parameter of page
-
-
-activePage : Page -> Page -> VirtualDom.Property a
+activePage : Page -> Page -> Attribute msg
 activePage linkPage page =
     let
         active =
@@ -113,48 +88,75 @@ type alias Link =
     ( String, Page )
 
 
-categoryView : ( String, Category, Page ) -> Html Msg
-categoryView link =
+newPage : Config msg -> Page -> msg
+newPage c page =
+    c.toNewPageMsg page
+
+
+newCategory : Config msg -> Category -> Page -> msg
+newCategory c category page =
+    c.toNewCategoryMsg category page
+
+
+activeCategory : Maybe Category -> Category -> Attribute msg
+activeCategory maybeCurrentCategory linkedCategory =
+    case maybeCurrentCategory of
+        Nothing ->
+            class []
+
+        Just currentCategory ->
+            if currentCategory == linkedCategory then
+                class [ Css.Classes.Active ]
+            else
+                class []
+
+
+categoryView : Config msg -> Maybe Category -> ( String, Category, Page ) -> Html msg
+categoryView c currentCategory link =
     let
         ( desc, category, linkPage ) =
             link
     in
-        div [ onClick (NewCategory category linkPage) ] [ text desc ]
+        div
+            [ onClick (newCategory c category linkPage)
+            , activeCategory currentCategory category
+            ]
+            [ text desc ]
 
 
-linkView : Page -> Link -> Html Msg
-linkView currentPage link =
+linkView : Config msg -> Page -> Link -> Html msg
+linkView c currentPage link =
     let
         ( desc, linkPage ) =
             link
     in
-        div [ onClick (NewPage linkPage), activePage linkPage currentPage ] [ text desc ]
+        div [ onClick (newPage c linkPage), activePage linkPage currentPage ] [ text desc ]
 
 
-linksView : Page -> ( String, Category, Page ) -> List Link -> Html Msg
-linksView currentPage catLink links =
+linksView : Config msg -> Maybe Category -> Page -> ( String, Category, Page ) -> List Link -> Html msg
+linksView c currentCategory currentPage catLink links =
     -- only show links if model.category is supplied category, also highlight category
-    div []
-        [ categoryView catLink
-        , div [] (List.map (linkView currentPage) links)
+    div [ class [ Css.Classes.NavBarCategory ] ]
+        [ categoryView c currentCategory catLink
+        , div [] (List.map (linkView c currentPage) links)
         ]
 
 
-view : Page -> Html Msg
-view page =
+view : Config msg -> Maybe Category -> Page -> Html msg
+view c category page =
     let
         l =
-            linkView page
+            linkView c page
 
         ll =
-            linksView page
+            linksView c category page
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Pairing", PairPage )
-            , ll ( "Accounts", Account, AccountPage "twilio" )
+            , ll ( "Accounts", AccountCat, AccountPage "twilio" )
                 [ ( "Twilio", AccountPage "twilio" )
                 ]
-            , ll ( "Configuration", Config, ConfigPage "commissions" Nothing )
+            , ll ( "Configuration", ConfigCat, ConfigPage "commissions" Nothing )
                 [ ( "Commissions", ConfigPage "commissions" Nothing )
                 , ( "Limits", ConfigPage "limits" Nothing )
                 , ( "Fiat", ConfigPage "fiat" Nothing )
