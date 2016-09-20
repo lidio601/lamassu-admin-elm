@@ -219,13 +219,29 @@ css =
             [ margin zero
             , padding zero
             , fontSize (px 18)
-            , children
-                [ div
+            , descendants
+                [ (.) NavBarPage
                     [ height (px 60)
                     , display block
                     , lineHeight (px 60)
                     , padding2 (px 0) (px 20)
                     , colorize darkGreyScheme
+                    ]
+                , (.) NavBarCategory
+                    [ height (px 60)
+                    , display block
+                    , lineHeight (px 60)
+                    , padding2 (px 0) (px 20)
+                    , colorize darkGreyScheme
+                    ]
+                , (.) NavBarCategoryContainer
+                    [ descendants
+                        [ (.) NavBarPage
+                            [ colorize darkGreyScheme
+                            , padding4 zero (px 20) zero (px 30)
+                            , fontWeight (int 500)
+                            ]
+                        ]
                     ]
                 ]
             ]

@@ -24,6 +24,16 @@ darkGreyScheme =
     }
 
 
+darkerGreyScheme : ColorScheme
+darkerGreyScheme =
+    { bg = Colors.darkerGrey
+    , fg = Colors.sandstone
+    , bgHover = Colors.darkerGrey
+    , fgActive = Colors.amazonite
+    , bgActive = Colors.darkerGrey
+    }
+
+
 lightGreyScheme : ColorScheme
 lightGreyScheme =
     { bg = Colors.darkerLightGrey

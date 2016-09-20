@@ -1,42 +1,15 @@
-module NavBar exposing (Page(..), Category(..), Config, view, pageToUrl)
+module NavBar exposing (view, pageToUrl)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
 import Html.Events exposing (onClick)
 import Html.CssHelpers
 import Css.Classes
 import String
+import CoreTypes exposing (Msg(..), Category(..), Page(..))
 
 
 { id, class, classList } =
     Html.CssHelpers.withNamespace "lamassuAdmin"
-
-
-
--- MODEL
-
-
-type Category
-    = AccountCat
-    | ConfigCat
-
-
-type Page
-    = AccountPage String
-    | PairPage
-    | ConfigPage String (Maybe String)
-    | UnknownPage
-
-
-type alias Config msg =
-    { toNewPageMsg : Page -> msg
-    , toNewCategoryMsg : Category -> Page -> msg
-    }
-
-
-
--- UPDATE
-
-
 maybeUrl : String -> List (Maybe String) -> String
 maybeUrl root maybeStrings =
     List.filterMap identity maybeStrings
@@ -79,77 +52,71 @@ activePage linkPage page =
                     Debug.crash "Need unknown page"
     in
         if (active) then
-            class [ Css.Classes.Active ]
+            class [ Css.Classes.NavBarPage, Css.Classes.Active ]
         else
-            class []
+            class [ Css.Classes.NavBarPage ]
 
 
 type alias Link =
     ( String, Page )
 
 
-newPage : Config msg -> Page -> msg
-newPage c page =
-    c.toNewPageMsg page
-
-
-newCategory : Config msg -> Category -> Page -> msg
-newCategory c category page =
-    c.toNewCategoryMsg category page
-
-
 activeCategory : Maybe Category -> Category -> Attribute msg
 activeCategory maybeCurrentCategory linkedCategory =
     case maybeCurrentCategory of
         Nothing ->
-            class []
+            class [ Css.Classes.NavBarCategory ]
 
         Just currentCategory ->
             if currentCategory == linkedCategory then
-                class [ Css.Classes.Active ]
+                class [ Css.Classes.NavBarCategory, Css.Classes.Active ]
             else
-                class []
+                class [ Css.Classes.NavBarCategory ]
 
 
-categoryView : Config msg -> Maybe Category -> ( String, Category, Page ) -> Html msg
-categoryView c currentCategory link =
+categoryView : Maybe Category -> ( String, Category, Page ) -> Html Msg
+categoryView currentCategory link =
     let
         ( desc, category, linkPage ) =
             link
     in
         div
-            [ onClick (newCategory c category linkPage)
+            [ onClick (NewPage (Just category) linkPage)
             , activeCategory currentCategory category
             ]
             [ text desc ]
 
 
-linkView : Config msg -> Page -> Link -> Html msg
-linkView c currentPage link =
+linkView : Maybe Category -> Page -> Maybe Category -> Link -> Html Msg
+linkView maybeCategory currentPage maybeLinkedCategory link =
     let
         ( desc, linkPage ) =
             link
     in
-        div [ onClick (newPage c linkPage), activePage linkPage currentPage ] [ text desc ]
+        div [ onClick (NewPage maybeLinkedCategory linkPage), activePage linkPage currentPage ] [ text desc ]
 
 
-linksView : Config msg -> Maybe Category -> Page -> ( String, Category, Page ) -> List Link -> Html msg
-linksView c currentCategory currentPage catLink links =
-    -- only show links if model.category is supplied category, also highlight category
-    div [ class [ Css.Classes.NavBarCategory ] ]
-        [ categoryView c currentCategory catLink
-        , div [] (List.map (linkView c currentPage) links)
-        ]
+linksView : Maybe Category -> Page -> ( String, Category, Page ) -> List Link -> Html Msg
+linksView maybeCurrentCategory currentPage ( catDesc, cat, page ) links =
+    if maybeCurrentCategory == (Just cat) then
+        div [ class [ Css.Classes.NavBarCategoryContainer ] ]
+            [ categoryView maybeCurrentCategory ( catDesc, cat, page )
+            , div [] (List.map (linkView maybeCurrentCategory currentPage (Just cat)) links)
+            ]
+    else
+        div [ class [ Css.Classes.NavBarCategoryContainer ] ]
+            [ categoryView maybeCurrentCategory ( catDesc, cat, page )
+            ]
 
 
-view : Config msg -> Maybe Category -> Page -> Html msg
-view c category page =
+view : Maybe Category -> Page -> Html Msg
+view maybeCategory page =
     let
         l =
-            linkView c page
+            linkView maybeCategory page Nothing
 
         ll =
-            linksView c category page
+            linksView maybeCategory page
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Pairing", PairPage )

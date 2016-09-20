@@ -12,6 +12,7 @@ import Result exposing (withDefault)
 import String
 import Html.Attributes exposing (class)
 import Navigation exposing (newUrl)
+import CoreTypes exposing (Msg(..), Page(..), Category)
 
 
 main : Program Never
@@ -77,14 +78,6 @@ init pageResult =
 -- UPDATE
 
 
-type Msg
-    = AccountMsg Account.Msg
-    | PairMsg Pair.Msg
-    | ConfigMsg Config.Msg
-    | NewPage Page
-    | NewCategory Category Page
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -109,19 +102,12 @@ update msg model =
             in
                 { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-        NewPage page ->
+        NewPage maybeCategory page ->
             let
                 url =
                     NavBar.pageToUrl page
             in
-                model ! [ newUrl url ]
-
-        NewCategory category page ->
-            let
-                url =
-                    NavBar.pageToUrl page
-            in
-                { model | category = Just category } ! [ newUrl url ]
+                { model | category = maybeCategory } ! [ newUrl url ]
 
 
 content : Model -> Html Msg
@@ -140,19 +126,12 @@ content model =
             div [] [ text ("No such page") ]
 
 
-navBarConfig : NavBar.Config Msg
-navBarConfig =
-    { toNewPageMsg = NewPage
-    , toNewCategoryMsg = NewCategory
-    }
-
-
 view : Model -> Html Msg
 view model =
     div []
         [ div [ class "grid" ]
             [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                [ NavBar.view navBarConfig model.category model.page ]
+                [ NavBar.view model.category model.page ]
             , div [ class "unit three-quarters lamassuAdminMainRight" ]
                 [ div [ class "lamassuAdminContent" ]
                     [ content model ]
