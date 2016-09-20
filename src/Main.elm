@@ -12,7 +12,7 @@ import Result exposing (withDefault)
 import String
 import Html.Attributes exposing (class)
 import Navigation exposing (newUrl)
-import CoreTypes exposing (Msg(..), Page(..), Category)
+import CoreTypes exposing (Msg(..), Page(..), Category(..))
 
 
 main : Program Never
@@ -157,21 +157,21 @@ urlUpdate pageResult model =
                             ( pairModel, cmd ) =
                                 Pair.load
                         in
-                            { pagedModel | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
+                            { pagedModel | category = Nothing, pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
                     AccountPage account ->
                         let
                             ( accountModel, cmd ) =
                                 Account.load account
                         in
-                            { pagedModel | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+                            { pagedModel | category = Just AccountCat, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
                     ConfigPage config maybeCryptoCodeString ->
                         let
                             ( configModel, cmd ) =
                                 Config.load pagedModel.config config maybeCryptoCodeString
                         in
-                            { pagedModel | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+                            { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
                     UnknownPage ->
                         Debug.crash "Need to create unknown page"

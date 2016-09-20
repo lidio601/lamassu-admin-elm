@@ -10,9 +10,4 @@
 
 ---------------------------
 
-- finish up accordion:
-    - do navbar as state thing, reuse model
-    - view handles collapsing/expanding of each category
-
-- do config for navbar
-- handle new page and new category
+- on page load, correctly set page and category
