@@ -240,6 +240,7 @@ css =
                             [ colorize darkGreyScheme
                             , padding4 zero (px 20) zero (px 30)
                             , fontWeight (int 500)
+                            , property "animation" "fadein 0.8s"
                             ]
                         ]
                     ]
