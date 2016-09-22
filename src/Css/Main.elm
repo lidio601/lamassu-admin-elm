@@ -166,6 +166,7 @@ css =
             , borderRadius4 (px 0) (px 7) (px 7) (px 7)
             , backgroundColor mainBackgroundColor
             , margin3 zero zero (px 10)
+            , property "animation" "fadein 0.8s"
             ]
         , (.) ConfigTable
             [ fontSize (px 14)
