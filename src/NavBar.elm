@@ -127,7 +127,8 @@ view maybeCategory page =
                 [ ( "Commissions", ConfigPage "commissions" Nothing )
                 , ( "Limits", ConfigPage "limits" Nothing )
                 , ( "Fiat", ConfigPage "fiat" Nothing )
-                , ( "Crypto services", ConfigPage "crypto-services" Nothing )
+                , ( "Crypto services", ConfigPage "cryptoServices" Nothing )
                 , ( "Languages", ConfigPage "languages" Nothing )
+                , ( "Notifications", ConfigPage "notifications" Nothing )
                 ]
             ]

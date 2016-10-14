@@ -3,7 +3,7 @@ module Config exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Events exposing (onClick)
-import Html.Attributes exposing (defaultValue, placeholder)
+import Html.Attributes exposing (defaultValue, placeholder, type')
 import Html.Keyed
 import Navigation
 import RemoteData exposing (..)
@@ -12,7 +12,7 @@ import ConfigTypes exposing (..)
 import ConfigDecoder exposing (..)
 import ConfigEncoder exposing (..)
 import Css.Admin exposing (..)
-import Css.Classes
+import Css.Classes as C
 import Selectize
 import Maybe exposing (oneOf)
 import FuzzyMatch
@@ -222,7 +222,7 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
             , onBlur (Blur fieldLocator)
             , defaultValue defaultString
             , placeholder fallbackString
-            , class [ Css.Classes.BasicInput ]
+            , class [ C.BasicInput ]
             ]
             []
 
@@ -418,6 +418,26 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
                 Debug.crash "Not a Selectize field"
 
 
+toggleView : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+toggleView fieldLocator maybeFieldValue maybeFallbackFieldValue =
+    let
+        maybeSpecificString =
+            Maybe.map fieldValueToString maybeFieldValue
+
+        maybeFallbackString =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+
+        defaultString =
+            Maybe.withDefault "" maybeSpecificString
+
+        fallbackString =
+            Maybe.withDefault "N/A" maybeFallbackString
+    in
+        div [ class [ C.ToggleComponent, C.ToggleNone ] ]
+            [ div [ class [ C.ToggleButton ] ] [ i [ Html.Attributes.class "fa fa-times-circle" ] [] ]
+            ]
+
+
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
     case fieldInstance.component of
@@ -426,6 +446,9 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
 
         SelectizeComponent selectizeState ->
             selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
+
+        ToggleComponent ->
+            toggleView fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -502,7 +525,7 @@ cellView model fieldInstance =
                     ++ (machineToString machine)
                     ++ "-"
                     ++ fieldLocator.code
-              , div [ classList [ ( Css.Classes.Component, True ), ( Css.Classes.FocusedComponent, focused ) ] ]
+              , div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ) ] ]
                     [ fieldComponent model fieldInstance ]
               )
             ]
@@ -517,7 +540,7 @@ rowView model fieldInstances machineDisplay =
         globalRowClass =
             case machine of
                 GlobalMachine ->
-                    class [ Css.Classes.ConfigTableGlobalRow ]
+                    class [ C.ConfigTableGlobalRow ]
 
                 _ ->
                     class []
@@ -582,7 +605,7 @@ tableView model =
         rows =
             List.map (rowView model instances) machines
     in
-        table [ class [ Css.Classes.ConfigTable ] ]
+        table [ class [ C.ConfigTable ] ]
             [ thead [] [ headerRow ]
             , tbody [] rows
             ]
@@ -630,7 +653,7 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             InputBoxComponent
 
         FieldOnOffType ->
-            InputBoxComponent
+            ToggleComponent
 
         FieldAccountType ->
             SelectizeComponent Selectize.initialSelectize
@@ -735,11 +758,11 @@ updateSelectize fieldLocator state model =
         updateInstance fieldInstance =
             if (fieldInstance.fieldLocator == fieldLocator) then
                 case fieldInstance.component of
-                    InputBoxComponent ->
-                        Debug.crash "Shouldn't be here"
-
                     SelectizeComponent _ ->
                         { fieldInstance | component = SelectizeComponent state }
+
+                    _ ->
+                        Debug.crash "Shouldn't be here"
             else
                 fieldInstance
     in
@@ -867,7 +890,7 @@ cryptoView maybeActiveCrypto cryptoDisplay =
 
                 Just activeCrypto ->
                     if (activeCrypto == cryptoDisplay.crypto) then
-                        class [ Css.Classes.Active ]
+                        class [ C.Active ]
                     else
                         class []
     in
@@ -880,7 +903,7 @@ cryptosView activeCrypto configGroup =
         cryptos =
             listCryptos configGroup
     in
-        nav [ class [ Css.Classes.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
+        nav [ class [ C.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
 
 
 view : Model -> Html Msg
@@ -901,7 +924,7 @@ view model =
                     toResolvedModel model configGroup
 
                 configGroupView =
-                    div [ class [ Css.Classes.ConfigContainer ] ]
+                    div [ class [ C.ConfigContainer ] ]
                         [ tableView resolvedModel ]
 
                 statusString =
@@ -915,20 +938,20 @@ view model =
                 form =
                     Html.form []
                         [ div [] [ configGroupView ]
-                        , div [ class [ Css.Classes.ButtonRow ] ]
-                            [ div [ onClick Submit, class [ Css.Classes.Button ] ] [ text "Submit" ]
+                        , div [ class [ C.ButtonRow ] ]
+                            [ div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
                             , div [] [ text statusString ]
                             ]
                         ]
             in
                 if (configGroup.schema.cryptoScope == Global) then
                     div []
-                        [ div [ class [ Css.Classes.SectionLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ C.SectionLabel ] ] [ text configGroup.schema.display ]
                         , form
                         ]
                 else
                     div []
-                        [ div [ class [ Css.Classes.SectionLabel ] ] [ text configGroup.schema.display ]
+                        [ div [ class [ C.SectionLabel ] ] [ text configGroup.schema.display ]
                         , div [] [ (cryptosView model.crypto configGroup) ]
                         , form
                         ]

@@ -23,3 +23,8 @@ type CssClasses
     | BasicInput
     | Component
     | FocusedComponent
+    | ToggleComponent
+    | ToggleButton
+    | ToggleOn
+    | ToggleOff
+    | ToggleNone
