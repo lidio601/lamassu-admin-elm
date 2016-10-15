@@ -414,28 +414,51 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
                     maybeFieldValue
                     maybeFallbackFieldValue
 
+            FieldOnOffType ->
+                onOffSelectizeView model
+                    localConfig
+                    fieldInstance
+                    selectizeState
+                    maybeFieldValue
+                    maybeFallbackFieldValue
+
             _ ->
                 Debug.crash "Not a Selectize field"
 
 
-toggleView : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-toggleView fieldLocator maybeFieldValue maybeFallbackFieldValue =
+onOffSelectizeView :
+    ResolvedModel
+    -> LocalConfig
+    -> FieldInstance
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
-        maybeSpecificString =
+        specificConfig =
+            { maxItems = 1
+            , selectedDisplay = .code
+            , optionDisplay = .display
+            , match = FuzzyMatch.match
+            }
+
+        availableItems =
+            [ { display = "On", code = "on" }, { display = "Off", code = "off" } ]
+
+        selectedIds =
             Maybe.map fieldValueToString maybeFieldValue
+                |> maybeToList
 
-        maybeFallbackString =
+        fallbackIds =
             Maybe.map fieldValueToString maybeFallbackFieldValue
-
-        defaultString =
-            Maybe.withDefault "" maybeSpecificString
-
-        fallbackString =
-            Maybe.withDefault "N/A" maybeFallbackString
+                |> maybeToList
     in
-        div [ class [ C.ToggleComponent, C.ToggleNone ] ]
-            [ div [ class [ C.ToggleButton ] ] [ i [ Html.Attributes.class "fa fa-times-circle" ] [] ]
-            ]
+        Selectize.view (buildConfig localConfig specificConfig)
+            selectedIds
+            availableItems
+            fallbackIds
+            selectizeState
 
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
@@ -446,9 +469,6 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
 
         SelectizeComponent selectizeState ->
             selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
-
-        ToggleComponent ->
-            toggleView fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -653,7 +673,7 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             InputBoxComponent
 
         FieldOnOffType ->
-            ToggleComponent
+            SelectizeComponent Selectize.initialSelectize
 
         FieldAccountType ->
             SelectizeComponent Selectize.initialSelectize

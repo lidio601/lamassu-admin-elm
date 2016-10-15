@@ -188,55 +188,6 @@ css =
                     , property "outline" "none"
                     , property "background-color" "inherit"
                     ]
-                , (.) ToggleComponent
-                    [ padding zero
-                    , margin auto
-                    , width (px 60)
-                    , height (px 20)
-                    , borderRadius (px 20)
-                    , border3 (px 2) solid Colors.white
-                    , backgroundColor Colors.white
-                    , displayFlex
-                    , cursor pointer
-                    , property "justify-content" "space-between"
-                    , children
-                        [ (.) ToggleButton
-                            [ width (px 20)
-                            , height (px 20)
-                            , margin zero
-                            , fontSize (px 20)
-                            ]
-                        ]
-                    ]
-                , (.) ToggleOn
-                    [ backgroundColor (hex "00ff00")
-                    , borderColor (hex "00ff00")
-                    , children
-                        [ (.) ToggleButton
-                            [ backgroundColor Colors.white
-                            , borderColor Colors.white
-                            ]
-                        ]
-                    ]
-                , (.) ToggleOff
-                    [ backgroundColor Colors.white
-                    , children
-                        [ (.) ToggleButton
-                            [ marginLeft (px 20)
-                            , backgroundColor Colors.white
-                            , borderColor Colors.darkGrey
-                            ]
-                        ]
-                    ]
-                , (.) ToggleNone
-                    [ backgroundColor Colors.white
-                    , children
-                        [ (.) ToggleButton
-                            [ marginLeft (px 20)
-                            , color Colors.darkerLightGrey
-                            ]
-                        ]
-                    ]
                 , td
                     [ padding2 (px 3) (px 4)
                     , textAlign center
@@ -245,6 +196,7 @@ css =
                 , (.) Component
                     [ borderRadius (px 3)
                     , border3 (px 2) solid Colors.lightGrey
+                    , backgroundColor Colors.white
                     ]
                 , (.) FocusedComponent
                     [ borderTopColor Colors.amazonite ]
