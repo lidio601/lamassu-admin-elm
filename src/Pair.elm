@@ -39,7 +39,7 @@ type alias Msg =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    msg ! []
+    Debug.log "DEBUG21" msg ! []
 
 
 view : Model -> Html Msg

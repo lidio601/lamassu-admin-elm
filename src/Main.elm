@@ -88,15 +88,18 @@ type alias Model =
 
 init : ( Route, Address ) -> ( Model, Cmd Msg )
 init ( route, address ) =
-    { route = route
-    , address = address
-    , category = Nothing
-    , account = Account.init
-    , pair = Pair.init
-    , config = Config.init
-    , err = Nothing
-    }
-        ! []
+    let
+        model =
+            { route = route
+            , address = address
+            , category = Nothing
+            , account = Account.init
+            , pair = Pair.init
+            , config = Config.init
+            , err = Nothing
+            }
+    in
+        urlUpdate ( route, address ) model
 
 
 
@@ -105,11 +108,11 @@ init ( route, address ) =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "DEBUG23" msg of
         PairMsg pairMsg ->
             let
                 ( pairModel, cmd ) =
-                    Pair.update pairMsg model.pair
+                    Pair.update (Debug.log "DEBUG22" pairMsg) model.pair
             in
                 { model | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
@@ -139,20 +142,9 @@ update msg model =
                 { model | category = maybeCategory } ! [ command ]
 
 
-
---    let
---         command =
---             -- First generate the URL using your config (`outputFromPath`).
---             -- Then generate a command using Navigation.newUrl.
---             Hop.outputFromPath hopConfig path
---                 |> Navigation.newUrl
---     in
---         ( model, command )
-
-
 content : Model -> Html Msg
 content model =
-    case model.route of
+    case Debug.log "DEBUG20" model.route of
         PairRoute ->
             map PairMsg (Pair.view model.pair)
 
@@ -182,7 +174,34 @@ view model =
 
 urlUpdate : ( Route, Address ) -> Model -> ( Model, Cmd Msg )
 urlUpdate ( route, address ) model =
-    ( { model | route = route, address = address }, Cmd.none )
+    let
+        pagedModel =
+            { model | route = route }
+    in
+        case route of
+            PairRoute ->
+                let
+                    ( pairModel, cmd ) =
+                        Pair.load
+                in
+                    { pagedModel | category = Nothing, pair = pairModel } ! [ Cmd.map PairMsg cmd ]
+
+            AccountRoute account ->
+                let
+                    ( accountModel, cmd ) =
+                        Account.load account
+                in
+                    { pagedModel | category = Just AccountCat, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+
+            ConfigRoute config maybeCryptoCodeString ->
+                let
+                    ( configModel, cmd ) =
+                        Config.load pagedModel.config config maybeCryptoCodeString
+                in
+                    { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+
+            NotFoundRoute ->
+                Debug.crash "Need to create 404"
 
 
 

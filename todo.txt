@@ -10,7 +10,9 @@
 
 ---------------------------
 
-- on page load, correctly set page and category
+v on page load, correctly set page and category
 v fix css
-- get pages to work again
+v get pages to work again
+v run updateUrl on default page
+- fix input boxes in config
 - registration url, save in cookie
