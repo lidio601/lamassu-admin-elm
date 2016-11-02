@@ -11,4 +11,6 @@
 ---------------------------
 
 - on page load, correctly set page and category
-- redo bower components, build everything to static dir
+v fix css
+- get pages to work again
+- registration url, save in cookie

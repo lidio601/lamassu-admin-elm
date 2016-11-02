@@ -11,7 +11,7 @@ port files : CssFileStructure -> Cmd msg
 
 cssFiles : CssFileStructure
 cssFiles =
-    toFileStructure [ ( "styles.css", compile Css.Main.css ) ]
+    toFileStructure [ ( "build/styles.css", compile Css.Main.css ) ]
 
 
 main : Program Never

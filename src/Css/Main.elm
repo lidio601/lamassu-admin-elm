@@ -221,7 +221,7 @@ css =
             , padding zero
             , fontSize (px 18)
             , descendants
-                [ (.) NavBarPage
+                [ (.) NavBarRoute
                     [ height (px 60)
                     , display block
                     , lineHeight (px 60)
@@ -237,7 +237,7 @@ css =
                     ]
                 , (.) NavBarCategoryContainer
                     [ descendants
-                        [ (.) NavBarPage
+                        [ (.) NavBarRoute
                             [ colorize darkGreyScheme
                             , padding4 zero (px 20) zero (px 30)
                             , fontWeight (int 500)
