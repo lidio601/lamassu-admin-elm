@@ -142,8 +142,11 @@ fieldHolderToList fieldHolder =
                         FieldLanguageValue v ->
                             v
 
+                        FieldCryptoCurrencyValue v ->
+                            v
+
                         _ ->
-                            Debug.crash "Only works for FieldLanguage"
+                            Debug.crash "Not a list type"
 
 
 emptyToNothing : List x -> Maybe (List x)
@@ -172,6 +175,21 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
                                 list ++ [ s ]
                 in
                     { fieldInstance | fieldValue = Ok (Maybe.map FieldLanguageValue (emptyToNothing newList)) }
+
+            FieldCryptoCurrencyType ->
+                let
+                    list =
+                        fieldHolderToList fieldInstance.fieldValue
+
+                    newList =
+                        case maybeString of
+                            Nothing ->
+                                List.take ((List.length list) - 1) list
+
+                            Just s ->
+                                list ++ [ s ]
+                in
+                    { fieldInstance | fieldValue = Ok (Maybe.map FieldCryptoCurrencyValue (emptyToNothing newList)) }
 
             _ ->
                 let
@@ -322,6 +340,55 @@ currencySelectizeView model localConfig fieldInstance selectizeState maybeFieldV
             selectizeState
 
 
+cryptoCurrencySelectizeView :
+    ResolvedModel
+    -> LocalConfig
+    -> FieldInstance
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+cryptoCurrencySelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+    let
+        specificConfig =
+            { maxItems = 5
+            , selectedDisplay = .code
+            , optionDisplay = .display
+            , match = FuzzyMatch.match
+            }
+
+        toDisplay crypto =
+            { code = cryptoToString crypto.crypto, display = crypto.display }
+
+        availableItems =
+            List.map toDisplay model.configGroup.data.cryptoCurrencies
+
+        toList maybeValue =
+            case maybeValue of
+                Nothing ->
+                    []
+
+                Just fieldValue ->
+                    case fieldValue of
+                        FieldCryptoCurrencyValue list ->
+                            list
+
+                        _ ->
+                            Debug.crash "Shouldn't be here"
+
+        selectedIds =
+            toList maybeFieldValue
+
+        fallbackIds =
+            toList maybeFallbackFieldValue
+    in
+        Selectize.view (buildConfig localConfig specificConfig)
+            selectedIds
+            availableItems
+            fallbackIds
+            selectizeState
+
+
 languageSelectizeView :
     ResolvedModel
     -> LocalConfig
@@ -406,6 +473,14 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
                     maybeFieldValue
                     maybeFallbackFieldValue
 
+            FieldCryptoCurrencyType ->
+                cryptoCurrencySelectizeView model
+                    localConfig
+                    fieldInstance
+                    selectizeState
+                    maybeFieldValue
+                    maybeFallbackFieldValue
+
             FieldLanguageType ->
                 languageSelectizeView model
                     localConfig
@@ -438,7 +513,7 @@ onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValu
     let
         specificConfig =
             { maxItems = 1
-            , selectedDisplay = .code
+            , selectedDisplay = .display
             , optionDisplay = .display
             , match = FuzzyMatch.match
             }
@@ -679,6 +754,9 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             SelectizeComponent Selectize.initialSelectize
 
         FieldCurrencyType ->
+            SelectizeComponent Selectize.initialSelectize
+
+        FieldCryptoCurrencyType ->
             SelectizeComponent Selectize.initialSelectize
 
         FieldLanguageType ->

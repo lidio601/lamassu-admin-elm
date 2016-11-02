@@ -25,6 +25,9 @@ fieldValueTypeDecoder fieldType =
         "currency" ->
             map FieldCurrencyValue ("value" := string)
 
+        "cryptoCurrency" ->
+            map FieldCryptoCurrencyValue ("value" := list string)
+
         "language" ->
             map FieldLanguageValue ("value" := list string)
 
@@ -144,6 +147,9 @@ basicFieldTypeDecoder s =
         "currency" ->
             succeed FieldCurrencyType
 
+        "cryptoCurrency" ->
+            succeed FieldCryptoCurrencyType
+
         "language" ->
             succeed FieldLanguageType
 
@@ -207,7 +213,7 @@ accountRecDecoder =
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
     object5 ConfigData
-        ("cryptos" := list cryptoDisplayDecoder)
+        ("cryptoCurrencies" := list cryptoDisplayDecoder)
         ("currencies" := list displayRecDecoder)
         ("languages" := list displayRecDecoder)
         ("accounts" := list accountRecDecoder)

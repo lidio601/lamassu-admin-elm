@@ -126,9 +126,10 @@ view maybeCategory page =
             , ll ( "Configuration", ConfigCat, ConfigPage "commissions" Nothing )
                 [ ( "Commissions", ConfigPage "commissions" Nothing )
                 , ( "Limits", ConfigPage "limits" Nothing )
-                , ( "Fiat", ConfigPage "fiat" Nothing )
+                , ( "Currencies", ConfigPage "currencies" Nothing )
                 , ( "Crypto services", ConfigPage "cryptoServices" Nothing )
                 , ( "Languages", ConfigPage "languages" Nothing )
                 , ( "Notifications", ConfigPage "notifications" Nothing )
+                , ( "Compliance", ConfigPage "compliance" Nothing )
                 ]
             ]

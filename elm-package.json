@@ -24,6 +24,7 @@
         "rtfeldman/elm-css-helpers": "2.0.0 <= v < 3.0.0",
         "rtfeldman/elm-css-util": "1.0.1 <= v < 2.0.0",
         "rtfeldman/elm-validate": "1.1.2 <= v < 2.0.0",
+        "sporto/hop": "6.0.1 <= v < 7.0.0",
         "tripokey/elm-fuzzy": "5.0.1 <= v < 6.0.0"
     },
     "elm-version": "0.17.0 <= v < 0.18.0"

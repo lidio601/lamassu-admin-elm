@@ -36,6 +36,9 @@ encodeFieldValue maybeFieldValue =
                 FieldCurrencyValue value ->
                     encodeFieldValueObject "currency" (string value)
 
+                FieldCryptoCurrencyValue value ->
+                    encodeFieldValueObject "cryptoCurrency" (list (List.map string value))
+
                 FieldLanguageValue value ->
                     encodeFieldValueObject "language" (list (List.map string value))
 
@@ -88,6 +91,9 @@ fieldTypeEncoder fieldType =
 
         FieldCurrencyType ->
             string "currency"
+
+        FieldCryptoCurrencyType ->
+            string "cryptoCurrency"
 
         FieldLanguageType ->
             string "language"

@@ -93,6 +93,7 @@ type FieldType
     | FieldOnOffType
     | FieldAccountType
     | FieldCurrencyType
+    | FieldCryptoCurrencyType
     | FieldLanguageType
 
 
@@ -103,6 +104,7 @@ type FieldValue
     | FieldOnOffValue Bool
     | FieldAccountValue String
     | FieldCurrencyValue String
+    | FieldCryptoCurrencyValue (List String)
     | FieldLanguageValue (List String)
 
 
@@ -146,7 +148,7 @@ accountRecToDisplayRec accountRec =
 
 
 type alias ConfigData =
-    { cryptos : List CryptoDisplay
+    { cryptoCurrencies : List CryptoDisplay
     , currencies : List DisplayRec
     , languages : List DisplayRec
     , accounts : List AccountRec
@@ -192,6 +194,9 @@ fieldValueToString fieldValue =
         FieldCurrencyValue v ->
             v
 
+        FieldCryptoCurrencyValue v ->
+            Debug.crash "N/A for cryptoCurrency"
+
         FieldLanguageValue v ->
             Debug.crash "N/A for language"
 
@@ -233,13 +238,13 @@ listCryptos : ConfigGroup -> List CryptoDisplay
 listCryptos configGroup =
     case configGroup.schema.cryptoScope of
         Specific ->
-            configGroup.data.cryptos
+            configGroup.data.cryptoCurrencies
 
         Global ->
             [ globalCryptoDisplay ]
 
         Both ->
-            globalCryptoDisplay :: configGroup.data.cryptos
+            globalCryptoDisplay :: configGroup.data.cryptoCurrencies
 
 
 fieldScopes : ConfigGroup -> List FieldScope
@@ -304,6 +309,9 @@ stringToFieldHolder fieldType s =
 
             FieldCurrencyType ->
                 Ok (Just (FieldCurrencyValue s))
+
+            FieldCryptoCurrencyType ->
+                Ok (Just (FieldCryptoCurrencyValue [ s ]))
 
             FieldLanguageType ->
                 Ok (Just (FieldLanguageValue [ s ]))
