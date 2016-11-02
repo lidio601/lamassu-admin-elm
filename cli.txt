@@ -1,0 +1,2 @@
+ls src/Css/* | entr elm-css src/Stylesheets.elm
+find src | entr elm-make src/Main.elm --output build/elm.js

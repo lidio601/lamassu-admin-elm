@@ -11,3 +11,4 @@
 ---------------------------
 
 - on page load, correctly set page and category
+- redo bower components, build everything to static dir

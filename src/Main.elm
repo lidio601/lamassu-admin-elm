@@ -129,10 +129,25 @@ update msg model =
 
         NewRoute maybeCategory route ->
             let
-                url =
-                    NavBar.routeToUrl route
+                path =
+                    routeToUrl route
+
+                command =
+                    Hop.outputFromPath hopConfig path
+                        |> Navigation.newUrl
             in
-                { model | category = maybeCategory } ! [ newUrl url ]
+                { model | category = maybeCategory } ! [ command ]
+
+
+
+--    let
+--         command =
+--             -- First generate the URL using your config (`outputFromPath`).
+--             -- Then generate a command using Navigation.newUrl.
+--             Hop.outputFromPath hopConfig path
+--                 |> Navigation.newUrl
+--     in
+--         ( model, command )
 
 
 content : Model -> Html Msg

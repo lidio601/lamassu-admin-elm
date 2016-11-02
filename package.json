@@ -27,6 +27,7 @@
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
+    "elm-webpack-loader": "^3.0.6",
     "script-loader": "^0.7.0"
   }
 }
