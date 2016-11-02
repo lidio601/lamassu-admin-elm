@@ -1,11 +1,11 @@
-module NavBar exposing (view, pageToUrl)
+module NavBar exposing (view, routeToUrl)
 
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, ul, li, nav)
 import Html.Events exposing (onClick)
 import Html.CssHelpers
 import Css.Classes
 import String
-import CoreTypes exposing (Msg(..), Category(..), Page(..))
+import CoreTypes exposing (Msg(..), Category(..), Route(..))
 
 
 { id, class, classList } =
@@ -18,47 +18,47 @@ maybeUrl root maybeStrings =
         |> String.cons '/'
 
 
-pageToUrl : Page -> String
-pageToUrl page =
-    case page of
-        PairPage ->
+routeToUrl : Route -> String
+routeToUrl route =
+    case route of
+        PairRoute ->
             "/pair"
 
-        AccountPage account ->
+        AccountRoute account ->
             "/account/" ++ account
 
-        ConfigPage configGroup maybeCrypto ->
+        ConfigRoute configGroup maybeCrypto ->
             maybeUrl ("config/" ++ configGroup) [ maybeCrypto ]
 
-        UnknownPage ->
-            Debug.crash "Need unknown page"
+        NotFoundRoute ->
+            Debug.crash "Need unknown route"
 
 
-activePage : Page -> Page -> Attribute msg
-activePage linkPage page =
+activeRoute : Route -> Route -> Attribute msg
+activeRoute linkRoute route =
     let
         active =
-            case page of
-                PairPage ->
-                    linkPage == page
+            case route of
+                PairRoute ->
+                    linkRoute == route
 
-                AccountPage _ ->
-                    linkPage == page
+                AccountRoute _ ->
+                    linkRoute == route
 
-                ConfigPage config _ ->
-                    linkPage == ConfigPage config Nothing
+                ConfigRoute config _ ->
+                    linkRoute == ConfigRoute config Nothing
 
-                UnknownPage ->
-                    Debug.crash "Need unknown page"
+                NotFoundRoute ->
+                    Debug.crash "Need NotFoundRoute"
     in
         if (active) then
-            class [ Css.Classes.NavBarPage, Css.Classes.Active ]
+            class [ Css.Classes.NavBarRoute, Css.Classes.Active ]
         else
-            class [ Css.Classes.NavBarPage ]
+            class [ Css.Classes.NavBarRoute ]
 
 
 type alias Link =
-    ( String, Page )
+    ( String, Route )
 
 
 activeCategory : Maybe Category -> Category -> Attribute msg
@@ -74,62 +74,62 @@ activeCategory maybeCurrentCategory linkedCategory =
                 class [ Css.Classes.NavBarCategory ]
 
 
-categoryView : Maybe Category -> ( String, Category, Page ) -> Html Msg
+categoryView : Maybe Category -> ( String, Category, Route ) -> Html Msg
 categoryView currentCategory link =
     let
-        ( desc, category, linkPage ) =
+        ( desc, category, linkRoute ) =
             link
     in
         div
-            [ onClick (NewPage (Just category) linkPage)
+            [ onClick (NewRoute (Just category) linkRoute)
             , activeCategory currentCategory category
             ]
             [ text desc ]
 
 
-linkView : Maybe Category -> Page -> Maybe Category -> Link -> Html Msg
-linkView maybeCategory currentPage maybeLinkedCategory link =
+linkView : Maybe Category -> Route -> Maybe Category -> Link -> Html Msg
+linkView maybeCategory currentRoute maybeLinkedCategory link =
     let
-        ( desc, linkPage ) =
+        ( desc, linkRoute ) =
             link
     in
-        div [ onClick (NewPage maybeLinkedCategory linkPage), activePage linkPage currentPage ] [ text desc ]
+        div [ onClick (NewRoute maybeLinkedCategory linkRoute), activeRoute linkRoute currentRoute ] [ text desc ]
 
 
-linksView : Maybe Category -> Page -> ( String, Category, Page ) -> List Link -> Html Msg
-linksView maybeCurrentCategory currentPage ( catDesc, cat, page ) links =
+linksView : Maybe Category -> Route -> ( String, Category, Route ) -> List Link -> Html Msg
+linksView maybeCurrentCategory currentRoute ( catDesc, cat, route ) links =
     if maybeCurrentCategory == (Just cat) then
         div [ class [ Css.Classes.NavBarCategoryContainer ] ]
-            [ categoryView maybeCurrentCategory ( catDesc, cat, page )
-            , div [] (List.map (linkView maybeCurrentCategory currentPage (Just cat)) links)
+            [ categoryView maybeCurrentCategory ( catDesc, cat, route )
+            , div [] (List.map (linkView maybeCurrentCategory currentRoute (Just cat)) links)
             ]
     else
         div [ class [ Css.Classes.NavBarCategoryContainer ] ]
-            [ categoryView maybeCurrentCategory ( catDesc, cat, page )
+            [ categoryView maybeCurrentCategory ( catDesc, cat, route )
             ]
 
 
-view : Maybe Category -> Page -> Html Msg
-view maybeCategory page =
+view : Maybe Category -> Route -> Html Msg
+view maybeCategory route =
     let
         l =
-            linkView maybeCategory page Nothing
+            linkView maybeCategory route Nothing
 
         ll =
-            linksView maybeCategory page
+            linksView maybeCategory route
     in
         nav [ class [ Css.Classes.NavBar ] ]
-            [ l ( "Pairing", PairPage )
-            , ll ( "Accounts", AccountCat, AccountPage "twilio" )
-                [ ( "Twilio", AccountPage "twilio" )
+            [ l ( "Pairing", PairRoute )
+            , ll ( "Accounts", AccountCat, AccountRoute "twilio" )
+                [ ( "Twilio", AccountRoute "twilio" )
                 ]
-            , ll ( "Configuration", ConfigCat, ConfigPage "commissions" Nothing )
-                [ ( "Commissions", ConfigPage "commissions" Nothing )
-                , ( "Limits", ConfigPage "limits" Nothing )
-                , ( "Currencies", ConfigPage "currencies" Nothing )
-                , ( "Crypto services", ConfigPage "cryptoServices" Nothing )
-                , ( "Languages", ConfigPage "languages" Nothing )
-                , ( "Notifications", ConfigPage "notifications" Nothing )
-                , ( "Compliance", ConfigPage "compliance" Nothing )
+            , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
+                [ ( "Commissions", ConfigRoute "commissions" Nothing )
+                , ( "Limits", ConfigRoute "limits" Nothing )
+                , ( "Currencies", ConfigRoute "currencies" Nothing )
+                , ( "Crypto services", ConfigRoute "cryptoServices" Nothing )
+                , ( "Languages", ConfigRoute "languages" Nothing )
+                , ( "Notifications", ConfigRoute "notifications" Nothing )
+                , ( "Compliance", ConfigRoute "compliance" Nothing )
                 ]
             ]

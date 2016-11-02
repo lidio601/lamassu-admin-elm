@@ -1,4 +1,4 @@
-module CoreTypes exposing (Msg(..), Category(..), Page(..))
+module CoreTypes exposing (Msg(..), Category(..), Route(..))
 
 import Pair
 import Account
@@ -10,15 +10,15 @@ type Category
     | ConfigCat
 
 
-type Page
-    = AccountPage String
-    | PairPage
-    | ConfigPage String (Maybe String)
-    | UnknownPage
+type Route
+    = AccountRoute String
+    | PairRoute
+    | ConfigRoute String (Maybe String)
+    | NotFoundRoute
 
 
 type Msg
     = AccountMsg Account.Msg
     | PairMsg Pair.Msg
     | ConfigMsg Config.Msg
-    | NewPage (Maybe Category) Page
+    | NewRoute (Maybe Category) Route

@@ -3,21 +3,22 @@ module Main exposing (..)
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.App exposing (map)
 import Navigation
+import Hop
+import Hop.Types exposing (Config, Address, Query)
 import Pair
 import Account
 import Config
 import NavBar exposing (..)
 import UrlParser exposing (..)
 import Result exposing (withDefault)
-import String
 import Html.Attributes exposing (class)
 import Navigation exposing (newUrl)
-import CoreTypes exposing (Msg(..), Page(..), Category(..))
+import CoreTypes exposing (Msg(..), Route(..), Category(..))
 
 
 main : Program Never
 main =
-    Navigation.program (Navigation.makeParser pageParser)
+    Navigation.program urlParser
         { init = init
         , view = view
         , update = update
@@ -30,18 +31,43 @@ main =
 -- URL PARSERS
 
 
-pageParser : Navigation.Location -> Result String Page
-pageParser location =
-    UrlParser.parse identity desiredPage (String.dropLeft 1 location.pathname)
+hopConfig : Config
+hopConfig =
+    { hash = True
+    , basePath = ""
+    }
 
 
-desiredPage : Parser (Page -> a) a
-desiredPage =
+urlParser : Navigation.Parser ( Route, Address )
+urlParser =
+    let
+        -- A parse function takes the normalised path from Hop after taking
+        -- in consideration the basePath and the hash.
+        -- This function then returns a result.
+        parse path =
+            -- First we parse using UrlParser.parse.
+            -- Then we return the parsed route or NotFoundRoute if the parsed failed.
+            -- You can choose to return the parse return directly.
+            path
+                |> UrlParser.parse identity routes
+                |> Result.withDefault NotFoundRoute
+
+        resolver =
+            -- Create a function that parses and formats the URL
+            -- This function takes 2 arguments: The Hop Config and the parse function.
+            Hop.makeResolver hopConfig parse
+    in
+        -- Create a Navigation URL parser
+        Navigation.makeParser (.href >> resolver)
+
+
+routes : Parser (Route -> a) a
+routes =
     oneOf
-        [ format (\account -> AccountPage account) (s "account" </> string)
-        , format PairPage (s "pair")
-        , format (\config crypto -> ConfigPage config (Just crypto)) (s "config" </> string </> string)
-        , format (\config -> ConfigPage config Nothing) (s "config" </> string)
+        [ format (\account -> AccountRoute account) (s "account" </> string)
+        , format PairRoute (s "pair")
+        , format (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
+        , format (\config -> ConfigRoute config Nothing) (s "config" </> string)
         ]
 
 
@@ -50,7 +76,8 @@ desiredPage =
 
 
 type alias Model =
-    { page : Page
+    { route : Route
+    , address : Address
     , category : Maybe Category
     , pair : Pair.Model
     , account : Account.Model
@@ -59,19 +86,17 @@ type alias Model =
     }
 
 
-init : Result String Page -> ( Model, Cmd Msg )
-init pageResult =
-    let
-        initModel =
-            { page = withDefault UnknownPage (Debug.log "DEBUG11" pageResult)
-            , category = Nothing
-            , account = Account.init
-            , pair = Pair.init
-            , config = Config.init
-            , err = Nothing
-            }
-    in
-        urlUpdate pageResult initModel
+init : ( Route, Address ) -> ( Model, Cmd Msg )
+init ( route, address ) =
+    { route = route
+    , address = address
+    , category = Nothing
+    , account = Account.init
+    , pair = Pair.init
+    , config = Config.init
+    , err = Nothing
+    }
+        ! []
 
 
 
@@ -102,28 +127,28 @@ update msg model =
             in
                 { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-        NewPage maybeCategory page ->
+        NewRoute maybeCategory route ->
             let
                 url =
-                    NavBar.pageToUrl page
+                    NavBar.routeToUrl route
             in
                 { model | category = maybeCategory } ! [ newUrl url ]
 
 
 content : Model -> Html Msg
 content model =
-    case model.page of
-        PairPage ->
+    case model.route of
+        PairRoute ->
             map PairMsg (Pair.view model.pair)
 
-        AccountPage _ ->
+        AccountRoute _ ->
             map AccountMsg (Account.view model.account)
 
-        ConfigPage _ _ ->
+        ConfigRoute _ _ ->
             map ConfigMsg (Config.view model.config)
 
-        UnknownPage ->
-            div [] [ text ("No such page") ]
+        NotFoundRoute ->
+            div [] [ text ("No such route") ]
 
 
 view : Model -> Html Msg
@@ -131,7 +156,7 @@ view model =
     div []
         [ div [ class "grid" ]
             [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                [ NavBar.view model.category model.page ]
+                [ NavBar.view model.category model.route ]
             , div [ class "unit three-quarters lamassuAdminMainRight" ]
                 [ div [ class "lamassuAdminContent" ]
                     [ content model ]
@@ -140,41 +165,9 @@ view model =
         ]
 
 
-urlUpdate : Result String Page -> Model -> ( Model, Cmd Msg )
-urlUpdate pageResult model =
-    let
-        pagedModel =
-            { model | page = withDefault UnknownPage pageResult }
-    in
-        case Debug.log "result" pageResult of
-            Err updateErr ->
-                { model | err = Just updateErr } ! []
-
-            Ok page ->
-                case page of
-                    PairPage ->
-                        let
-                            ( pairModel, cmd ) =
-                                Pair.load
-                        in
-                            { pagedModel | category = Nothing, pair = pairModel } ! [ Cmd.map PairMsg cmd ]
-
-                    AccountPage account ->
-                        let
-                            ( accountModel, cmd ) =
-                                Account.load account
-                        in
-                            { pagedModel | category = Just AccountCat, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
-
-                    ConfigPage config maybeCryptoCodeString ->
-                        let
-                            ( configModel, cmd ) =
-                                Config.load pagedModel.config config maybeCryptoCodeString
-                        in
-                            { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
-
-                    UnknownPage ->
-                        Debug.crash "Need to create unknown page"
+urlUpdate : ( Route, Address ) -> Model -> ( Model, Cmd Msg )
+urlUpdate ( route, address ) model =
+    ( { model | route = route, address = address }, Cmd.none )
 
 
 

@@ -8,7 +8,7 @@ type CssClasses
     | NavBarItemActive
     | NavBarCategoryContainer
     | NavBarCategory
-    | NavBarPage
+    | NavBarRoute
     | Content
     | CryptoTabs
     | CryptoTabsActive
