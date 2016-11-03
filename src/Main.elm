@@ -16,6 +16,13 @@ import Navigation exposing (newUrl)
 import CoreTypes exposing (Msg(..), Route(..), Category(..))
 
 
+hopConfig : Hop.Types.Config
+hopConfig =
+    { hash = True
+    , basePath = ""
+    }
+
+
 main : Program Never
 main =
     Navigation.program urlParser
@@ -29,13 +36,6 @@ main =
 
 
 -- URL PARSERS
-
-
-hopConfig : Config
-hopConfig =
-    { hash = True
-    , basePath = ""
-    }
 
 
 urlParser : Navigation.Parser ( Route, Address )
@@ -108,7 +108,7 @@ init ( route, address ) =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "DEBUG23" msg of
+    case msg of
         PairMsg pairMsg ->
             let
                 ( pairModel, cmd ) =
@@ -132,11 +132,14 @@ update msg model =
 
         NewRoute maybeCategory route ->
             let
+                _ =
+                    Debug.log "DEBUG28" "x"
+
                 path =
-                    routeToUrl route
+                    routeToUrl (Debug.log "DEBUG27" route)
 
                 command =
-                    Hop.outputFromPath hopConfig path
+                    Hop.outputFromPath hopConfig (Debug.log "DEBUG26" path)
                         |> Navigation.newUrl
             in
                 { model | category = maybeCategory } ! [ command ]
@@ -178,7 +181,7 @@ urlUpdate ( route, address ) model =
         pagedModel =
             { model | route = route }
     in
-        case route of
+        case Debug.log "DEBUG25" route of
             PairRoute ->
                 let
                     ( pairModel, cmd ) =

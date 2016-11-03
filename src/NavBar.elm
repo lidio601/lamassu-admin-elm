@@ -15,17 +15,16 @@ maybeUrl root maybeStrings =
     List.filterMap identity maybeStrings
         |> List.append [ root ]
         |> String.join "/"
-        |> String.cons '/'
 
 
 routeToUrl : Route -> String
 routeToUrl route =
     case route of
         PairRoute ->
-            "/pair"
+            "pair"
 
         AccountRoute account ->
-            "/account/" ++ account
+            "account/" ++ account
 
         ConfigRoute configGroup maybeCrypto ->
             maybeUrl ("config/" ++ configGroup) [ maybeCrypto ]

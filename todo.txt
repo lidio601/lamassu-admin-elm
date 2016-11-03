@@ -14,5 +14,6 @@ v on page load, correctly set page and category
 v fix css
 v get pages to work again
 v run updateUrl on default page
-- fix input boxes in config
+v fix input boxes in config (seems to be issue with cryptos)
+- set default crypto
 - registration url, save in cookie

@@ -6,6 +6,8 @@ import Html.Events exposing (onClick)
 import Html.Attributes exposing (defaultValue, placeholder, type')
 import Html.Keyed
 import Navigation
+import Hop
+import Hop.Types
 import RemoteData exposing (..)
 import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
@@ -17,6 +19,13 @@ import Selectize
 import Maybe exposing (oneOf)
 import FuzzyMatch
 import SelectizeHelper exposing (buildConfig)
+
+
+hopConfig : Hop.Types.Config
+hopConfig =
+    { hash = True
+    , basePath = ""
+    }
 
 
 type alias ConfigGroupResponse =
@@ -936,10 +945,14 @@ update msg model =
                         cryptoCode =
                             cryptoToString crypto
 
-                        url =
-                            "/config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
+                        path =
+                            "config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
+
+                        command =
+                            Hop.outputFromPath hopConfig (Debug.log "DEBUG26" path)
+                                |> Navigation.newUrl
                     in
-                        { model | crypto = Just crypto } ! [ Navigation.newUrl url ]
+                        { model | crypto = Just crypto } ! [ command ]
 
                 _ ->
                     model ! []
