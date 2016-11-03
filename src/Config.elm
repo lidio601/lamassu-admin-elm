@@ -912,7 +912,7 @@ update msg model =
                 crypto =
                     case model.crypto of
                         Nothing ->
-                            defaultCrypto
+                            Debug.log "DEBUG27" defaultCrypto
 
                         Just crypto ->
                             Just crypto

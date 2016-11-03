@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import String
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.App exposing (map)
 import Navigation
@@ -63,12 +64,24 @@ urlParser =
 
 routes : Parser (Route -> a) a
 routes =
-    oneOf
-        [ format (\account -> AccountRoute account) (s "account" </> string)
-        , format PairRoute (s "pair")
-        , format (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
-        , format (\config -> ConfigRoute config Nothing) (s "config" </> string)
-        ]
+    let
+        nonEmptyStringParser : String -> Result String String
+        nonEmptyStringParser str =
+            if String.isEmpty str then
+                Err "Empty string"
+            else
+                Ok str
+
+        nonEmptyString : Parser (String -> a) a
+        nonEmptyString =
+            custom "NON_EMPTY_STRING" nonEmptyStringParser
+    in
+        oneOf
+            [ format (\account -> AccountRoute account) (s "account" </> string)
+            , format PairRoute (s "pair")
+            , format (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> nonEmptyString)
+            , format (\config -> ConfigRoute config Nothing) (s "config" </> string)
+            ]
 
 
 
