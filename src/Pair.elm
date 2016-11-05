@@ -15,7 +15,7 @@ type alias Model =
 
 getTotem : Cmd Msg
 getTotem =
-    Http.getString "http://localhost:8093/totem"
+    Http.getString "/api/totem"
         |> RemoteData.asCmd
 
 

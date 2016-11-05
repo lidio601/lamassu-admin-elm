@@ -19,6 +19,7 @@ import Selectize
 import Maybe exposing (oneOf)
 import FuzzyMatch
 import SelectizeHelper exposing (buildConfig)
+import Constants
 
 
 hopConfig : Hop.Types.Config
@@ -73,7 +74,7 @@ toResolvedModel model configGroup =
 
 getForm : String -> Cmd Msg
 getForm code =
-    get ("http://localhost:8093/config/" ++ code)
+    get ("/api/config/" ++ code)
         |> send (jsonReader configGroupDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -81,7 +82,7 @@ getForm code =
 
 postForm : String -> List FieldInstance -> Cmd Msg
 postForm configGroupCode fieldInstances =
-    post "http://localhost:8093/config"
+    post ("/api/config")
         |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeResults configGroupCode fieldInstances)
         |> send (jsonReader configGroupDecoder) stringReader

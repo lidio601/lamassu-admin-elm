@@ -27,7 +27,7 @@ type alias Model =
 
 getForm : String -> Cmd Msg
 getForm code =
-    get ("http://localhost:8093/account/" ++ code)
+    get ("/api/account/" ++ code)
         |> send (jsonReader accountDecoder) stringReader
         |> RemoteData.asCmd
         |> Cmd.map Load
@@ -35,7 +35,7 @@ getForm code =
 
 postForm : Account -> Cmd Msg
 postForm account =
-    post "http://localhost:8093/account"
+    post "/api/account"
         |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeAccount account)
         |> send (jsonReader accountDecoder) stringReader
