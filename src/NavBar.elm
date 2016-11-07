@@ -5,7 +5,14 @@ import Html.Events exposing (onClick)
 import Html.CssHelpers
 import Css.Classes
 import String
-import CoreTypes exposing (Msg(..), Category(..), Route(..))
+import CoreTypes
+    exposing
+        ( Msg(..)
+        , Category(..)
+        , Route(..)
+        , MachineSubRoute(..)
+        , machineSubRouteToString
+        )
 
 
 { id, class, classList } =
@@ -29,6 +36,9 @@ routeToUrl route =
         ConfigRoute configGroup maybeCrypto ->
             maybeUrl ("config/" ++ configGroup) [ maybeCrypto ]
 
+        MachineRoute route ->
+            "machine/" ++ (machineSubRouteToString route)
+
         NotFoundRoute ->
             Debug.crash "Need unknown route"
 
@@ -46,6 +56,9 @@ activeRoute linkRoute route =
 
                 ConfigRoute config _ ->
                     linkRoute == ConfigRoute config Nothing
+
+                MachineRoute _ ->
+                    linkRoute == route
 
                 NotFoundRoute ->
                     Debug.crash "Need NotFoundRoute"
@@ -118,7 +131,10 @@ view maybeCategory route =
             linksView maybeCategory route
     in
         nav [ class [ Css.Classes.NavBar ] ]
-            [ l ( "Pairing", PairRoute )
+            [ ll ( "Machines", MachineCat, MachineRoute MachineActions )
+                [ ( "Actions", MachineRoute MachineActions )
+                ]
+            , l ( "Pairing", PairRoute )
             , ll ( "Accounts", AccountCat, AccountRoute "twilio" )
                 [ ( "Twilio", AccountRoute "twilio" )
                 ]

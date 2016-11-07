@@ -11,7 +11,7 @@ port files : CssFileStructure -> Cmd msg
 
 cssFiles : CssFileStructure
 cssFiles =
-    toFileStructure [ ( "build/styles.css", compile Css.Main.css ) ]
+    toFileStructure [ ( "../lamassu-admin-server/public/styles.css", compile Css.Main.css ) ]
 
 
 main : Program Never

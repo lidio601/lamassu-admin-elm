@@ -19,7 +19,6 @@ import Selectize
 import Maybe exposing (oneOf)
 import FuzzyMatch
 import SelectizeHelper exposing (buildConfig)
-import Constants
 
 
 hopConfig : Hop.Types.Config

@@ -9,12 +9,13 @@ import Hop.Types exposing (Config, Address, Query)
 import Pair
 import Account
 import Config
+import Machine
 import NavBar exposing (..)
 import UrlParser exposing (..)
 import Result exposing (withDefault)
 import Html.Attributes exposing (class)
 import Navigation exposing (newUrl)
-import CoreTypes exposing (Msg(..), Route(..), Category(..))
+import CoreTypes exposing (Msg(..), Route(..), Category(..), MachineSubRoute(..))
 
 
 hopConfig : Hop.Types.Config
@@ -81,6 +82,7 @@ routes =
             , format PairRoute (s "pair")
             , format (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> nonEmptyString)
             , format (\config -> ConfigRoute config Nothing) (s "config" </> string)
+            , format (MachineRoute MachineActions) (s "machine" </> s "actions")
             ]
 
 
@@ -95,6 +97,7 @@ type alias Model =
     , pair : Pair.Model
     , account : Account.Model
     , config : Config.Model
+    , machine : Machine.Model
     , err : Maybe String
     }
 
@@ -109,6 +112,7 @@ init ( route, address ) =
             , account = Account.init
             , pair = Pair.init
             , config = Config.init
+            , machine = Machine.init
             , err = Nothing
             }
     in
@@ -143,6 +147,13 @@ update msg model =
             in
                 { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
+        MachineMsg machineMsg ->
+            let
+                ( machineModel, cmd ) =
+                    Machine.update machineMsg model.machine
+            in
+                { model | machine = machineModel } ! [ Cmd.map MachineMsg cmd ]
+
         NewRoute maybeCategory route ->
             let
                 _ =
@@ -169,6 +180,9 @@ content model =
 
         ConfigRoute _ _ ->
             map ConfigMsg (Config.view model.config)
+
+        MachineRoute _ ->
+            map MachineMsg (Machine.view model.machine)
 
         NotFoundRoute ->
             div [] [ text ("No such route") ]
@@ -215,6 +229,14 @@ urlUpdate ( route, address ) model =
                         Config.load pagedModel.config config maybeCryptoCodeString
                 in
                     { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+
+            MachineRoute machineSubRoute ->
+                let
+                    ( machineModel, cmd ) =
+                        Machine.load
+                in
+                    { pagedModel | category = Just MachineCat, machine = machineModel }
+                        ! [ Cmd.map MachineMsg cmd ]
 
             NotFoundRoute ->
                 Debug.crash "Need to create 404"
