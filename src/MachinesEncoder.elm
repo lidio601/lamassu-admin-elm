@@ -7,8 +7,9 @@ import MachineTypes exposing (..)
 encodeAction : MachineAction -> Value
 encodeAction action =
     case action of
-        ResetCashOutBills top bottom ->
+        ResetCashOutBills machine ->
             object
                 [ ( "action", string "resetCashOutBills" )
-                , ( "cassettes", list [ int top, int bottom ] )
+                , ( "deviceId", string machine.deviceId )
+                , ( "cassettes", list [ int machine.cassette1, int machine.cassette2 ] )
                 ]

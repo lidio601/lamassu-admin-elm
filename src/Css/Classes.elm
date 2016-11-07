@@ -23,3 +23,4 @@ type CssClasses
     | BasicInput
     | Component
     | FocusedComponent
+    | TableButton
