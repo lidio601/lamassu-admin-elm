@@ -1,8 +1,10 @@
 module Pair exposing (..)
 
-import Html exposing (Html, Attribute, a, div, hr, input, span, text, node)
-import Html.Attributes exposing (id, attribute)
+import Html exposing (Html, Attribute, a, div, hr, input, span, text, node, button, strong)
+import Html.Attributes exposing (id, attribute, placeholder, disabled, style)
+import Html.Events exposing (onClick, onInput)
 import Http
+import String
 import RemoteData exposing (..)
 
 
@@ -10,43 +12,64 @@ import RemoteData exposing (..)
 
 
 type alias Model =
-    WebData String
+    { totem : WebData String
+    , name : String
+    }
 
 
-getTotem : Cmd Msg
-getTotem =
-    Http.getString "/api/totem"
+getTotem : String -> Cmd Msg
+getTotem name =
+    Http.getString (Http.url "/api/totem" [ ( "name", name ) ])
         |> RemoteData.asCmd
+        |> Cmd.map Load
 
 
 init : Model
 init =
-    NotAsked
-
-
-load : ( Model, Cmd Msg )
-load =
-    ( Loading, getTotem )
+    { totem = NotAsked
+    , name = ""
+    }
 
 
 
 -- UPDATE
 
 
-type alias Msg =
-    WebData String
+type Msg
+    = Load (WebData String)
+    | InputName String
+    | SubmitName
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    Debug.log "DEBUG21" msg ! []
+    case msg of
+        Load webData ->
+            { model | totem = webData } ! []
+
+        InputName name ->
+            { model | name = name } ! []
+
+        SubmitName ->
+            model ! [ getTotem model.name ]
 
 
 view : Model -> Html Msg
 view model =
-    case Debug.log "DEBUG3" model of
+    case Debug.log "DEBUG33" model.totem of
         NotAsked ->
-            div [] []
+            div []
+                [ div []
+                    [ input
+                        [ onInput InputName
+                        , placeholder "Coffee shop, 43 Elm St."
+                        ]
+                        []
+                    , button
+                        [ onClick SubmitName, disabled (String.isEmpty model.name) ]
+                        [ text "Pair" ]
+                    ]
+                ]
 
         Loading ->
             div []
@@ -56,4 +79,20 @@ view model =
             div [] [ text (toString err) ]
 
         Success totem ->
-            div [] [ node "qr-code" [ attribute "data" totem ] [] ]
+            div
+                []
+                [ div
+                    [ style
+                        [ ( "background-color", "#eee" )
+                        , ( "padding", "10px" )
+                        , ( "width", "225px" )
+                        , ( "margin-bottom", "20px" )
+                        , ( "border-radius", "6px" )
+                        ]
+                    ]
+                    [ node "qr-code" [ attribute "data" (Debug.log "Totem" totem) ] [] ]
+                , div []
+                    [ span [] [ text "Scan this QR to pair " ]
+                    , strong [] [ text model.name ]
+                    ]
+                ]

@@ -17,3 +17,7 @@ v run updateUrl on default page
 v fix input boxes in config (seems to be issue with cryptos)
 - set default crypto
 - registration url, save in cookie
+
+---------------------------
+
+- reload numbers on submit (low priority)

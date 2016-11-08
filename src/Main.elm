@@ -210,11 +210,7 @@ urlUpdate ( route, address ) model =
     in
         case Debug.log "DEBUG25" route of
             PairRoute ->
-                let
-                    ( pairModel, cmd ) =
-                        Pair.load
-                in
-                    { pagedModel | category = Nothing, pair = pairModel } ! [ Cmd.map PairMsg cmd ]
+                { pagedModel | category = Nothing, pair = Pair.init } ! []
 
             AccountRoute account ->
                 let
