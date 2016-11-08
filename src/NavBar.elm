@@ -135,9 +135,6 @@ view maybeCategory route =
                 [ ( "Actions", MachineRoute MachineActions )
                 ]
             , l ( "Pairing", PairRoute )
-            , ll ( "Accounts", AccountCat, AccountRoute "twilio" )
-                [ ( "Twilio", AccountRoute "twilio" )
-                ]
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
                 [ ( "Commissions", ConfigRoute "commissions" Nothing )
                 , ( "Limits", ConfigRoute "limits" Nothing )
@@ -146,5 +143,8 @@ view maybeCategory route =
                 , ( "Languages", ConfigRoute "languages" Nothing )
                 , ( "Notifications", ConfigRoute "notifications" Nothing )
                 , ( "Compliance", ConfigRoute "compliance" Nothing )
+                ]
+            , ll ( "Accounts", AccountCat, AccountRoute "twilio" )
+                [ ( "Twilio", AccountRoute "twilio" )
                 ]
             ]

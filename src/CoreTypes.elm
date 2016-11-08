@@ -43,4 +43,5 @@ type Msg
     | PairMsg Pair.Msg
     | ConfigMsg Config.Msg
     | MachineMsg Machine.Msg
+    | LoadAccounts (List ( String, String ))
     | NewRoute (Maybe Category) Route

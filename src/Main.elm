@@ -3,7 +3,9 @@ module Main exposing (..)
 import String
 import Html exposing (Html, Attribute, a, div, hr, input, span, text)
 import Html.App exposing (map)
+import Html.Attributes exposing (class)
 import Navigation
+import Task
 import Hop
 import Hop.Types exposing (Config, Address, Query)
 import Pair
@@ -13,9 +15,10 @@ import Machine
 import NavBar exposing (..)
 import UrlParser exposing (..)
 import Result exposing (withDefault)
-import Html.Attributes exposing (class)
+import HttpBuilder exposing (..)
 import Navigation exposing (newUrl)
 import CoreTypes exposing (Msg(..), Route(..), Category(..), MachineSubRoute(..))
+import AccountsDecoder exposing (accountsDecoder)
 
 
 hopConfig : Hop.Types.Config
@@ -86,6 +89,14 @@ routes =
             ]
 
 
+getAccounts : Cmd Msg
+getAccounts =
+    get ("/api/accounts")
+        |> send (jsonReader accountsDecoder) stringReader
+        |> Task.map .data
+        |> Task.perform (\_ -> (LoadAccounts [])) LoadAccounts
+
+
 
 -- MODEL
 
@@ -98,6 +109,7 @@ type alias Model =
     , account : Account.Model
     , config : Config.Model
     , machine : Machine.Model
+    , accounts : List ( String, String )
     , err : Maybe String
     }
 
@@ -113,10 +125,14 @@ init ( route, address ) =
             , pair = Pair.init
             , config = Config.init
             , machine = Machine.init
+            , accounts = []
             , err = Nothing
             }
+
+        ( newModel, newCmd ) =
+            urlUpdate ( route, address ) model
     in
-        urlUpdate ( route, address ) model
+        newModel ! [ newCmd, getAccounts ]
 
 
 
@@ -145,7 +161,7 @@ update msg model =
                 ( configModel, cmd ) =
                     Config.update configMsg model.config
             in
-                { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+                { model | config = configModel } ! [ Cmd.map ConfigMsg cmd, getAccounts ]
 
         MachineMsg machineMsg ->
             let
@@ -153,6 +169,9 @@ update msg model =
                     Machine.update machineMsg model.machine
             in
                 { model | machine = machineModel } ! [ Cmd.map MachineMsg cmd ]
+
+        LoadAccounts accounts ->
+            { model | accounts = Debug.log "DEBUG55" accounts } ! []
 
         NewRoute maybeCategory route ->
             let
