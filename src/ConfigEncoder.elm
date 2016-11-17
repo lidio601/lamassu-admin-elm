@@ -135,7 +135,7 @@ encodeFieldResult fieldInstance =
                 Just (encode maybeFieldValue)
     in
         Result.toMaybe fieldInstance.fieldValue
-            `Maybe.andThen` onlyDirty
+            |> Maybe.andThen onlyDirty
 
 
 encodeResults : String -> List FieldInstance -> Value

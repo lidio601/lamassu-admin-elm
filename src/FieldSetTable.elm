@@ -61,7 +61,7 @@ fieldComponent field =
             label []
                 [ text field.display
                 , input
-                    [ onInput (Input field.code), type' "password" ]
+                    [ onInput (Input field.code), type_ "password" ]
                     []
                 ]
 

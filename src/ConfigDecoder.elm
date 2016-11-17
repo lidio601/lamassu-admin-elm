@@ -37,7 +37,7 @@ fieldValueTypeDecoder fieldType =
 
 fieldValueDecoder : Decoder FieldValue
 fieldValueDecoder =
-    ("fieldType" := string) `andThen` fieldValueTypeDecoder
+    ("fieldType" := string) |> andThen fieldValueTypeDecoder
 
 
 fieldScopeDecoder : Decoder FieldScope
@@ -60,7 +60,7 @@ fieldLocatorDecoder =
     object4 FieldLocator
         ("fieldScope" := fieldScopeDecoder)
         ("code" := string)
-        (("fieldType" := string) `andThen` fieldTypeDecoder)
+        (("fieldType" := string) |> andThen fieldTypeDecoder)
         ("fieldClass" := nullOr string)
 
 
@@ -172,7 +172,7 @@ fieldDescriptorDecoder =
     object4 FieldDescriptor
         ("code" := string)
         ("display" := string)
-        (("fieldType" := string) `andThen` fieldTypeDecoder)
+        (("fieldType" := string) |> andThen fieldTypeDecoder)
         ("fieldClass" := nullOr string)
 
 

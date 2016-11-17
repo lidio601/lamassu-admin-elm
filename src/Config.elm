@@ -2,7 +2,7 @@ module Config exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (defaultValue, placeholder, type')
+import Html.Attributes exposing (defaultValue, placeholder, type_)
 import Html.Keyed
 import Navigation
 import Hop
@@ -842,7 +842,7 @@ pickFieldInstanceValue fieldType fieldCode fieldClass fieldInstances crypto mach
             }
     in
         (pickFieldInstance fieldLocator fieldInstances)
-            `Maybe.andThen` fieldInstanceToMaybeFieldValue
+            |> Maybe.andThen fieldInstanceToMaybeFieldValue
 
 
 updateFocus : FieldLocator -> Bool -> Model -> Model

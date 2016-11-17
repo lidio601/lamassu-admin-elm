@@ -20,7 +20,7 @@ fieldValueDecoder fieldType =
 fieldDecoder : Decoder Field
 fieldDecoder =
     ("fieldType" := string)
-        `andThen`
+        |> andThen
             (\fieldType ->
                 object6 Field
                     ("code" := string)
