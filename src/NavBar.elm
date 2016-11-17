@@ -17,6 +17,8 @@ import CoreTypes
 
 { id, class, classList } =
     Html.CssHelpers.withNamespace "lamassuAdmin"
+
+
 maybeUrl : String -> List (Maybe String) -> String
 maybeUrl root maybeStrings =
     List.filterMap identity maybeStrings

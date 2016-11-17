@@ -4,29 +4,32 @@ import Html exposing (Html, Attribute, a, div, hr, input, span, text, node, butt
 import Html.Attributes exposing (id, attribute, placeholder, disabled, style)
 import Html.Events exposing (onClick, onInput)
 import Http
+import HttpBuilder exposing (..)
 import String
-import RemoteData exposing (..)
+import RemoteData exposing (RemoteData(NotAsked, Loading, Failure, Success))
 
 
 -- MODEL
 
 
 type alias Model =
-    { totem : WebData String
+    { totem : RemoteData.WebData String
     , name : String
     }
 
 
 getTotem : String -> Cmd Msg
 getTotem name =
-    Http.getString (Http.url "/api/totem" [ ( "name", name ) ])
-        |> RemoteData.asCmd
+    get "/api/totem"
+        |> withQueryParams [ ( "name", name ) ]
+        |> withExpect Http.expectString
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 
 init : Model
 init =
-    { totem = NotAsked
+    { totem = RemoteData.NotAsked
     , name = ""
     }
 
@@ -36,7 +39,7 @@ init =
 
 
 type Msg
-    = Load (WebData String)
+    = Load (RemoteData.WebData String)
     | InputName String
     | SubmitName
 

@@ -5,8 +5,6 @@ import Html.Events exposing (..)
 import Html.Attributes exposing (defaultValue, placeholder, type_)
 import Html.Keyed
 import Navigation
-import Hop
-import Hop.Types
 import RemoteData exposing (..)
 import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
@@ -16,7 +14,6 @@ import Css.Admin exposing (..)
 import Css.Classes as C
 import Selectize
 import Maybe exposing (oneOf)
-import FuzzyMatch
 import SelectizeHelper exposing (buildConfig)
 
 

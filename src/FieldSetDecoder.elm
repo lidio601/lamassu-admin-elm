@@ -19,14 +19,14 @@ fieldValueDecoder fieldType =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    ("fieldType" := string)
+    (field "fieldType" string)
         |> andThen
             (\fieldType ->
-                object6 Field
-                    ("code" := string)
-                    ("display" := string)
-                    ("secret" := bool)
-                    ("required" := bool)
-                    ("value" := fieldValueDecoder fieldType)
-                    ("value" := fieldValueDecoder fieldType)
+                map6 Field
+                    (field "code" string)
+                    (field "display" string)
+                    (field "secret" bool)
+                    (field "required" bool)
+                    (field "value" (fieldValueDecoder fieldType))
+                    (field "value" (fieldValueDecoder fieldType))
             )

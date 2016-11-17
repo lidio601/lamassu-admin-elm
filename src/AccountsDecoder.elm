@@ -5,12 +5,12 @@ import Json.Decode exposing (..)
 
 accountDecoder : Decoder ( String, String )
 accountDecoder =
-    object2 (,)
-        ("code" := string)
-        ("display" := string)
+    map2 (,)
+        (field "code" string)
+        (field "display" string)
 
 
 accountsDecoder : Decoder (List ( String, String ))
 accountsDecoder =
-    object1 identity
-        ("accounts" := list accountDecoder)
+    map identity
+        (field "accounts" (list accountDecoder))

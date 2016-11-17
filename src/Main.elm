@@ -1,13 +1,10 @@
 module Main exposing (..)
 
 import String
-import Html exposing (Html, Attribute, a, div, hr, input, span, text)
-import Html.App exposing (map)
+import Html exposing (Html, Attribute, a, div, hr, input, span, text, map)
 import Html.Attributes exposing (class)
 import Navigation
 import Task
-import Hop
-import Hop.Types exposing (Config, Address, Query)
 import Pair
 import Account
 import Config

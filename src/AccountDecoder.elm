@@ -7,10 +7,10 @@ import AccountTypes exposing (..)
 
 accountDecoder : Decoder Account
 accountDecoder =
-    object3 Account
-        ("code" := string)
-        ("display" := string)
-        ("fields" := list fieldDecoder)
+    map3 Account
+        (field "code" string)
+        (field "display" string)
+        (field "fields" (list fieldDecoder))
 
 
 type alias AccountResult =

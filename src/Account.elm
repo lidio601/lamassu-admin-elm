@@ -2,7 +2,6 @@ module Account exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.App
 import RemoteData exposing (..)
 import HttpBuilder exposing (..)
 import AccountTypes exposing (..)
