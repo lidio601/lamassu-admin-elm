@@ -6,16 +6,16 @@ import MachineTypes exposing (..)
 
 machineDecoder : Decoder Machine
 machineDecoder =
-    object6 Machine
-        ("deviceId" := string)
-        ("name" := string)
-        ("cashbox" := int)
-        ("cassette1" := int)
-        ("cassette2" := int)
-        ("paired" := bool)
+    map6 Machine
+        (field "deviceId" string)
+        (field "name" string)
+        (field "cashbox" int)
+        (field "cassette1" int)
+        (field "cassette2" int)
+        (field "paired" bool)
 
 
 machinesDecoder : Decoder Machines
 machinesDecoder =
-    object1 identity
-        ("machines" := list machineDecoder)
+    map identity
+        (field "machines" (list machineDecoder))

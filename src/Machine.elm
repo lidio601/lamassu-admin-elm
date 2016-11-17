@@ -6,16 +6,16 @@ import Html.Events exposing (onClick, onInput)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
+import Http
 import HttpBuilder exposing (..)
 import MachinesDecoder exposing (machinesDecoder)
 import MachinesEncoder exposing (encodeAction)
 import MachineTypes exposing (..)
-import Task
 import String
 
 
 type alias Model =
-    RemoteData (Error String) Machines
+    RemoteData.WebData Machines
 
 
 init : Model
@@ -31,9 +31,8 @@ load =
 getForm : Cmd Msg
 getForm =
     get ("/api/machines")
-        |> send (jsonReader machinesDecoder) stringReader
-        |> Task.map .data
-        |> RemoteData.asCmd
+        |> withExpect (Http.expectJson machinesDecoder)
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 
@@ -42,9 +41,8 @@ postForm action =
     post "/api/machines"
         |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeAction action)
-        |> send (jsonReader machinesDecoder) stringReader
-        |> Task.map .data
-        |> RemoteData.asCmd
+        |> withExpect (Http.expectJson machinesDecoder)
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 

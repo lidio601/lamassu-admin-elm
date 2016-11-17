@@ -421,13 +421,13 @@ view config selectedIds availableItems fallbackIds state =
 
                     Editing ->
                         let
-                            maxlength' =
+                            actualMaxlength =
                                 if List.length boxItems == 0 then
                                     0
                                 else
                                     524288
                         in
-                            input [ maxlength maxlength', onBlurAtt, onInputAtt, class h.classes.inputEditing ] []
+                            input [ maxlength actualMaxlength, onBlurAtt, onInputAtt, class h.classes.inputEditing ] []
 
                     Cleared ->
                         input [ onKeyUp config items state, value "", onBlurAtt, onInputAtt ] []
@@ -511,7 +511,7 @@ deleteSpecialKeys =
 preventSpecialDecoder : List Int -> Json.Decoder Int
 preventSpecialDecoder specialKeys =
     E.keyCode
-        `Json.andThen`
+        |> Json.andThen
             (\code ->
                 if List.member code specialKeys then
                     Json.succeed code

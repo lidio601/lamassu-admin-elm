@@ -3,6 +3,7 @@ module Account exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import RemoteData exposing (..)
+import Http
 import HttpBuilder exposing (..)
 import AccountTypes exposing (..)
 import AccountDecoder exposing (..)
@@ -12,23 +13,15 @@ import Css.Admin exposing (..)
 import Css.Classes
 
 
-type alias AccountResponse =
-    RemoteData (Error String) (Response Account)
-
-
-type alias WebAccount =
-    RemoteData (Error String) Account
-
-
 type alias Model =
-    WebAccount
+    RemoteData.WebData Account
 
 
 getForm : String -> Cmd Msg
 getForm code =
     get ("/api/account/" ++ code)
-        |> send (jsonReader accountDecoder) stringReader
-        |> RemoteData.asCmd
+        |> withExpect (Http.expectJson accountDecoder)
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 
@@ -37,8 +30,8 @@ postForm account =
     post "/api/account"
         |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeAccount account)
-        |> send (jsonReader accountDecoder) stringReader
-        |> RemoteData.asCmd
+        |> withExpect (Http.expectJson accountDecoder)
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 
@@ -57,7 +50,7 @@ load code =
 
 
 type Msg
-    = Load AccountResponse
+    = Load Model
     | Submit
     | FieldSetMsg FieldSet.Msg
 
@@ -65,8 +58,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Load accountResponse ->
-            ( RemoteData.map .data accountResponse, Cmd.none )
+        Load newModel ->
+            ( newModel, Cmd.none )
 
         Submit ->
             case model of
@@ -103,7 +96,7 @@ view model =
         Success account ->
             let
                 fieldSetView =
-                    Html.App.map FieldSetMsg (FieldSet.view account.fields)
+                    Html.map FieldSetMsg (FieldSet.view account.fields)
             in
                 div []
                     [ div [ class [ Css.Classes.SectionLabel ] ] [ text account.display ]

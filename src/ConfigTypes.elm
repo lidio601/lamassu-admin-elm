@@ -285,13 +285,13 @@ stringToFieldHolder fieldType s =
                 String.toFloat s
                     |> Result.map FieldPercentageValue
                     |> Result.map Just
-                    |> Result.formatError FieldParsingError
+                    |> Result.mapError FieldParsingError
 
             FieldIntegerType ->
                 String.toInt s
                     |> Result.map FieldIntegerValue
                     |> Result.map Just
-                    |> Result.formatError FieldParsingError
+                    |> Result.mapError FieldParsingError
 
             FieldOnOffType ->
                 case s of

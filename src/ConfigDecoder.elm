@@ -8,28 +8,28 @@ fieldValueTypeDecoder : String -> Decoder FieldValue
 fieldValueTypeDecoder fieldType =
     case fieldType of
         "string" ->
-            map FieldStringValue ("value" := string)
+            map FieldStringValue (field "value" string)
 
         "percentage" ->
-            map FieldPercentageValue ("value" := float)
+            map FieldPercentageValue (field "value" float)
 
         "integer" ->
-            map FieldIntegerValue ("value" := int)
+            map FieldIntegerValue (field "value" int)
 
         "onOff" ->
-            map FieldOnOffValue ("value" := bool)
+            map FieldOnOffValue (field "value" bool)
 
         "account" ->
-            map FieldCurrencyValue ("value" := string)
+            map FieldCurrencyValue (field "value" string)
 
         "currency" ->
-            map FieldCurrencyValue ("value" := string)
+            map FieldCurrencyValue (field "value" string)
 
         "cryptoCurrency" ->
-            map FieldCryptoCurrencyValue ("value" := list string)
+            map FieldCryptoCurrencyValue (field "value" (list string))
 
         "language" ->
-            map FieldLanguageValue ("value" := list string)
+            map FieldLanguageValue (field "value" (list string))
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -37,14 +37,14 @@ fieldValueTypeDecoder fieldType =
 
 fieldValueDecoder : Decoder FieldValue
 fieldValueDecoder =
-    ("fieldType" := string) |> andThen fieldValueTypeDecoder
+    (field "fieldType" string) |> andThen fieldValueTypeDecoder
 
 
 fieldScopeDecoder : Decoder FieldScope
 fieldScopeDecoder =
-    object2 FieldScope
-        ("crypto" := cryptoDecoder)
-        ("machine" := machineDecoder)
+    map2 FieldScope
+        (field "crypto" cryptoDecoder)
+        (field "machine" machineDecoder)
 
 
 nullOr : Decoder a -> Decoder (Maybe a)
@@ -57,18 +57,18 @@ nullOr decoder =
 
 fieldLocatorDecoder : Decoder FieldLocator
 fieldLocatorDecoder =
-    object4 FieldLocator
-        ("fieldScope" := fieldScopeDecoder)
-        ("code" := string)
-        (("fieldType" := string) |> andThen fieldTypeDecoder)
-        ("fieldClass" := nullOr string)
+    map4 FieldLocator
+        (field "fieldScope" fieldScopeDecoder)
+        (field "code" string)
+        ((field "fieldType" string) |> andThen fieldTypeDecoder)
+        (field "fieldClass" (nullOr string))
 
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    object2 Field
-        ("fieldLocator" := fieldLocatorDecoder)
-        ("fieldValue" := fieldValueDecoder)
+    map2 Field
+        (field "fieldLocator" fieldLocatorDecoder)
+        (field "fieldValue" fieldValueDecoder)
 
 
 string2machine : String -> Machine
@@ -91,39 +91,39 @@ cryptoDecoder =
 
 displayRecDecoder : Decoder DisplayRec
 displayRecDecoder =
-    object2 DisplayRec
-        ("code" := string)
-        ("display" := string)
+    map2 DisplayRec
+        (field "code" string)
+        (field "display" string)
 
 
 machineDisplayDecoder : Decoder MachineDisplay
 machineDisplayDecoder =
-    object2 MachineDisplay
-        ("machine" := machineDecoder)
-        ("display" := string)
+    map2 MachineDisplay
+        (field "machine" machineDecoder)
+        (field "display" string)
 
 
 cryptoDisplayDecoder : Decoder CryptoDisplay
 cryptoDisplayDecoder =
-    object2 CryptoDisplay
-        ("crypto" := cryptoDecoder)
-        ("display" := string)
+    map2 CryptoDisplay
+        (field "crypto" cryptoDecoder)
+        (field "display" string)
 
 
-string2ConfigScope : String -> Result String ConfigScope
-string2ConfigScope s =
+stringToConfigScope : String -> Decoder ConfigScope
+stringToConfigScope s =
     case s of
         "global" ->
-            Ok Global
+            succeed Global
 
         "specific" ->
-            Ok Specific
+            succeed Specific
 
         "both" ->
-            Ok Both
+            succeed Both
 
         _ ->
-            Err ("No such ConfigScope " ++ s)
+            fail ("No such ConfigScope " ++ s)
 
 
 basicFieldTypeDecoder : String -> Decoder FieldType
@@ -159,7 +159,8 @@ basicFieldTypeDecoder s =
 
 configScopeDecoder : Decoder ConfigScope
 configScopeDecoder =
-    customDecoder string string2ConfigScope
+    string
+        |> andThen stringToConfigScope
 
 
 fieldTypeDecoder : String -> Decoder FieldType
@@ -169,52 +170,52 @@ fieldTypeDecoder fieldType =
 
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
-    object4 FieldDescriptor
-        ("code" := string)
-        ("display" := string)
-        (("fieldType" := string) |> andThen fieldTypeDecoder)
-        ("fieldClass" := nullOr string)
+    map4 FieldDescriptor
+        (field "code" string)
+        (field "display" string)
+        ((field "fieldType" string) |> andThen fieldTypeDecoder)
+        (field "fieldClass" (nullOr string))
 
 
 configSchemaDecoder : Decoder ConfigSchema
 configSchemaDecoder =
-    object5 ConfigSchema
-        ("code" := string)
-        ("display" := string)
-        ("cryptoScope" := configScopeDecoder)
-        ("machineScope" := configScopeDecoder)
-        ("entries" := list fieldDescriptorDecoder)
+    map5 ConfigSchema
+        (field "code" string)
+        (field "display" string)
+        (field "cryptoScope" configScopeDecoder)
+        (field "machineScope" configScopeDecoder)
+        (field "entries" (list fieldDescriptorDecoder))
 
 
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    object3 ConfigGroup
-        ("schema" := configSchemaDecoder)
-        ("values" := list fieldDecoder)
-        ("data" := configDataDecoder)
+    map3 ConfigGroup
+        (field "schema" configSchemaDecoder)
+        (field "values" (list fieldDecoder))
+        (field "data" configDataDecoder)
 
 
 accountRecDecoder : Decoder AccountRec
 accountRecDecoder =
     oneOf
-        [ object4 AccountRec
-            ("code" := string)
-            ("display" := string)
-            ("class" := string)
-            ("cryptos" := map Just (list cryptoDecoder))
-        , object4 AccountRec
-            ("code" := string)
-            ("display" := string)
-            ("class" := string)
+        [ map4 AccountRec
+            (field "code" string)
+            (field "display" string)
+            (field "class" string)
+            (field "cryptos" (map Just (list cryptoDecoder)))
+        , map4 AccountRec
+            (field "code" string)
+            (field "display" string)
+            (field "class" string)
             (succeed Nothing)
         ]
 
 
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
-    object5 ConfigData
-        ("cryptoCurrencies" := list cryptoDisplayDecoder)
-        ("currencies" := list displayRecDecoder)
-        ("languages" := list displayRecDecoder)
-        ("accounts" := list accountRecDecoder)
-        ("machines" := list machineDisplayDecoder)
+    map5 ConfigData
+        (field "cryptoCurrencies" (list cryptoDisplayDecoder))
+        (field "currencies" (list displayRecDecoder))
+        (field "languages" (list displayRecDecoder))
+        (field "accounts" (list accountRecDecoder))
+        (field "machines" (list machineDisplayDecoder))
