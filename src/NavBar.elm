@@ -123,9 +123,31 @@ linksView maybeCurrentCategory currentRoute ( catDesc, cat, route ) links =
             ]
 
 
-view : Maybe Category -> Route -> Html Msg
-view maybeCategory route =
+determineCategory : Route -> Maybe Category
+determineCategory route =
+    case route of
+        PairRoute ->
+            Nothing
+
+        AccountRoute account ->
+            Just AccountCat
+
+        ConfigRoute config maybeCryptoCodeString ->
+            Just ConfigCat
+
+        MachineRoute machineSubRoute ->
+            Just MachineCat
+
+        NotFoundRoute ->
+            Nothing
+
+
+view : Route -> Html Msg
+view route =
     let
+        maybeCategory =
+            determineCategory route
+
         l =
             linkView maybeCategory route Nothing
 

@@ -8,7 +8,7 @@ import Account
 import Config
 import Machine
 import NavBar exposing (..)
-import UrlParser exposing ((</>), s, string)
+import UrlParser exposing ((</>), s, string, parseHash)
 import Http
 import HttpBuilder exposing (..)
 import RemoteData
@@ -57,7 +57,6 @@ getAccounts =
 
 type alias Model =
     { location : Location
-    , category : Maybe Category
     , pair : Pair.Model
     , account : Account.Model
     , config : Config.Model
@@ -72,7 +71,6 @@ init location =
     let
         model =
             { location = location
-            , category = Nothing
             , account = Account.init
             , pair = Pair.init
             , config = Config.init
@@ -82,9 +80,7 @@ init location =
             }
 
         ( newModel, newCmd ) =
-            update model
-
-        -- TODO: updateUrl, which should be called when UrlChange msg happens
+            urlUpdate model
     in
         newModel ! [ newCmd, getAccounts ]
 
@@ -127,14 +123,16 @@ update msg model =
         LoadAccounts accounts ->
             { model | accounts = Debug.log "DEBUG55" accounts } ! []
 
-        -- TODO: need to set current category somewhere
-        NewUrl location ->
-            model ! [ Navigation.newUrl location ]
+        NewUrl url ->
+            model ! [ Navigation.newUrl url ]
+
+        UrlChange location ->
+            urlUpdate model
 
 
-content : Model -> Html Msg
-content model =
-    case Debug.log "DEBUG20" model.route of
+content : Model -> Route -> Html Msg
+content model currentRoute =
+    case currentRoute of
         PairRoute ->
             map PairMsg (Pair.view model.pair)
 
@@ -153,55 +151,59 @@ content model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ div [ class "grid" ]
-            [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                [ NavBar.view model.category model.route ]
-            , div [ class "unit three-quarters lamassuAdminMainRight" ]
-                [ div [ class "lamassuAdminContent" ]
-                    [ content model ]
+    let
+        currentRoute =
+            Maybe.withDefault NotFoundRoute (parseHash route model.location)
+    in
+        div []
+            [ div [ class "grid" ]
+                [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
+                    [ NavBar.view currentRoute ]
+                , div [ class "unit three-quarters lamassuAdminMainRight" ]
+                    [ div [ class "lamassuAdminContent" ]
+                        [ content model currentRoute ]
+                    ]
                 ]
             ]
-        ]
+
+
+urlUpdate : Model -> ( Model, Cmd Msg )
+urlUpdate model =
+    let
+        currentRoute =
+            Maybe.withDefault NotFoundRoute (parseHash route model.location)
+    in
+        case currentRoute of
+            PairRoute ->
+                { model | pair = Pair.init } ! []
+
+            AccountRoute account ->
+                let
+                    ( accountModel, cmd ) =
+                        Account.load account
+                in
+                    { model | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+
+            ConfigRoute config maybeCryptoCodeString ->
+                let
+                    ( configModel, cmd ) =
+                        Config.load model.config config maybeCryptoCodeString
+                in
+                    { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+
+            MachineRoute machineSubRoute ->
+                let
+                    ( machineModel, cmd ) =
+                        Machine.load
+                in
+                    { model | machine = machineModel }
+                        ! [ Cmd.map MachineMsg cmd ]
+
+            NotFoundRoute ->
+                model ! []
 
 
 
-{- urlUpdate : ( Route, Address ) -> Model -> ( Model, Cmd Msg )
-   urlUpdate ( route, address ) model =
-       let
-           pagedModel =
-               { model | route = route }
-       in
-           case Debug.log "DEBUG25" route of
-               PairRoute ->
-                   { pagedModel | category = Nothing, pair = Pair.init } ! []
-
-               AccountRoute account ->
-                   let
-                       ( accountModel, cmd ) =
-                           Account.load account
-                   in
-                       { pagedModel | category = Just AccountCat, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
-
-               ConfigRoute config maybeCryptoCodeString ->
-                   let
-                       ( configModel, cmd ) =
-                           Config.load pagedModel.config config maybeCryptoCodeString
-                   in
-                       { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
-
-               MachineRoute machineSubRoute ->
-                   let
-                       ( machineModel, cmd ) =
-                           Machine.load
-                   in
-                       { pagedModel | category = Just MachineCat, machine = machineModel }
-                           ! [ Cmd.map MachineMsg cmd ]
-
-               NotFoundRoute ->
-                   Debug.crash "Need to create 404"
-
--}
 -- SUBSCRIPTIONS
 
 
