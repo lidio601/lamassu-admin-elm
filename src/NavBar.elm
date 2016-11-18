@@ -30,16 +30,16 @@ routeToUrl : Route -> String
 routeToUrl route =
     case route of
         PairRoute ->
-            "pair"
+            "/#pair"
 
         AccountRoute account ->
-            "account/" ++ account
+            "/#account/" ++ account
 
         ConfigRoute configGroup maybeCrypto ->
-            maybeUrl ("config/" ++ configGroup) [ maybeCrypto ]
+            maybeUrl ("/#config/" ++ configGroup) [ maybeCrypto ]
 
         MachineRoute route ->
-            "machine/" ++ (machineSubRouteToString route)
+            "/#machine/" ++ (machineSubRouteToString route)
 
         NotFoundRoute ->
             Debug.crash "Need unknown route"

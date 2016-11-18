@@ -28,7 +28,6 @@ getForm code =
 postForm : Account -> Cmd Msg
 postForm account =
     post "/api/account"
-        |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeAccount account)
         |> withExpect (Http.expectJson accountDecoder)
         |> send RemoteData.fromResult

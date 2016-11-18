@@ -72,9 +72,9 @@ getForm code =
 postForm : String -> List FieldInstance -> Cmd Msg
 postForm configGroupCode fieldInstances =
     post ("/api/config")
-        |> withHeader "Content-Type" "application/json"
-        |> withJsonBody (encodeResults configGroupCode fieldInstances)
+        |> withJsonBody (Debug.log "DEBUG102" (encodeResults configGroupCode fieldInstances))
         |> withExpect (Http.expectJson configGroupDecoder)
+        |> Debug.log "DEBUG103"
         |> send RemoteData.fromResult
         |> Cmd.map Load
 

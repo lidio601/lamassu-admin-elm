@@ -39,7 +39,6 @@ getForm =
 postForm : MachineAction -> Cmd Msg
 postForm action =
     post "/api/machines"
-        |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeAction action)
         |> withExpect (Http.expectJson machinesDecoder)
         |> send RemoteData.fromResult

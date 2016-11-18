@@ -31,8 +31,8 @@ main =
 -- URL PARSERS
 
 
-route : UrlParser.Parser (Route -> a) a
-route =
+parseRoute : UrlParser.Parser (Route -> a) a
+parseRoute =
     UrlParser.oneOf
         [ UrlParser.map AccountRoute (s "account" </> string)
         , UrlParser.map PairRoute (s "pair")
@@ -80,7 +80,7 @@ init location =
             }
 
         ( newModel, newCmd ) =
-            urlUpdate model
+            urlUpdate location model
     in
         newModel ! [ newCmd, getAccounts ]
 
@@ -127,12 +127,12 @@ update msg model =
             model ! [ Navigation.newUrl url ]
 
         UrlChange location ->
-            urlUpdate model
+            urlUpdate location model
 
 
 content : Model -> Route -> Html Msg
-content model currentRoute =
-    case currentRoute of
+content model route =
+    case route of
         PairRoute ->
             map PairMsg (Pair.view model.pair)
 
@@ -152,55 +152,55 @@ content model currentRoute =
 view : Model -> Html Msg
 view model =
     let
-        currentRoute =
-            Maybe.withDefault NotFoundRoute (parseHash route model.location)
+        route =
+            Maybe.withDefault NotFoundRoute (parseHash parseRoute model.location)
     in
         div []
             [ div [ class "grid" ]
                 [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                    [ NavBar.view currentRoute ]
+                    [ NavBar.view route ]
                 , div [ class "unit three-quarters lamassuAdminMainRight" ]
                     [ div [ class "lamassuAdminContent" ]
-                        [ content model currentRoute ]
+                        [ content model route ]
                     ]
                 ]
             ]
 
 
-urlUpdate : Model -> ( Model, Cmd Msg )
-urlUpdate model =
+urlUpdate : Location -> Model -> ( Model, Cmd Msg )
+urlUpdate location model =
     let
-        currentRoute =
-            Maybe.withDefault NotFoundRoute (parseHash route model.location)
+        route =
+            Maybe.withDefault NotFoundRoute (parseHash parseRoute location)
     in
-        case currentRoute of
+        case route of
             PairRoute ->
-                { model | pair = Pair.init } ! []
+                { model | location = location, pair = Pair.init } ! []
 
             AccountRoute account ->
                 let
                     ( accountModel, cmd ) =
                         Account.load account
                 in
-                    { model | account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+                    { model | location = location, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
             ConfigRoute config maybeCryptoCodeString ->
                 let
                     ( configModel, cmd ) =
                         Config.load model.config config maybeCryptoCodeString
                 in
-                    { model | config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+                    { model | location = location, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
             MachineRoute machineSubRoute ->
                 let
                     ( machineModel, cmd ) =
                         Machine.load
                 in
-                    { model | machine = machineModel }
+                    { model | location = location, machine = machineModel }
                         ! [ Cmd.map MachineMsg cmd ]
 
             NotFoundRoute ->
-                model ! []
+                { model | location = location } ! []
 
 
 
