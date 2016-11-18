@@ -1,37 +1,28 @@
 module Main exposing (..)
 
-import String
 import Html exposing (Html, Attribute, a, div, hr, input, span, text, map)
 import Html.Attributes exposing (class)
 import Navigation
-import Task
 import Pair
 import Account
 import Config
 import Machine
 import NavBar exposing (..)
-import UrlParser exposing (..)
-import Result exposing (withDefault)
+import UrlParser exposing ((</>), s, string)
+import Http
 import HttpBuilder exposing (..)
-import Navigation exposing (newUrl)
+import RemoteData
+import Navigation exposing (newUrl, Location)
 import CoreTypes exposing (Msg(..), Route(..), Category(..), MachineSubRoute(..))
 import AccountsDecoder exposing (accountsDecoder)
 
 
-hopConfig : Hop.Types.Config
-hopConfig =
-    { hash = True
-    , basePath = ""
-    }
-
-
-main : Program Never
+main : Program Never Model Msg
 main =
-    Navigation.program urlParser
+    Navigation.program UrlChange
         { init = init
-        , view = view
         , update = update
-        , urlUpdate = urlUpdate
+        , view = view
         , subscriptions = subscriptions
         }
 
@@ -40,58 +31,24 @@ main =
 -- URL PARSERS
 
 
-urlParser : Navigation.Parser ( Route, Address )
-urlParser =
-    let
-        -- A parse function takes the normalised path from Hop after taking
-        -- in consideration the basePath and the hash.
-        -- This function then returns a result.
-        parse path =
-            -- First we parse using UrlParser.parse.
-            -- Then we return the parsed route or NotFoundRoute if the parsed failed.
-            -- You can choose to return the parse return directly.
-            path
-                |> UrlParser.parse identity routes
-                |> Result.withDefault NotFoundRoute
-
-        resolver =
-            -- Create a function that parses and formats the URL
-            -- This function takes 2 arguments: The Hop Config and the parse function.
-            Hop.makeResolver hopConfig parse
-    in
-        -- Create a Navigation URL parser
-        Navigation.makeParser (.href >> resolver)
-
-
-routes : Parser (Route -> a) a
-routes =
-    let
-        nonEmptyStringParser : String -> Result String String
-        nonEmptyStringParser str =
-            if String.isEmpty str then
-                Err "Empty string"
-            else
-                Ok str
-
-        nonEmptyString : Parser (String -> a) a
-        nonEmptyString =
-            custom "NON_EMPTY_STRING" nonEmptyStringParser
-    in
-        oneOf
-            [ format (\account -> AccountRoute account) (s "account" </> string)
-            , format PairRoute (s "pair")
-            , format (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> nonEmptyString)
-            , format (\config -> ConfigRoute config Nothing) (s "config" </> string)
-            , format (MachineRoute MachineActions) (s "machine" </> s "actions")
-            ]
+route : UrlParser.Parser (Route -> a) a
+route =
+    UrlParser.oneOf
+        [ UrlParser.map AccountRoute (s "account" </> string)
+        , UrlParser.map PairRoute (s "pair")
+        , UrlParser.map (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
+        , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
+        , UrlParser.map (MachineRoute MachineActions) (s "machine" </> s "actions")
+        ]
 
 
 getAccounts : Cmd Msg
 getAccounts =
     get ("/api/accounts")
-        |> send (jsonReader accountsDecoder) stringReader
-        |> Task.map .data
-        |> Task.perform (\_ -> (LoadAccounts [])) LoadAccounts
+        |> withExpect (Http.expectJson accountsDecoder)
+        |> send RemoteData.fromResult
+        |> Cmd.map (RemoteData.withDefault [])
+        |> Cmd.map LoadAccounts
 
 
 
@@ -99,8 +56,7 @@ getAccounts =
 
 
 type alias Model =
-    { route : Route
-    , address : Address
+    { location : Location
     , category : Maybe Category
     , pair : Pair.Model
     , account : Account.Model
@@ -111,12 +67,11 @@ type alias Model =
     }
 
 
-init : ( Route, Address ) -> ( Model, Cmd Msg )
-init ( route, address ) =
+init : Location -> ( Model, Cmd Msg )
+init location =
     let
         model =
-            { route = route
-            , address = address
+            { location = location
             , category = Nothing
             , account = Account.init
             , pair = Pair.init
@@ -127,7 +82,9 @@ init ( route, address ) =
             }
 
         ( newModel, newCmd ) =
-            urlUpdate ( route, address ) model
+            update model
+
+        -- TODO: updateUrl, which should be called when UrlChange msg happens
     in
         newModel ! [ newCmd, getAccounts ]
 
@@ -170,19 +127,9 @@ update msg model =
         LoadAccounts accounts ->
             { model | accounts = Debug.log "DEBUG55" accounts } ! []
 
-        NewRoute maybeCategory route ->
-            let
-                _ =
-                    Debug.log "DEBUG28" "x"
-
-                path =
-                    routeToUrl (Debug.log "DEBUG27" route)
-
-                command =
-                    Hop.outputFromPath hopConfig (Debug.log "DEBUG26" path)
-                        |> Navigation.newUrl
-            in
-                { model | category = maybeCategory } ! [ command ]
+        -- TODO: need to set current category somewhere
+        NewUrl location ->
+            model ! [ Navigation.newUrl location ]
 
 
 content : Model -> Html Msg
@@ -218,43 +165,43 @@ view model =
         ]
 
 
-urlUpdate : ( Route, Address ) -> Model -> ( Model, Cmd Msg )
-urlUpdate ( route, address ) model =
-    let
-        pagedModel =
-            { model | route = route }
-    in
-        case Debug.log "DEBUG25" route of
-            PairRoute ->
-                { pagedModel | category = Nothing, pair = Pair.init } ! []
 
-            AccountRoute account ->
-                let
-                    ( accountModel, cmd ) =
-                        Account.load account
-                in
-                    { pagedModel | category = Just AccountCat, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
+{- urlUpdate : ( Route, Address ) -> Model -> ( Model, Cmd Msg )
+   urlUpdate ( route, address ) model =
+       let
+           pagedModel =
+               { model | route = route }
+       in
+           case Debug.log "DEBUG25" route of
+               PairRoute ->
+                   { pagedModel | category = Nothing, pair = Pair.init } ! []
 
-            ConfigRoute config maybeCryptoCodeString ->
-                let
-                    ( configModel, cmd ) =
-                        Config.load pagedModel.config config maybeCryptoCodeString
-                in
-                    { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
+               AccountRoute account ->
+                   let
+                       ( accountModel, cmd ) =
+                           Account.load account
+                   in
+                       { pagedModel | category = Just AccountCat, account = accountModel } ! [ Cmd.map AccountMsg cmd ]
 
-            MachineRoute machineSubRoute ->
-                let
-                    ( machineModel, cmd ) =
-                        Machine.load
-                in
-                    { pagedModel | category = Just MachineCat, machine = machineModel }
-                        ! [ Cmd.map MachineMsg cmd ]
+               ConfigRoute config maybeCryptoCodeString ->
+                   let
+                       ( configModel, cmd ) =
+                           Config.load pagedModel.config config maybeCryptoCodeString
+                   in
+                       { pagedModel | category = Just ConfigCat, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-            NotFoundRoute ->
-                Debug.crash "Need to create 404"
+               MachineRoute machineSubRoute ->
+                   let
+                       ( machineModel, cmd ) =
+                           Machine.load
+                   in
+                       { pagedModel | category = Just MachineCat, machine = machineModel }
+                           ! [ Cmd.map MachineMsg cmd ]
 
+               NotFoundRoute ->
+                   Debug.crash "Need to create 404"
 
-
+-}
 -- SUBSCRIPTIONS
 
 

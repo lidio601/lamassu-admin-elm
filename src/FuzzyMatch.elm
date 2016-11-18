@@ -1,7 +1,8 @@
 module FuzzyMatch exposing (match)
 
 import String
-import Fuzzy
+import StringDistance
+import Tuple
 
 
 clean : String -> String
@@ -16,12 +17,11 @@ type alias DisplayRec =
     }
 
 
-score : String -> DisplayRec -> ( Int, DisplayRec )
+score : String -> DisplayRec -> ( Float, DisplayRec )
 score needle hay =
     let
         match keyword =
-            Fuzzy.match [] [] needle keyword
-                |> .score
+            StringDistance.sift3Distance needle keyword
 
         score =
             List.map match ((String.split " " hay.display) ++ [ hay.code ])
@@ -42,6 +42,5 @@ match rawString list =
             list
         else
             List.map (score s) list
-                |> List.sortBy fst
-                |> List.filter (((>) 1100) << fst)
-                |> List.map snd
+                |> List.sortBy Tuple.first
+                |> List.map Tuple.second

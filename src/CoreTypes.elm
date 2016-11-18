@@ -7,6 +7,7 @@ module CoreTypes
         , machineSubRouteToString
         )
 
+import Navigation
 import Pair
 import Account
 import Config
@@ -44,4 +45,5 @@ type Msg
     | ConfigMsg Config.Msg
     | MachineMsg Machine.Msg
     | LoadAccounts (List ( String, String ))
-    | NewRoute (Maybe Category) Route
+    | NewUrl String
+    | UrlChange Navigation.Location

@@ -6,6 +6,7 @@ import Html.Attributes exposing (defaultValue, placeholder, type_)
 import Html.Keyed
 import Navigation
 import RemoteData exposing (..)
+import Http
 import HttpBuilder exposing (..)
 import ConfigTypes exposing (..)
 import ConfigDecoder exposing (..)
@@ -13,23 +14,16 @@ import ConfigEncoder exposing (..)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import Selectize
-import Maybe exposing (oneOf)
+import Maybe
 import SelectizeHelper exposing (buildConfig)
+import FuzzyMatch
 
 
-hopConfig : Hop.Types.Config
-hopConfig =
-    { hash = True
-    , basePath = ""
-    }
-
-
-type alias ConfigGroupResponse =
-    RemoteData (Error String) (Response ConfigGroup)
+-- import Maybe.Extra
 
 
 type alias WebConfigGroup =
-    RemoteData (Error String) ConfigGroup
+    RemoteData.WebData ConfigGroup
 
 
 type SavingStatus
@@ -70,8 +64,8 @@ toResolvedModel model configGroup =
 getForm : String -> Cmd Msg
 getForm code =
     get ("/api/config/" ++ code)
-        |> send (jsonReader configGroupDecoder) stringReader
-        |> RemoteData.asCmd
+        |> withExpect (Http.expectJson configGroupDecoder)
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 
@@ -80,8 +74,8 @@ postForm configGroupCode fieldInstances =
     post ("/api/config")
         |> withHeader "Content-Type" "application/json"
         |> withJsonBody (encodeResults configGroupCode fieldInstances)
-        |> send (jsonReader configGroupDecoder) stringReader
-        |> RemoteData.asCmd
+        |> withExpect (Http.expectJson configGroupDecoder)
+        |> send RemoteData.fromResult
         |> Cmd.map Load
 
 
@@ -594,7 +588,12 @@ fieldComponent model fieldInstance =
                     Nothing
 
         maybeFallbackFieldValue =
-            oneOf [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
+            maybeSpecific
+
+        {- |> Maybe.Extra.or maybeGlobalMachine
+           |> Maybe.Extra.or maybeGlobalCrypto
+           |> Maybe.Extra.or maybeGlobal
+        -}
     in
         fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue
 
@@ -717,7 +716,7 @@ isField fieldCode field =
 
 
 type Msg
-    = Load ConfigGroupResponse
+    = Load WebConfigGroup
     | Submit
     | Input FieldLocator String
     | CryptoSwitch Crypto
@@ -875,16 +874,13 @@ updateSelectize fieldLocator state model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Load configGroupResponse ->
+        Load webConfigGroup ->
             let
                 status =
                     if model.status == Saving then
                         Saved
                     else
                         model.status
-
-                webConfigGroup =
-                    RemoteData.map .data configGroupResponse
 
                 fieldInstances : List FieldInstance
                 fieldInstances =
@@ -942,10 +938,10 @@ update msg model =
                             cryptoToString crypto
 
                         path =
-                            "config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
+                            "#config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
 
                         command =
-                            Hop.outputFromPath hopConfig (Debug.log "DEBUG26" path)
+                            path
                                 |> Navigation.newUrl
                     in
                         { model | crypto = Just crypto } ! [ command ]

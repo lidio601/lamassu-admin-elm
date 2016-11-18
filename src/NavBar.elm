@@ -95,7 +95,7 @@ categoryView currentCategory link =
             link
     in
         div
-            [ onClick (NewRoute (Just category) linkRoute)
+            [ onClick (NewUrl (routeToUrl linkRoute))
             , activeCategory currentCategory category
             ]
             [ text desc ]
@@ -107,7 +107,7 @@ linkView maybeCategory currentRoute maybeLinkedCategory link =
         ( desc, linkRoute ) =
             link
     in
-        div [ onClick (NewRoute maybeLinkedCategory linkRoute), activeRoute linkRoute currentRoute ] [ text desc ]
+        div [ onClick (NewUrl (routeToUrl linkRoute)), activeRoute linkRoute currentRoute ] [ text desc ]
 
 
 linksView : Maybe Category -> Route -> ( String, Category, Route ) -> List Link -> Html Msg
