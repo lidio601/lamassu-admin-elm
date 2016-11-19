@@ -8,7 +8,7 @@ import Account
 import Config
 import Machine
 import NavBar exposing (..)
-import UrlParser exposing ((</>), s, string, parseHash)
+import UrlParser exposing ((</>), s, string, top, parseHash)
 import Http
 import HttpBuilder exposing (..)
 import RemoteData
@@ -39,6 +39,7 @@ parseRoute =
         , UrlParser.map (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
         , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
         , UrlParser.map (MachineRoute MachineActions) (s "machine" </> s "actions")
+        , UrlParser.map PairRoute top
         ]
 
 

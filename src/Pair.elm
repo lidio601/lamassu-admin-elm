@@ -1,7 +1,7 @@
 module Pair exposing (..)
 
-import Html exposing (Html, Attribute, a, div, hr, input, span, text, node, button, strong)
-import Html.Attributes exposing (id, attribute, placeholder, disabled, style)
+import Html exposing (Html, Attribute, h1, a, div, hr, input, span, text, node, button, strong, label)
+import Html.Attributes exposing (id, attribute, placeholder, disabled, style, size)
 import Html.Events exposing (onClick, onInput)
 import Http
 import HttpBuilder exposing (..)
@@ -62,15 +62,21 @@ view model =
     case Debug.log "DEBUG33" model.totem of
         NotAsked ->
             div []
-                [ div []
-                    [ input
-                        [ onInput InputName
-                        , placeholder "Coffee shop, 43 Elm St."
+                [ h1 [] [ text "Pair a new Lamassu cryptomat" ]
+                , div []
+                    [ label []
+                        [ text "Cryptomat name"
+                        , input
+                            [ onInput InputName
+                            , placeholder "Coffee shop, 43 Elm St."
+                            , size 50
+                            , style [ ( "margin-left", "1em" ) ]
+                            ]
+                            []
+                        , button
+                            [ onClick SubmitName, disabled (String.isEmpty model.name) ]
+                            [ text "Pair" ]
                         ]
-                        []
-                    , button
-                        [ onClick SubmitName, disabled (String.isEmpty model.name) ]
-                        [ text "Pair" ]
                     ]
                 ]
 
