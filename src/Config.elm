@@ -15,6 +15,7 @@ import Css.Admin exposing (..)
 import Css.Classes as C
 import Selectize
 import Maybe
+import Maybe.Extra
 import SelectizeHelper exposing (buildConfig)
 import FuzzyMatch
 
@@ -589,11 +590,9 @@ fieldComponent model fieldInstance =
 
         maybeFallbackFieldValue =
             maybeSpecific
-
-        {- |> Maybe.Extra.or maybeGlobalMachine
-           |> Maybe.Extra.or maybeGlobalCrypto
-           |> Maybe.Extra.or maybeGlobal
-        -}
+                |> Maybe.Extra.or maybeGlobalMachine
+                |> Maybe.Extra.or maybeGlobalCrypto
+                |> Maybe.Extra.or maybeGlobal
     in
         fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue
 
