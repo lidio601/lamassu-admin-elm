@@ -1,24 +1,18 @@
 port module Stylesheets exposing (..)
 
-import Css.File exposing (..)
+import Css.File exposing (CssFileStructure, CssCompilerProgram)
 import Css.Main
-import Html exposing (div)
-import Html.App as Html
 
 
 port files : CssFileStructure -> Cmd msg
 
 
-cssFiles : CssFileStructure
-cssFiles =
-    toFileStructure [ ( "../lamassu-admin-server/public/styles.css", compile Css.Main.css ) ]
+fileStructure : CssFileStructure
+fileStructure =
+    Css.File.toFileStructure
+        [ ( "../lamassu-admin-server/public/styles.css", Css.File.compile [ Css.Main.css ] ) ]
 
 
-main : Program Never
+main : CssCompilerProgram
 main =
-    Html.program
-        { init = ( (), files cssFiles )
-        , view = \_ -> (div [] [])
-        , update = \_ _ -> ( (), Cmd.none )
-        , subscriptions = \_ -> Sub.none
-        }
+    Css.File.compiler files fileStructure

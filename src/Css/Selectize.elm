@@ -66,11 +66,11 @@ component =
                     [ (.) SelectedItem
                         [ backgroundColor Colors.cobalt
                         , color Colors.white
-                        , padding2 (px 3) (px 4)
+                        , padding3 (px 4) (px 4) (px 3)
                         , margin2 zero (px 1)
-                        , fontFamilies [ "Inconsolata" ]
+                        , fontFamilies [ "Fira Code" ]
                         , fontSize (pct 70)
-                        , fontWeight bold
+                        , fontWeight normal
                         , borderRadius (px 3)
                         ]
                     , (.) FallbackItem
