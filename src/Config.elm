@@ -18,6 +18,9 @@ import Maybe
 import Maybe.Extra
 import SelectizeHelper exposing (buildConfig)
 import FuzzyMatch
+import Process
+import Time exposing (second)
+import Task
 
 
 -- import Maybe.Extra
@@ -726,6 +729,7 @@ type Msg
     | FocusSelectize FieldLocator Selectize.State
     | Add FieldLocator String Selectize.State
     | Remove FieldLocator Selectize.State
+    | HideSaveIndication
 
 
 maybeToList : Maybe a -> List a
@@ -907,6 +911,13 @@ update msg model =
 
                         Just crypto ->
                             Just crypto
+
+                cmd =
+                    if status == Saved then
+                        Process.sleep (2 * second)
+                            |> Task.perform (\_ -> HideSaveIndication)
+                    else
+                        Cmd.none
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
@@ -914,7 +925,7 @@ update msg model =
                     , status = status
                     , crypto = crypto
                   }
-                , Cmd.none
+                , cmd
                 )
 
         Submit ->
@@ -980,6 +991,9 @@ update msg model =
                 |> updateInput fieldLocator Nothing
             )
                 ! []
+
+        HideSaveIndication ->
+            { model | status = NotSaving } ! []
 
 
 cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg
