@@ -17,8 +17,8 @@ type alias DisplayRec =
     }
 
 
-score : String -> DisplayRec -> ( Int, DisplayRec )
-score needle hay =
+score : String -> Int -> DisplayRec -> ( ( Int, Int ), DisplayRec )
+score needle index hay =
     let
         match keyword =
             Fuzzy.match [] [] needle keyword
@@ -30,7 +30,7 @@ score needle hay =
                 |> Maybe.withDefault
                     10000
     in
-        ( score, hay )
+        ( ( score, index ), hay )
 
 
 match : String -> List DisplayRec -> List DisplayRec
@@ -42,7 +42,7 @@ match rawString list =
         if String.isEmpty s then
             list
         else
-            List.map (score s) list
+            List.indexedMap (score s) list
                 |> List.sortBy Tuple.first
-                |> List.filter (((>) 1100) << Tuple.first)
+                |> List.filter (((>) 1100) << Tuple.first << Tuple.first)
                 |> List.map Tuple.second
