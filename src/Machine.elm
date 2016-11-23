@@ -12,6 +12,7 @@ import MachinesDecoder exposing (machinesDecoder)
 import MachinesEncoder exposing (encodeAction)
 import MachineTypes exposing (..)
 import String
+import List
 
 
 type alias Model =
@@ -136,6 +137,23 @@ rowView machine =
         ]
 
 
+tableView : Machines -> Html Msg
+tableView machines =
+    if List.isEmpty machines then
+        div [] [ text "No paired machines." ]
+    else
+        table [ class [ C.ConfigTable ] ]
+            [ thead []
+                [ tr []
+                    [ td [] []
+                    , td [] [ text "Top Bill Count" ]
+                    , td [] [ text "Bottom Bill Count" ]
+                    ]
+                ]
+            , tbody [] (List.map rowView machines)
+            ]
+
+
 view : Model -> Html Msg
 view model =
     case model of
@@ -153,17 +171,7 @@ view model =
                 [ div [ class [ C.SectionLabel ] ]
                     [ div []
                         [ div [ class [ C.ConfigContainer ] ]
-                            [ table [ class [ C.ConfigTable ] ]
-                                [ thead []
-                                    [ tr []
-                                        [ td [] []
-                                        , td [] [ text "Top Bill Count" ]
-                                        , td [] [ text "Bottom Bill Count" ]
-                                        ]
-                                    ]
-                                , tbody [] (List.map rowView machines)
-                                ]
-                            ]
+                            [ tableView machines ]
                         ]
                     ]
                 ]

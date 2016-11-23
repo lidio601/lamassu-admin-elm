@@ -158,12 +158,12 @@ view route =
             [ ll ( "Machines", MachineCat, MachineRoute MachineActions )
                 [ ( "Actions", MachineRoute MachineActions )
                 ]
-            , l ( "Pairing", PairRoute )
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
                 [ ( "Commissions", ConfigRoute "commissions" Nothing )
                 , ( "Limits", ConfigRoute "limits" Nothing )
                 , ( "Currencies", ConfigRoute "currencies" Nothing )
                 , ( "Crypto services", ConfigRoute "cryptoServices" Nothing )
+                , ( "Extra services", ConfigRoute "extraServices" Nothing )
                 , ( "Languages", ConfigRoute "languages" Nothing )
                 , ( "Notifications", ConfigRoute "notifications" Nothing )
                 , ( "Compliance", ConfigRoute "compliance" Nothing )
@@ -171,4 +171,5 @@ view route =
             , ll ( "Accounts", AccountCat, AccountRoute "twilio" )
                 [ ( "Twilio", AccountRoute "twilio" )
                 ]
+            , l ( "Pairing", PairRoute )
             ]
