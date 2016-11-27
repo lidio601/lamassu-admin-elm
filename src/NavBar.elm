@@ -168,8 +168,10 @@ view route =
                 , ( "Notifications", ConfigRoute "notifications" Nothing )
                 , ( "Compliance", ConfigRoute "compliance" Nothing )
                 ]
-            , ll ( "Accounts", AccountCat, AccountRoute "twilio" )
-                [ ( "Twilio", AccountRoute "twilio" )
+            , ll ( "Accounts", AccountCat, AccountRoute "bitgo" )
+                [ ( "BitGo", AccountRoute "bitgo" )
+                , ( "Twilio", AccountRoute "twilio" )
+                , ( "Mailjet", AccountRoute "mailjet" )
                 ]
             , l ( "Pairing", PairRoute )
             ]

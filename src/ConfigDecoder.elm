@@ -20,10 +20,10 @@ fieldValueTypeDecoder fieldType =
             map FieldOnOffValue (field "value" bool)
 
         "account" ->
-            map FieldCurrencyValue (field "value" string)
+            map FieldFiatCurrencyValue (field "value" string)
 
-        "currency" ->
-            map FieldCurrencyValue (field "value" string)
+        "fiatCurrency" ->
+            map FieldFiatCurrencyValue (field "value" string)
 
         "cryptoCurrency" ->
             map FieldCryptoCurrencyValue (field "value" (list string))
@@ -144,8 +144,8 @@ basicFieldTypeDecoder s =
         "account" ->
             succeed FieldAccountType
 
-        "currency" ->
-            succeed FieldCurrencyType
+        "fiatCurrency" ->
+            succeed FieldFiatCurrencyType
 
         "cryptoCurrency" ->
             succeed FieldCryptoCurrencyType

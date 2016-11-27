@@ -21,3 +21,17 @@ v fix input boxes in config (seems to be issue with cryptos)
 ---------------------------
 
 - reload numbers on submit (low priority)
+
+---------------------------
+
+validation:
+
+- base on json-schema validator (will need a port)
+- each config screen has validation errors mapped to each field
+- each errored field is red with error message
+- if config screen has any errors, config name in navbar is red
+- if any config groups have any errored configs, config group is red in nav bar
+- same for accounts
+- ribbon on top shows that config isn't complete
+- besides individual json-schema compliance, also check that all chosen account are not in error
+

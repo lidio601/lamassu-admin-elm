@@ -92,7 +92,7 @@ type FieldType
     | FieldIntegerType
     | FieldOnOffType
     | FieldAccountType
-    | FieldCurrencyType
+    | FieldFiatCurrencyType
     | FieldCryptoCurrencyType
     | FieldLanguageType
 
@@ -103,7 +103,7 @@ type FieldValue
     | FieldIntegerValue Int
     | FieldOnOffValue Bool
     | FieldAccountValue String
-    | FieldCurrencyValue String
+    | FieldFiatCurrencyValue String
     | FieldCryptoCurrencyValue (List String)
     | FieldLanguageValue (List String)
 
@@ -191,7 +191,7 @@ fieldValueToString fieldValue =
         FieldAccountValue v ->
             v
 
-        FieldCurrencyValue v ->
+        FieldFiatCurrencyValue v ->
             v
 
         FieldCryptoCurrencyValue v ->
@@ -307,8 +307,8 @@ stringToFieldHolder fieldType s =
             FieldAccountType ->
                 Ok (Just (FieldAccountValue s))
 
-            FieldCurrencyType ->
-                Ok (Just (FieldCurrencyValue s))
+            FieldFiatCurrencyType ->
+                Ok (Just (FieldFiatCurrencyValue s))
 
             FieldCryptoCurrencyType ->
                 Ok (Just (FieldCryptoCurrencyValue [ s ]))

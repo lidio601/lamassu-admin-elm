@@ -23,9 +23,6 @@ import Time exposing (second)
 import Task
 
 
--- import Maybe.Extra
-
-
 type alias WebConfigGroup =
     RemoteData.WebData ConfigGroup
 
@@ -308,7 +305,7 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
             selectizeState
 
 
-currencySelectizeView :
+fiatCurrencySelectizeView :
     ResolvedModel
     -> LocalConfig
     -> FieldInstance
@@ -316,7 +313,7 @@ currencySelectizeView :
     -> Maybe FieldValue
     -> Maybe FieldValue
     -> Html Msg
-currencySelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+fiatCurrencySelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         specificConfig =
             { maxItems = 1
@@ -468,8 +465,8 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
                     maybeFieldValue
                     maybeFallbackFieldValue
 
-            FieldCurrencyType ->
-                currencySelectizeView model
+            FieldFiatCurrencyType ->
+                fiatCurrencySelectizeView model
                     localConfig
                     fieldInstance
                     selectizeState
@@ -760,7 +757,7 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
         FieldAccountType ->
             SelectizeComponent Selectize.initialSelectize
 
-        FieldCurrencyType ->
+        FieldFiatCurrencyType ->
             SelectizeComponent Selectize.initialSelectize
 
         FieldCryptoCurrencyType ->
