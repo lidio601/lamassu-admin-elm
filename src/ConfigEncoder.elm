@@ -10,37 +10,32 @@ encodeFieldValueObject fieldTypeStr value =
     object [ ( "fieldType", string fieldTypeStr ), ( "value", value ) ]
 
 
-encodeFieldValue : Maybe FieldValue -> Value
-encodeFieldValue maybeFieldValue =
-    case maybeFieldValue of
-        Nothing ->
-            null
+encodeFieldValue : FieldValue -> Value
+encodeFieldValue fieldValue =
+    case fieldValue of
+        FieldStringValue value ->
+            encodeFieldValueObject "string" (string value)
 
-        Just fieldValue ->
-            case fieldValue of
-                FieldStringValue value ->
-                    encodeFieldValueObject "string" (string value)
+        FieldPercentageValue value ->
+            encodeFieldValueObject "percentage" (float value)
 
-                FieldPercentageValue value ->
-                    encodeFieldValueObject "percentage" (float value)
+        FieldIntegerValue value ->
+            encodeFieldValueObject "integer" (int value)
 
-                FieldIntegerValue value ->
-                    encodeFieldValueObject "integer" (int value)
+        FieldOnOffValue value ->
+            encodeFieldValueObject "onOff" (bool value)
 
-                FieldOnOffValue value ->
-                    encodeFieldValueObject "onOff" (bool value)
+        FieldAccountValue value ->
+            encodeFieldValueObject "account" (string value)
 
-                FieldAccountValue value ->
-                    encodeFieldValueObject "account" (string value)
+        FieldFiatCurrencyValue value ->
+            encodeFieldValueObject "fiatCurrency" (string value)
 
-                FieldFiatCurrencyValue value ->
-                    encodeFieldValueObject "fiatCurrency" (string value)
+        FieldCryptoCurrencyValue value ->
+            encodeFieldValueObject "cryptoCurrency" (list (List.map string value))
 
-                FieldCryptoCurrencyValue value ->
-                    encodeFieldValueObject "cryptoCurrency" (list (List.map string value))
-
-                FieldLanguageValue value ->
-                    encodeFieldValueObject "language" (list (List.map string value))
+        FieldLanguageValue value ->
+            encodeFieldValueObject "language" (list (List.map string value))
 
 
 encodeCrypto : Crypto -> Value
@@ -122,20 +117,33 @@ encodeFieldLocator fieldLocator =
 encodeFieldResult : FieldInstance -> Maybe Value
 encodeFieldResult fieldInstance =
     let
-        encode maybeFieldValue =
+        encode value =
             Json.Encode.object
                 [ ( "fieldLocator", encodeFieldLocator fieldInstance.fieldLocator )
-                , ( "fieldValue", encodeFieldValue maybeFieldValue )
+                , ( "fieldValue", value )
                 ]
 
-        onlyDirty maybeFieldValue =
-            if (fieldInstance.loadedFieldValue == maybeFieldValue) then
-                Nothing
-            else
-                Just (encode maybeFieldValue)
+        dirtyEncode fieldHolder =
+            case fieldHolder of
+                ParsingError fieldValue ->
+                    Nothing
+
+                ValidationError fieldValue ->
+                    Nothing
+
+                FieldOk fieldValue ->
+                    if (fieldInstance.loadedFieldHolder == fieldHolder) then
+                        Nothing
+                    else
+                        Just <| encode <| encodeFieldValue fieldValue
+
+                FieldEmpty ->
+                    if (fieldInstance.loadedFieldHolder == fieldHolder) then
+                        Nothing
+                    else
+                        Just <| encode null
     in
-        Result.toMaybe fieldInstance.fieldValue
-            |> Maybe.andThen onlyDirty
+        dirtyEncode fieldInstance.fieldHolder
 
 
 encodeResults : String -> List FieldInstance -> Value

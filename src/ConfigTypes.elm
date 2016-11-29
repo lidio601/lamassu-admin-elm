@@ -38,13 +38,11 @@ type ConfigScope
     | Both
 
 
-type FieldError
-    = FieldParsingError String
-    | FieldValidationError String
-
-
-type alias FieldHolder =
-    Result FieldError (Maybe FieldValue)
+type FieldHolder
+    = ParsingError String
+    | ValidationError String
+    | FieldOk FieldValue
+    | FieldEmpty
 
 
 type alias FieldScope =
@@ -69,8 +67,8 @@ type FieldComponent
 type alias FieldInstance =
     { fieldLocator : FieldLocator
     , component : FieldComponent
-    , fieldValue : FieldHolder
-    , loadedFieldValue : Maybe FieldValue
+    , fieldHolder : FieldHolder
+    , loadedFieldHolder : FieldHolder
     }
 
 
@@ -272,46 +270,54 @@ stringToCrypto string =
             CryptoCode string
 
 
+resultToFieldHolder : Result String FieldValue -> FieldHolder
+resultToFieldHolder result =
+    case result of
+        Ok fieldValue ->
+            FieldOk fieldValue
+
+        Err s ->
+            ParsingError s
+
+
 stringToFieldHolder : FieldType -> String -> FieldHolder
 stringToFieldHolder fieldType s =
     if (String.isEmpty s) then
-        Ok Nothing
+        FieldEmpty
     else
         case fieldType of
             FieldStringType ->
-                Ok (Just (FieldStringValue s))
+                FieldOk (FieldStringValue s)
 
             FieldPercentageType ->
                 String.toFloat s
                     |> Result.map FieldPercentageValue
-                    |> Result.map Just
-                    |> Result.mapError FieldParsingError
+                    |> resultToFieldHolder
 
             FieldIntegerType ->
                 String.toInt s
                     |> Result.map FieldIntegerValue
-                    |> Result.map Just
-                    |> Result.mapError FieldParsingError
+                    |> resultToFieldHolder
 
             FieldOnOffType ->
                 case s of
                     "on" ->
-                        Ok (Just (FieldOnOffValue True))
+                        FieldOk (FieldOnOffValue True)
 
                     "off" ->
-                        Ok (Just (FieldOnOffValue False))
+                        FieldOk (FieldOnOffValue False)
 
                     _ ->
-                        Err (FieldParsingError ("Unsupported value for OnOff: " ++ s))
+                        ParsingError ("Unsupported value for OnOff: " ++ s)
 
             FieldAccountType ->
-                Ok (Just (FieldAccountValue s))
+                FieldOk (FieldAccountValue s)
 
             FieldFiatCurrencyType ->
-                Ok (Just (FieldFiatCurrencyValue s))
+                FieldOk (FieldFiatCurrencyValue s)
 
             FieldCryptoCurrencyType ->
-                Ok (Just (FieldCryptoCurrencyValue [ s ]))
+                FieldOk (FieldCryptoCurrencyValue [ s ])
 
             FieldLanguageType ->
-                Ok (Just (FieldLanguageValue [ s ]))
+                FieldOk (FieldLanguageValue [ s ])

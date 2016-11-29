@@ -129,24 +129,19 @@ placeField fieldList field =
 fieldHolderToList : FieldHolder -> List String
 fieldHolderToList fieldHolder =
     case fieldHolder of
-        Err _ ->
+        FieldOk fieldValue ->
+            case fieldValue of
+                FieldLanguageValue v ->
+                    v
+
+                FieldCryptoCurrencyValue v ->
+                    v
+
+                _ ->
+                    Debug.crash "Not a list type"
+
+        _ ->
             []
-
-        Ok maybeValue ->
-            case maybeValue of
-                Nothing ->
-                    []
-
-                Just fieldValue ->
-                    case fieldValue of
-                        FieldLanguageValue v ->
-                            v
-
-                        FieldCryptoCurrencyValue v ->
-                            v
-
-                        _ ->
-                            Debug.crash "Not a list type"
 
 
 emptyToNothing : List x -> Maybe (List x)
@@ -157,6 +152,14 @@ emptyToNothing list =
         Just list
 
 
+listToFieldHolder : (List a -> FieldValue) -> List a -> FieldHolder
+listToFieldHolder modifier list =
+    if List.isEmpty list then
+        FieldEmpty
+    else
+        FieldOk <| modifier <| list
+
+
 updateStringFieldInstance : FieldLocator -> Maybe String -> FieldInstance -> FieldInstance
 updateStringFieldInstance fieldLocator maybeString fieldInstance =
     if fieldInstance.fieldLocator == fieldLocator then
@@ -164,7 +167,7 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
             FieldLanguageType ->
                 let
                     list =
-                        fieldHolderToList fieldInstance.fieldValue
+                        fieldHolderToList fieldInstance.fieldHolder
 
                     newList =
                         case maybeString of
@@ -174,12 +177,12 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
                             Just s ->
                                 list ++ [ s ]
                 in
-                    { fieldInstance | fieldValue = Ok (Maybe.map FieldLanguageValue (emptyToNothing newList)) }
+                    { fieldInstance | fieldHolder = listToFieldHolder FieldLanguageValue newList }
 
             FieldCryptoCurrencyType ->
                 let
                     list =
-                        fieldHolderToList fieldInstance.fieldValue
+                        fieldHolderToList fieldInstance.fieldHolder
 
                     newList =
                         case maybeString of
@@ -189,19 +192,19 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
                             Just s ->
                                 list ++ [ s ]
                 in
-                    { fieldInstance | fieldValue = Ok (Maybe.map FieldCryptoCurrencyValue (emptyToNothing newList)) }
+                    { fieldInstance | fieldHolder = listToFieldHolder FieldCryptoCurrencyValue newList }
 
             _ ->
                 let
                     fieldHolder =
                         case maybeString of
                             Nothing ->
-                                Ok Nothing
+                                FieldEmpty
 
                             Just s ->
                                 stringToFieldHolder fieldLocator.fieldType s
                 in
-                    { fieldInstance | fieldValue = fieldHolder }
+                    { fieldInstance | fieldHolder = fieldHolder }
     else
         fieldInstance
 
@@ -581,9 +584,9 @@ fieldComponent model fieldInstance =
             pick fieldScope.crypto GlobalMachine
 
         maybeSpecific =
-            case fieldInstance.fieldValue of
-                Ok maybeFieldValue ->
-                    maybeFieldValue
+            case fieldInstance.fieldHolder of
+                FieldOk fieldValue ->
+                    Just fieldValue
 
                 _ ->
                     Nothing
@@ -778,18 +781,22 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
             , fieldClass = fieldDescriptor.fieldClass
             }
 
-        value =
+        maybeValue =
             List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
                 |> List.head
                 |> Maybe.map .fieldValue
 
         component =
-            buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope value
+            buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope maybeValue
+
+        maybeToFieldHolder maybe =
+            Maybe.map FieldOk maybe
+                |> Maybe.withDefault FieldEmpty
     in
         { fieldLocator = fieldLocator
         , component = component
-        , fieldValue = Ok value
-        , loadedFieldValue = value
+        , fieldHolder = maybeToFieldHolder maybeValue
+        , loadedFieldHolder = maybeToFieldHolder maybeValue
         }
 
 
@@ -815,9 +822,9 @@ pickFieldInstance fieldLocator fieldInstances =
 
 fieldInstanceToMaybeFieldValue : FieldInstance -> Maybe FieldValue
 fieldInstanceToMaybeFieldValue fieldInstance =
-    case fieldInstance.fieldValue of
-        Ok maybeFieldValue ->
-            maybeFieldValue
+    case fieldInstance.fieldHolder of
+        FieldOk fieldValue ->
+            Just fieldValue
 
         _ ->
             Nothing
