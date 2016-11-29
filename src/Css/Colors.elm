@@ -51,3 +51,8 @@ darkGrey =
 darkerGrey : Color
 darkerGrey =
     hex "282828"
+
+
+red : Color
+red =
+    hex "eb6b6e"

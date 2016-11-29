@@ -232,9 +232,25 @@ fieldTypeToInputType fieldType =
             "string"
 
 
-textInput : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
+buildValidationAttribute : FieldValidator -> Maybe (Attribute Msg)
+buildValidationAttribute fieldValidator =
+    case fieldValidator of
+        FieldMin n ->
+            Just <| Html.Attributes.min (toString n)
+
+        FieldMax n ->
+            Just <| Html.Attributes.max (toString n)
+
+        FieldRequired ->
+            Nothing
+
+
+textInput : FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+textInput fieldInstance maybeFieldValue maybeFallbackFieldValue =
     let
+        fieldLocator =
+            fieldInstance.fieldLocator
+
         maybeSpecificString =
             Maybe.map fieldValueToString maybeFieldValue
 
@@ -250,19 +266,25 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
         inputType =
             fieldTypeToInputType fieldLocator.fieldType
 
+        validations =
+            List.filterMap buildValidationAttribute
+                fieldInstance.fieldValidation
+
         valid =
             Maybe.map (\_ -> C.Success) maybeFallbackString
                 |> Maybe.withDefault C.Fail
     in
         input
-            [ onInput (Input fieldLocator)
-            , onFocus (Focus fieldLocator)
-            , onBlur (Blur fieldLocator)
-            , defaultValue defaultString
-            , placeholder fallbackString
-            , class [ C.BasicInput, valid ]
-            , type_ inputType
-            ]
+            ([ onInput (Input fieldLocator)
+             , onFocus (Focus fieldLocator)
+             , onBlur (Blur fieldLocator)
+             , defaultValue defaultString
+             , placeholder fallbackString
+             , class [ C.BasicInput, valid ]
+             , type_ inputType
+             ]
+                ++ validations
+            )
             []
 
 
@@ -561,7 +583,7 @@ fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldVa
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue =
     case fieldInstance.component of
         InputBoxComponent ->
-            textInput fieldInstance.fieldLocator maybeFieldValue maybeFallbackFieldValue
+            textInput fieldInstance maybeFieldValue maybeFallbackFieldValue
 
         SelectizeComponent selectizeState ->
             selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
@@ -815,6 +837,7 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         , component = component
         , fieldHolder = maybeToFieldHolder maybeValue
         , loadedFieldHolder = maybeToFieldHolder maybeValue
+        , fieldValidation = fieldDescriptor.fieldValidation
         }
 
 

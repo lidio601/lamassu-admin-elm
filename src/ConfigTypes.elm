@@ -69,6 +69,7 @@ type alias FieldInstance =
     , component : FieldComponent
     , fieldHolder : FieldHolder
     , loadedFieldHolder : FieldHolder
+    , fieldValidation : List FieldValidator
     }
 
 
@@ -106,10 +107,17 @@ type FieldValue
     | FieldLanguageValue (List String)
 
 
+type FieldValidator
+    = FieldMin Int
+    | FieldMax Int
+    | FieldRequired
+
+
 type alias FieldDescriptor =
     { code : String
     , display : String
     , fieldType : FieldType
+    , fieldValidation : List FieldValidator
     , fieldClass : Maybe String
     }
 

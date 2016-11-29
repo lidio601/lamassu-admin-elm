@@ -178,15 +178,18 @@ css =
                 [ (.) Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
                 , input
-                    [ border zero
+                    [ border3 (px 2) solid Colors.lightGrey
                     , borderRadius (px 3)
                     , padding (px 6)
                     , textAlign right
                     , width (pct 100)
                     , fontFamilies [ "Fira Code" ]
                     , fontWeight (int 600)
-                    , property "outline" "none"
-                    , property "background-color" "inherit"
+                    , outline none
+                    , backgroundColor inherit
+                    , invalid
+                        [ color Colors.red
+                        ]
                     ]
                 , td
                     [ padding2 (px 3) (px 4)
@@ -194,12 +197,16 @@ css =
                     , verticalAlign middle
                     ]
                 , (.) Component
-                    [ borderRadius (px 3)
-                    , border3 (px 2) solid Colors.lightGrey
+                    [ border zero
                     , backgroundColor Colors.white
                     ]
                 , (.) FocusedComponent
-                    [ borderTopColor Colors.amazonite ]
+                    [ children
+                        [ input
+                            [ borderTopColor Colors.amazonite
+                            ]
+                        ]
+                    ]
                 , tbody
                     [ descendants
                         [ td

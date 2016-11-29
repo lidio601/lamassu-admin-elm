@@ -168,12 +168,35 @@ fieldTypeDecoder fieldType =
     basicFieldTypeDecoder fieldType
 
 
+fieldValidatorDecode : String -> Decoder FieldValidator
+fieldValidatorDecode code =
+    case code of
+        "min" ->
+            map FieldMin (field "min" int)
+
+        "max" ->
+            map FieldMax (field "max" int)
+
+        "required" ->
+            succeed FieldRequired
+
+        _ ->
+            fail ("Unsupported fieldValidator: " ++ code)
+
+
+fieldValidatorDecoder : Decoder FieldValidator
+fieldValidatorDecoder =
+    (field "code" string)
+        |> andThen fieldValidatorDecode
+
+
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
-    map4 FieldDescriptor
+    map5 FieldDescriptor
         (field "code" string)
         (field "display" string)
-        ((field "fieldType" string) |> andThen fieldTypeDecoder)
+        (field "fieldType" string |> andThen fieldTypeDecoder)
+        (field "fieldValidation" <| list fieldValidatorDecoder)
         (field "fieldClass" (nullOr string))
 
 
