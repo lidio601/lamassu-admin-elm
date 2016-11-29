@@ -222,6 +222,16 @@ updateInput fieldLocator maybeValueString model =
 -- View
 
 
+fieldTypeToInputType : FieldType -> String
+fieldTypeToInputType fieldType =
+    case fieldType of
+        FieldPercentageType ->
+            "number"
+
+        _ ->
+            "string"
+
+
 textInput : FieldLocator -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
 textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
     let
@@ -236,6 +246,13 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
 
         fallbackString =
             Maybe.withDefault "" maybeFallbackString
+
+        inputType =
+            fieldTypeToInputType fieldLocator.fieldType
+
+        valid =
+            Maybe.map (\_ -> C.Success) maybeFallbackString
+                |> Maybe.withDefault C.Fail
     in
         input
             [ onInput (Input fieldLocator)
@@ -243,7 +260,8 @@ textInput fieldLocator maybeFieldValue maybeFallbackFieldValue =
             , onBlur (Blur fieldLocator)
             , defaultValue defaultString
             , placeholder fallbackString
-            , class [ C.BasicInput ]
+            , class [ C.BasicInput, valid ]
+            , type_ inputType
             ]
             []
 

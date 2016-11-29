@@ -24,3 +24,5 @@ type CssClasses
     | Component
     | FocusedComponent
     | TableButton
+    | Fail
+    | Success
