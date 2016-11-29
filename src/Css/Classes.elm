@@ -26,3 +26,4 @@ type CssClasses
     | TableButton
     | Fail
     | Success
+    | StatusBar

@@ -12,6 +12,7 @@ import Pair
 import Account
 import Config
 import Machine
+import StatusTypes
 
 
 type Category
@@ -45,5 +46,7 @@ type Msg
     | ConfigMsg Config.Msg
     | MachineMsg Machine.Msg
     | LoadAccounts (List ( String, String ))
+    | LoadStatus StatusTypes.WebStatus
     | NewUrl String
     | UrlChange Navigation.Location
+    | Interval

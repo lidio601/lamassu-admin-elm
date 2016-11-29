@@ -1,7 +1,7 @@
 module Css.Main exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button, label)
+import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button, label, p)
 import Css.Namespace exposing (namespace)
 import Css.Colors as Colors
 import Css.ColorSchemes exposing (..)
@@ -89,6 +89,16 @@ css =
         [ body
             [ fontFamilies [ "Brandon Text" ]
             , margin zero
+            ]
+        , p
+            [ margin zero ]
+        , (.) StatusBar
+            [ position fixed
+            , bottom zero
+            , padding2 (px 10) (px 20)
+            , backgroundColor Colors.sandstone
+            , color Colors.white
+            , width (pct 100)
             ]
         , (.) FormRow
             [ margin2 (px 20) zero

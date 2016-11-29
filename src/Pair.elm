@@ -15,6 +15,7 @@ import RemoteData exposing (RemoteData(NotAsked, Loading, Failure, Success))
 type alias Model =
     { totem : RemoteData.WebData String
     , name : String
+    , serverStatus : Bool
     }
 
 
@@ -31,6 +32,7 @@ init : Model
 init =
     { totem = RemoteData.NotAsked
     , name = ""
+    , serverStatus = False
     }
 
 
@@ -42,6 +44,11 @@ type Msg
     = Load (RemoteData.WebData String)
     | InputName String
     | SubmitName
+
+
+updateStatus : Bool -> Model -> Model
+updateStatus isUp model =
+    { model | serverStatus = isUp }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,49 +66,52 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case Debug.log "DEBUG33" model.totem of
-        NotAsked ->
-            div []
-                [ h1 [] [ text "Pair a new Lamassu cryptomat" ]
-                , div []
-                    [ label []
-                        [ text "Cryptomat name"
-                        , input
-                            [ onInput InputName
-                            , placeholder "Coffee shop, 43 Elm St."
-                            , size 50
-                            , style [ ( "margin-left", "1em" ) ]
+    if model.serverStatus then
+        case Debug.log "DEBUG33" model.totem of
+            NotAsked ->
+                div []
+                    [ h1 [] [ text "Pair a new Lamassu cryptomat" ]
+                    , div []
+                        [ label []
+                            [ text "Cryptomat name"
+                            , input
+                                [ onInput InputName
+                                , placeholder "Coffee shop, 43 Elm St."
+                                , size 50
+                                , style [ ( "margin-left", "1em" ) ]
+                                ]
+                                []
+                            , button
+                                [ onClick SubmitName, disabled (String.isEmpty model.name) ]
+                                [ text "Pair" ]
                             ]
-                            []
-                        , button
-                            [ onClick SubmitName, disabled (String.isEmpty model.name) ]
-                            [ text "Pair" ]
                         ]
                     ]
-                ]
 
-        Loading ->
-            div []
-                [ div [] [ text "..." ] ]
+            Loading ->
+                div []
+                    [ div [] [ text "..." ] ]
 
-        Failure err ->
-            div [] [ text (toString err) ]
+            Failure err ->
+                div [] [ text (toString err) ]
 
-        Success totem ->
-            div
-                []
-                [ div
-                    [ style
-                        [ ( "background-color", "#eee" )
-                        , ( "padding", "10px" )
-                        , ( "width", "225px" )
-                        , ( "margin-bottom", "20px" )
-                        , ( "border-radius", "6px" )
+            Success totem ->
+                div
+                    []
+                    [ div
+                        [ style
+                            [ ( "background-color", "#eee" )
+                            , ( "padding", "10px" )
+                            , ( "width", "225px" )
+                            , ( "margin-bottom", "20px" )
+                            , ( "border-radius", "6px" )
+                            ]
+                        ]
+                        [ node "qr-code" [ attribute "data" (Debug.log "Totem" totem) ] [] ]
+                    , div []
+                        [ span [] [ text "Scan this QR to pair " ]
+                        , strong [] [ text model.name ]
                         ]
                     ]
-                    [ node "qr-code" [ attribute "data" (Debug.log "Totem" totem) ] [] ]
-                , div []
-                    [ span [] [ text "Scan this QR to pair " ]
-                    , strong [] [ text model.name ]
-                    ]
-                ]
+    else
+        div [] [ text "Make sure lamassu-server is up before pairing" ]

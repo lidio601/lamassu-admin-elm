@@ -15,6 +15,13 @@ import RemoteData
 import Navigation exposing (newUrl, Location)
 import CoreTypes exposing (Msg(..), Route(..), Category(..), MachineSubRoute(..))
 import AccountsDecoder exposing (accountsDecoder)
+import StatusTypes exposing (..)
+import StatusDecoder exposing (..)
+import Time exposing (..)
+import Maybe.Extra
+import Css.Admin
+import Css.Classes as C
+import Markdown
 
 
 main : Program Never Model Msg
@@ -52,6 +59,14 @@ getAccounts =
         |> Cmd.map LoadAccounts
 
 
+getStatus : Cmd Msg
+getStatus =
+    get ("/api/server/")
+        |> withExpect (Http.expectJson statusDecoder)
+        |> send RemoteData.fromResult
+        |> Cmd.map LoadStatus
+
+
 
 -- MODEL
 
@@ -63,6 +78,7 @@ type alias Model =
     , config : Config.Model
     , machine : Machine.Model
     , accounts : List ( String, String )
+    , status : Maybe StatusRec
     , err : Maybe String
     }
 
@@ -77,13 +93,14 @@ init location =
             , config = Config.init
             , machine = Machine.init
             , accounts = []
+            , status = Nothing
             , err = Nothing
             }
 
         ( newModel, newCmd ) =
             urlUpdate location model
     in
-        newModel ! [ newCmd, getAccounts ]
+        newModel ! [ newCmd, getAccounts, getStatus ]
 
 
 
@@ -124,11 +141,25 @@ update msg model =
         LoadAccounts accounts ->
             { model | accounts = Debug.log "DEBUG55" accounts } ! []
 
+        LoadStatus webStatus ->
+            let
+                newStatus =
+                    RemoteData.toMaybe webStatus
+                        |> Maybe.Extra.orElse model.status
+
+                serverStatus =
+                    Maybe.withDefault False <| Maybe.map (\status -> status.server.up) newStatus
+            in
+                { model | status = newStatus, pair = Pair.updateStatus serverStatus model.pair } ! []
+
         NewUrl url ->
             model ! [ Navigation.newUrl url ]
 
         UrlChange location ->
             urlUpdate location model
+
+        Interval ->
+            model ! [ getStatus ]
 
 
 content : Model -> Route -> Html Msg
@@ -150,6 +181,28 @@ content model route =
             div [] [ text ("No such route") ]
 
 
+statusBar : Maybe StatusRec -> Html Msg
+statusBar maybeStatus =
+    case maybeStatus of
+        Nothing ->
+            div [ Css.Admin.class [ C.StatusBar ] ] [ text "Loading ..." ]
+
+        Just status ->
+            let
+                serverStatus =
+                    if status.server.up then
+                        [ Markdown.toHtml [] "**lamassu-server** is up" ]
+                    else
+                        case status.server.lastPing of
+                            Nothing ->
+                                [ Markdown.toHtml [] ("**lamassu-server** not up yet") ]
+
+                            Just lastPing ->
+                                [ Markdown.toHtml [] ("**lamassu-server** has been down for " ++ lastPing) ]
+            in
+                div [ Css.Admin.class [ C.StatusBar ] ] serverStatus
+
+
 view : Model -> Html Msg
 view model =
     let
@@ -165,6 +218,7 @@ view model =
                         [ content model route ]
                     ]
                 ]
+            , statusBar model.status
             ]
 
 
@@ -210,4 +264,4 @@ urlUpdate location model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    every (10 * second) (\_ -> Interval)
