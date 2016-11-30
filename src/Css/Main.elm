@@ -188,7 +188,7 @@ css =
                 [ (.) Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
                 , input
-                    [ border3 (px 2) solid Colors.lightGrey
+                    [ border zero
                     , borderRadius (px 3)
                     , padding (px 6)
                     , textAlign right
@@ -207,16 +207,11 @@ css =
                     , verticalAlign middle
                     ]
                 , (.) Component
-                    [ border zero
+                    [ borderRadius (px 3)
                     , backgroundColor Colors.white
                     ]
                 , (.) FocusedComponent
-                    [ children
-                        [ input
-                            [ borderTopColor Colors.amazonite
-                            ]
-                        ]
-                    ]
+                    [ borderTopColor Colors.amazonite ]
                 , tbody
                     [ descendants
                         [ td
