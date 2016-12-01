@@ -61,7 +61,7 @@ getAccounts =
 
 getStatus : Cmd Msg
 getStatus =
-    get ("/api/server/")
+    get ("/api/status/")
         |> withExpect (Http.expectJson statusDecoder)
         |> send RemoteData.fromResult
         |> Cmd.map LoadStatus

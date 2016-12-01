@@ -160,11 +160,9 @@ view route =
                 ]
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
                 [ ( "Commissions", ConfigRoute "commissions" Nothing )
-                , ( "Limits", ConfigRoute "limits" Nothing )
-                , ( "Currencies", ConfigRoute "currencies" Nothing )
+                , ( "Machine settings", ConfigRoute "machineSettings" Nothing )
+                , ( "Fiat currencies", ConfigRoute "fiat" Nothing )
                 , ( "Crypto services", ConfigRoute "cryptoServices" Nothing )
-                , ( "Extra services", ConfigRoute "extraServices" Nothing )
-                , ( "Languages", ConfigRoute "languages" Nothing )
                 , ( "Notifications", ConfigRoute "notifications" Nothing )
                 , ( "Compliance", ConfigRoute "compliance" Nothing )
                 ]
