@@ -70,6 +70,7 @@ type alias FieldInstance =
     , fieldHolder : FieldHolder
     , loadedFieldHolder : FieldHolder
     , fieldValidation : List FieldValidator
+    , fieldEnabledIf : List String
     }
 
 
@@ -119,6 +120,7 @@ type alias FieldDescriptor =
     , fieldType : FieldType
     , fieldValidation : List FieldValidator
     , fieldClass : Maybe String
+    , fieldEnabledIf : List String
     }
 
 

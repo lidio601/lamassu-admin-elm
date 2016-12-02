@@ -161,6 +161,7 @@ view route =
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
                 [ ( "Commissions", ConfigRoute "commissions" Nothing )
                 , ( "Machine settings", ConfigRoute "machineSettings" Nothing )
+                , ( "Machines", ConfigRoute "machines" Nothing )
                 , ( "Fiat currencies", ConfigRoute "fiat" Nothing )
                 , ( "Crypto services", ConfigRoute "cryptoServices" Nothing )
                 , ( "Notifications", ConfigRoute "notifications" Nothing )

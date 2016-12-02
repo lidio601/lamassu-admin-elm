@@ -200,6 +200,8 @@ css =
                     , invalid
                         [ color Colors.red
                         ]
+                    , disabled
+                        [ backgroundColor Colors.lighterLightGrey ]
                     ]
                 , td
                     [ padding2 (px 3) (px 4)
@@ -208,6 +210,7 @@ css =
                     ]
                 , (.) Component
                     [ borderRadius (px 3)
+                    , border3 (px 2) solid Colors.lightGrey
                     , backgroundColor Colors.white
                     ]
                 , (.) FocusedComponent

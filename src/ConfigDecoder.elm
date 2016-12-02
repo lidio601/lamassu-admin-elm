@@ -192,12 +192,13 @@ fieldValidatorDecoder =
 
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
-    map5 FieldDescriptor
+    map6 FieldDescriptor
         (field "code" string)
         (field "display" string)
         (field "fieldType" string |> andThen fieldTypeDecoder)
         (field "fieldValidation" <| list fieldValidatorDecoder)
         (field "fieldClass" (nullOr string))
+        (oneOf [ (field "enabledIf" <| list string), (succeed []) ])
 
 
 configSchemaDecoder : Decoder ConfigSchema
