@@ -280,6 +280,16 @@ stringToCrypto string =
             CryptoCode string
 
 
+fieldHolderToMaybe : FieldHolder -> Maybe FieldValue
+fieldHolderToMaybe fieldHolder =
+    case fieldHolder of
+        FieldOk fieldValue ->
+            Just fieldValue
+
+        _ ->
+            Nothing
+
+
 resultToFieldHolder : Result String FieldValue -> FieldHolder
 resultToFieldHolder result =
     case result of

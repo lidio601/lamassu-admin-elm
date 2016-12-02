@@ -590,6 +590,30 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
 
 
+referenceFieldInstances : FieldScope -> List FieldInstance -> List String -> List FieldValue
+referenceFieldInstances fieldScope fieldInstances fieldCodes =
+    let
+        matchesCrypto targetCrypto =
+            if fieldScope.crypto == GlobalCrypto then
+                True
+            else
+                fieldScope.crypto == targetCrypto
+
+        matchesMachine targetMachine =
+            if fieldScope.machine == GlobalMachine then
+                True
+            else
+                fieldScope.machine == targetMachine
+
+        filter fieldInstance =
+            List.member fieldInstance.fieldLocator.code fieldCodes
+                && matchesCrypto fieldInstance.fieldLocator.fieldScope.crypto
+                && matchesMachine fieldInstance.fieldLocator.fieldScope.machine
+    in
+        List.filter filter fieldInstances
+            |> List.filterMap (.fieldHolder >> fieldHolderToMaybe)
+
+
 fallbackValue : FieldScope -> List FieldInstance -> String -> Maybe FieldValue
 fallbackValue fieldScope fieldInstances fieldCode =
     let
@@ -653,7 +677,7 @@ fieldComponent model fieldInstance =
             else
                 let
                     enabledInstances =
-                        List.map (fallbackValue fieldScope fieldInstances) fieldInstance.fieldEnabledIf
+                        referenceFieldInstances fieldScope fieldInstances fieldInstance.fieldEnabledIf
                 in
                     List.any isField enabledInstances
 
@@ -775,19 +799,14 @@ tableView model =
             ]
 
 
-isField : Maybe FieldValue -> Bool
-isField maybeFieldValue =
-    let
-        isActualField fieldValue =
-            case fieldValue of
-                FieldOnOffValue bool ->
-                    bool
+isField : FieldValue -> Bool
+isField fieldValue =
+    case fieldValue of
+        FieldOnOffValue bool ->
+            bool
 
-                _ ->
-                    Debug.crash "Referenced field must be boolean"
-    in
-        Maybe.map isActualField maybeFieldValue
-            |> Maybe.withDefault False
+        _ ->
+            Debug.crash "Referenced field must be boolean"
 
 
 type Msg
