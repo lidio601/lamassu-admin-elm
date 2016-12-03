@@ -2,6 +2,7 @@ module ConfigTypes exposing (..)
 
 import String
 import Selectize
+import Set
 
 
 type alias DisplayRec =
@@ -240,6 +241,65 @@ listMachines configGroup =
 
         Both ->
             globalMachineDisplay :: configGroup.data.machines
+
+
+isCrypto : String -> CryptoDisplay -> Bool
+isCrypto cryptoString cryptoDisplay =
+    case cryptoDisplay.crypto of
+        GlobalCrypto ->
+            cryptoString == "global"
+
+        CryptoCode string ->
+            cryptoString == string
+
+
+lookupCryptoDisplay : List CryptoDisplay -> String -> Maybe CryptoDisplay
+lookupCryptoDisplay cryptoDisplays cryptoString =
+    List.filter (isCrypto cryptoString) cryptoDisplays
+        |> List.head
+
+
+fieldHolderToCryptoStrings : FieldHolder -> List String
+fieldHolderToCryptoStrings fieldHolder =
+    case fieldHolder of
+        FieldOk fieldValue ->
+            case fieldValue of
+                FieldCryptoCurrencyValue cryptoStrings ->
+                    cryptoStrings
+
+                _ ->
+                    []
+
+        _ ->
+            []
+
+
+allCryptos : List CryptoDisplay -> ConfigScope -> List FieldInstance -> List CryptoDisplay
+allCryptos cryptoDisplays cryptoScope fieldInstances =
+    let
+        toCryptoSet fieldInstance =
+            if (Debug.log "DEBUG66" fieldInstance.fieldLocator.code) /= "cryptoCurrencies" then
+                Set.empty
+            else
+                fieldHolderToCryptoStrings fieldInstance.fieldHolder
+                    |> Debug.log "DEBUG77"
+                    |> Set.fromList
+
+        allSpecificCryptos =
+            List.map toCryptoSet fieldInstances
+                |> List.foldr Set.union Set.empty
+                |> Set.toList
+                |> List.filterMap (lookupCryptoDisplay cryptoDisplays)
+    in
+        case cryptoScope of
+            Global ->
+                [ globalCryptoDisplay ]
+
+            Specific ->
+                Debug.log "DEBUG88" allSpecificCryptos
+
+            Both ->
+                globalCryptoDisplay :: allSpecificCryptos
 
 
 listCryptos : ConfigGroup -> List CryptoDisplay

@@ -1031,7 +1031,7 @@ update msg model =
                 defaultCrypto =
                     case webConfigGroup of
                         Success configGroup ->
-                            listCryptos configGroup
+                            allCryptos configGroup.data.cryptoCurrencies configGroup.schema.cryptoScope fieldInstances
                                 |> List.head
                                 |> Maybe.map .crypto
 
@@ -1147,13 +1147,9 @@ cryptoView maybeActiveCrypto cryptoDisplay =
         div [ activeClass, onClick (CryptoSwitch cryptoDisplay.crypto) ] [ text cryptoDisplay.display ]
 
 
-cryptosView : Maybe Crypto -> ConfigGroup -> Html Msg
-cryptosView activeCrypto configGroup =
-    let
-        cryptos =
-            listCryptos configGroup
-    in
-        nav [ class [ C.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
+cryptosView : List CryptoDisplay -> Maybe Crypto -> Html Msg
+cryptosView cryptos activeCrypto =
+    nav [ class [ C.CryptoTabs ] ] (List.map (cryptoView activeCrypto) cryptos)
 
 
 view : Model -> Html Msg
@@ -1177,6 +1173,9 @@ view model =
                     div [ class [ C.ConfigContainer ] ]
                         [ tableView resolvedModel ]
 
+                cryptos =
+                    allCryptos configGroup.data.cryptoCurrencies configGroup.schema.cryptoScope model.fieldInstances
+
                 statusString =
                     case model.status of
                         Saved ->
@@ -1199,10 +1198,15 @@ view model =
                         [ div [ class [ C.SectionLabel ] ] [ text configGroup.schema.display ]
                         , form
                         ]
+                else if List.isEmpty cryptos then
+                    div []
+                        [ div [ class [ C.SectionLabel ] ] [ text configGroup.schema.display ]
+                        , div [] [ text "No Crypto currencies have been set. You can set them under Machine settings." ]
+                        ]
                 else
                     div []
                         [ div [ class [ C.SectionLabel ] ] [ text configGroup.schema.display ]
-                        , div [] [ (cryptosView model.crypto configGroup) ]
+                        , div [] [ (cryptosView cryptos model.crypto) ]
                         , form
                         ]
 
