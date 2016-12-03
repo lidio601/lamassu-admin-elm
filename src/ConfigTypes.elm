@@ -390,3 +390,8 @@ stringToFieldHolder fieldType s =
 
             FieldLanguageType ->
                 FieldOk (FieldLanguageValue [ s ])
+
+
+groupMember : ConfigGroup -> String -> Bool
+groupMember configGroup fieldCode =
+    List.any (.code >> ((==) fieldCode)) configGroup.schema.entries

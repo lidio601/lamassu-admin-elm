@@ -714,11 +714,14 @@ fieldComponent model fieldInstance =
                 True
             else
                 let
+                    ( inGroup, outGroup ) =
+                        List.partition (groupMember model.configGroup) fieldInstance.fieldEnabledIf
+
                     enabledInstances =
-                        (referenceFields fieldScope model.configGroup.values fieldInstance.fieldEnabledIf)
-                            ++ (referenceFieldInstances fieldScope model.fieldInstances fieldInstance.fieldEnabledIf)
+                        (referenceFields fieldScope model.configGroup.values outGroup)
+                            ++ (referenceFieldInstances fieldScope model.fieldInstances inGroup)
                 in
-                    List.any isField enabledInstances
+                    List.any isField (Debug.log "DEBUG66" enabledInstances)
 
         focused =
             (Just fieldLocator) == model.focused
