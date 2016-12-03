@@ -73,9 +73,8 @@ getForm code =
 postForm : String -> List FieldInstance -> Cmd Msg
 postForm configGroupCode fieldInstances =
     post ("/api/config")
-        |> withJsonBody (Debug.log "DEBUG102" (encodeResults configGroupCode fieldInstances))
+        |> withJsonBody (encodeResults configGroupCode fieldInstances)
         |> withExpect (Http.expectJson configGroupDecoder)
-        |> Debug.log "DEBUG103"
         |> send RemoteData.fromResult
         |> Cmd.map Load
 
@@ -274,19 +273,21 @@ textInput fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             Maybe.map (\_ -> C.Success) maybeFallbackString
                 |> Maybe.withDefault C.Fail
     in
-        input
-            ([ onInput (Input fieldLocator)
-             , onFocus (Focus fieldLocator)
-             , onBlur (Blur fieldLocator)
-             , defaultValue defaultString
-             , placeholder fallbackString
-             , class [ C.BasicInput, valid ]
-             , disabled (not enabled)
-             , type_ inputType
-             ]
-                ++ validations
-            )
-            []
+        if enabled then
+            input
+                ([ onInput (Input fieldLocator)
+                 , onFocus (Focus fieldLocator)
+                 , onBlur (Blur fieldLocator)
+                 , defaultValue defaultString
+                 , placeholder fallbackString
+                 , class [ C.BasicInput, valid ]
+                 , type_ inputType
+                 ]
+                    ++ validations
+                )
+                []
+        else
+            div [ class [ C.BasicInputDisabled ] ] [ text "N/A" ]
 
 
 type alias LocalConfig =
@@ -338,9 +339,6 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
         fallbackIds =
             Maybe.map fieldValueToString maybeFallbackFieldValue
                 |> maybeToList
-
-        _ =
-            Debug.log "DEBUG26" ( fieldInstance.fieldLocator.fieldScope.machine, fallbackIds )
     in
         Selectize.view (buildConfig localConfig specificConfig)
             selectedIds
@@ -485,8 +483,9 @@ selectizeView :
     -> Selectize.State
     -> Maybe FieldValue
     -> Maybe FieldValue
+    -> Bool
     -> Html Msg
-selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -498,6 +497,7 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
             , onFocus = FocusSelectize fieldLocator
             , onBlur = BlurSelectize fieldLocator
             , toId = .code
+            , enabled = enabled
             }
     in
         case fieldLocator.fieldType of
@@ -587,7 +587,7 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             textInput fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
 
         SelectizeComponent selectizeState ->
-            selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
+            selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled
 
 
 referenceFieldInstances : FieldScope -> List FieldInstance -> List String -> List FieldValue
@@ -614,6 +614,30 @@ referenceFieldInstances fieldScope fieldInstances fieldCodes =
             |> List.filterMap (.fieldHolder >> fieldHolderToMaybe)
 
 
+referenceFields : FieldScope -> List Field -> List String -> List FieldValue
+referenceFields fieldScope fields fieldCodes =
+    let
+        matchesCrypto targetCrypto =
+            if fieldScope.crypto == GlobalCrypto then
+                True
+            else
+                fieldScope.crypto == targetCrypto
+
+        matchesMachine targetMachine =
+            if fieldScope.machine == GlobalMachine then
+                True
+            else
+                fieldScope.machine == targetMachine
+
+        filter field =
+            List.member field.fieldLocator.code fieldCodes
+                && matchesCrypto field.fieldLocator.fieldScope.crypto
+                && matchesMachine field.fieldLocator.fieldScope.machine
+    in
+        List.filter filter fields
+            |> List.map .fieldValue
+
+
 fallbackValue : FieldScope -> List FieldInstance -> String -> Maybe FieldValue
 fallbackValue fieldScope fieldInstances fieldCode =
     let
@@ -636,6 +660,20 @@ fallbackValue fieldScope fieldInstances fieldCode =
             |> Maybe.Extra.or maybeGlobalMachine
             |> Maybe.Extra.or maybeGlobalCrypto
             |> Maybe.Extra.or maybeGlobal
+
+
+fieldInstanceToField : FieldInstance -> Maybe Field
+fieldInstanceToField fieldInstance =
+    let
+        maybeFieldValue =
+            fieldHolderToMaybe fieldInstance.fieldHolder
+
+        buildFieldInstance fieldValue =
+            { fieldLocator = fieldInstance.fieldLocator
+            , fieldValue = fieldValue
+            }
+    in
+        Maybe.map buildFieldInstance maybeFieldValue
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -677,12 +715,10 @@ fieldComponent model fieldInstance =
             else
                 let
                     enabledInstances =
-                        referenceFieldInstances fieldScope fieldInstances fieldInstance.fieldEnabledIf
+                        (referenceFields fieldScope model.configGroup.values fieldInstance.fieldEnabledIf)
+                            ++ (referenceFieldInstances fieldScope model.fieldInstances fieldInstance.fieldEnabledIf)
                 in
                     List.any isField enabledInstances
-
-        _ =
-            Debug.log "DEBUG11" ( fieldCode, enabled )
     in
         fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled
 
@@ -1000,7 +1036,7 @@ update msg model =
                 crypto =
                     case model.crypto of
                         Nothing ->
-                            Debug.log "DEBUG27" defaultCrypto
+                            defaultCrypto
 
                         Just crypto ->
                             Just crypto

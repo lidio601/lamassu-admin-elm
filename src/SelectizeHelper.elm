@@ -11,6 +11,7 @@ type alias LocalConfig msg idType itemType =
     , onFocus : State -> msg
     , onBlur : State -> msg
     , toId : itemType -> idType
+    , enabled : Bool
     }
 
 
@@ -35,6 +36,7 @@ buildConfig localConfig specificConfig =
     , onFocus = localConfig.onFocus
     , onBlur = localConfig.onBlur
     , toId = localConfig.toId
+    , enabled = localConfig.enabled
     , selectedDisplay = specificConfig.selectedDisplay
     , optionDisplay = specificConfig.optionDisplay
     , match = specificConfig.match
@@ -44,6 +46,7 @@ buildConfig localConfig specificConfig =
         , atMaxLength = "Type backspace to edit"
         , typeForMore = "Type for more options"
         , noOptions = "No options"
+        , notAvailable = "N/A"
         , classes = Css.Selectize.classes
         }
     }

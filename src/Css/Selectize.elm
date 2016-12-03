@@ -118,6 +118,7 @@ type Class
     | Info
     | InfoNoMatches
     | NoOptions
+    | Disabled
 
 
 classes : Selectize.HtmlClasses

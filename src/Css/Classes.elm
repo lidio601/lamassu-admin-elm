@@ -21,6 +21,7 @@ type CssClasses
     | ButtonRow
     | Active
     | BasicInput
+    | BasicInputDisabled
     | Component
     | FocusedComponent
     | TableButton

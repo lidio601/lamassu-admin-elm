@@ -9,7 +9,7 @@ module Selectize
         )
 
 import Html exposing (..)
-import Html.Attributes exposing (value, defaultValue, maxlength, class, classList, id)
+import Html.Attributes exposing (value, defaultValue, maxlength, class, classList, id, disabled)
 import Html.Events as E exposing (on, onWithOptions)
 import String
 import Json.Decode as Json
@@ -24,6 +24,7 @@ type alias HtmlOptions =
     , typeForMore : String
     , atMaxLength : String
     , noOptions : String
+    , notAvailable : String
     , classes : HtmlClasses
     }
 
@@ -76,6 +77,7 @@ type alias Config msg idType itemType =
     , onFocus : State -> msg
     , onBlur : State -> msg
     , toId : itemType -> idType
+    , enabled : Bool
     , selectedDisplay : itemType -> String
     , optionDisplay : itemType -> String
     , match : String -> List itemType -> List itemType
@@ -366,6 +368,9 @@ view config selectedIds availableItems fallbackIds state =
     if List.length availableItems == 0 then
         div [ class config.htmlOptions.classes.container ]
             [ div [ class config.htmlOptions.classes.noOptions ] [ text config.htmlOptions.noOptions ] ]
+    else if not config.enabled then
+        div [ class config.htmlOptions.classes.container ]
+            [ div [ class config.htmlOptions.classes.noOptions ] [ text "N/A" ] ]
     else
         let
             h =

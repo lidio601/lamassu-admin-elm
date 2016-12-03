@@ -200,8 +200,16 @@ css =
                     , invalid
                         [ color Colors.red
                         ]
-                    , disabled
-                        [ backgroundColor Colors.lighterLightGrey ]
+                    ]
+                , (.) BasicInputDisabled
+                    [ backgroundColor Colors.lighterLightGrey
+                    , height (px 25)
+                    , lineHeight (px 25)
+                    , fontSize (px 11)
+                    , fontWeight (int 500)
+                    , color Colors.sandstone
+                    , textAlign center
+                    , cursor default
                     ]
                 , td
                     [ padding2 (px 3) (px 4)
