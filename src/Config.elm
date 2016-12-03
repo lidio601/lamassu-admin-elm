@@ -1031,7 +1031,10 @@ update msg model =
                 defaultCrypto =
                     case webConfigGroup of
                         Success configGroup ->
-                            allCryptos configGroup.data.cryptoCurrencies configGroup.schema.cryptoScope fieldInstances
+                            (allCryptos configGroup.data.cryptoCurrencies
+                                configGroup.schema.cryptoScope
+                                configGroup.selectedCryptos
+                            )
                                 |> List.head
                                 |> Maybe.map .crypto
 
@@ -1174,7 +1177,9 @@ view model =
                         [ tableView resolvedModel ]
 
                 cryptos =
-                    allCryptos configGroup.data.cryptoCurrencies configGroup.schema.cryptoScope model.fieldInstances
+                    allCryptos configGroup.data.cryptoCurrencies
+                        configGroup.schema.cryptoScope
+                        configGroup.selectedCryptos
 
                 statusString =
                     case model.status of

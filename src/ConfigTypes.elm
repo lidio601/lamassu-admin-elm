@@ -2,7 +2,6 @@ module ConfigTypes exposing (..)
 
 import String
 import Selectize
-import Set
 
 
 type alias DisplayRec =
@@ -137,6 +136,7 @@ type alias ConfigSchema =
 type alias ConfigGroup =
     { schema : ConfigSchema
     , values : List Field
+    , selectedCryptos : List String
     , data : ConfigData
     }
 
@@ -274,22 +274,11 @@ fieldHolderToCryptoStrings fieldHolder =
             []
 
 
-allCryptos : List CryptoDisplay -> ConfigScope -> List FieldInstance -> List CryptoDisplay
-allCryptos cryptoDisplays cryptoScope fieldInstances =
+allCryptos : List CryptoDisplay -> ConfigScope -> List String -> List CryptoDisplay
+allCryptos cryptoDisplays cryptoScope cryptoStrings =
     let
-        toCryptoSet fieldInstance =
-            if (Debug.log "DEBUG66" fieldInstance.fieldLocator.code) /= "cryptoCurrencies" then
-                Set.empty
-            else
-                fieldHolderToCryptoStrings fieldInstance.fieldHolder
-                    |> Debug.log "DEBUG77"
-                    |> Set.fromList
-
         allSpecificCryptos =
-            List.map toCryptoSet fieldInstances
-                |> List.foldr Set.union Set.empty
-                |> Set.toList
-                |> List.filterMap (lookupCryptoDisplay cryptoDisplays)
+            List.filterMap (lookupCryptoDisplay cryptoDisplays) cryptoStrings
     in
         case cryptoScope of
             Global ->

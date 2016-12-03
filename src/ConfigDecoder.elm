@@ -213,9 +213,10 @@ configSchemaDecoder =
 
 configGroupDecoder : Decoder ConfigGroup
 configGroupDecoder =
-    map3 ConfigGroup
+    map4 ConfigGroup
         (field "schema" configSchemaDecoder)
         (field "values" (list fieldDecoder))
+        (field "selectedCryptos" (list string))
         (field "data" configDataDecoder)
 
 
