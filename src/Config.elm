@@ -590,8 +590,8 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled
 
 
-referenceFieldInstances : FieldScope -> List FieldInstance -> List String -> List FieldValue
-referenceFieldInstances fieldScope fieldInstances fieldCodes =
+referenceFieldInstances : ConfigGroup -> FieldScope -> List FieldInstance -> List String -> List FieldValue
+referenceFieldInstances configGroup fieldScope fieldInstances fieldCodes =
     let
         matchesCrypto targetCrypto =
             if fieldScope.crypto == GlobalCrypto then
@@ -609,6 +609,10 @@ referenceFieldInstances fieldScope fieldInstances fieldCodes =
             List.member fieldInstance.fieldLocator.code fieldCodes
                 && matchesCrypto fieldInstance.fieldLocator.fieldScope.crypto
                 && matchesMachine fieldInstance.fieldLocator.fieldScope.machine
+                && checkEnabled fieldInstances
+                    configGroup
+                    fieldInstance.fieldEnabledIf
+                    fieldInstance.fieldLocator.fieldScope
     in
         List.filter filter fieldInstances
             |> List.filterMap (.fieldHolder >> fieldHolderToMaybe)
@@ -676,6 +680,22 @@ fieldInstanceToField fieldInstance =
         Maybe.map buildFieldInstance maybeFieldValue
 
 
+checkEnabled : List FieldInstance -> ConfigGroup -> List String -> FieldScope -> Bool
+checkEnabled fieldInstances configGroup enabledIf fieldScope =
+    if List.isEmpty enabledIf then
+        True
+    else
+        let
+            ( inGroup, outGroup ) =
+                List.partition (groupMember configGroup) enabledIf
+
+            enabledInstances =
+                (referenceFields fieldScope configGroup.values outGroup)
+                    ++ (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
+        in
+            List.any isField enabledInstances
+
+
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
 fieldComponent model fieldInstance =
     let
@@ -709,19 +729,11 @@ fieldComponent model fieldInstance =
         maybeFallbackFieldValue =
             fallbackValue fieldScope fieldInstances fieldCode
 
-        enabled =
-            if List.isEmpty fieldInstance.fieldEnabledIf then
-                True
-            else
-                let
-                    ( inGroup, outGroup ) =
-                        List.partition (groupMember model.configGroup) fieldInstance.fieldEnabledIf
+        configGroup =
+            model.configGroup
 
-                    enabledInstances =
-                        (referenceFields fieldScope model.configGroup.values outGroup)
-                            ++ (referenceFieldInstances fieldScope model.fieldInstances inGroup)
-                in
-                    List.any isField (Debug.log "DEBUG66" enabledInstances)
+        enabled =
+            checkEnabled fieldInstances configGroup fieldInstance.fieldEnabledIf fieldScope
 
         focused =
             (Just fieldLocator) == model.focused
