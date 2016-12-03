@@ -1200,3 +1200,13 @@ view model =
                         , div [] [ (cryptosView model.crypto configGroup) ]
                         , form
                         ]
+
+
+loaded : Msg -> Bool
+loaded msg =
+    case msg of
+        Load webConfigGroup ->
+            RemoteData.isSuccess webConfigGroup
+
+        _ ->
+            False

@@ -128,8 +128,17 @@ update msg model =
             let
                 ( configModel, cmd ) =
                     Config.update configMsg model.config
+
+                loaded =
+                    Config.loaded configMsg
+
+                extraCmds =
+                    if loaded then
+                        [ getAccounts, getStatus ]
+                    else
+                        []
             in
-                { model | config = configModel } ! [ Cmd.map ConfigMsg cmd, getAccounts ]
+                { model | config = configModel } ! ([ Cmd.map ConfigMsg cmd ] ++ extraCmds)
 
         MachineMsg machineMsg ->
             let
