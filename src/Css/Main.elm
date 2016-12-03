@@ -221,6 +221,8 @@ css =
                     , border3 (px 2) solid Colors.lightGrey
                     , backgroundColor Colors.white
                     ]
+                , (.) RequiredComponent
+                    [ borderTopColor Colors.red ]
                 , (.) FocusedComponent
                     [ borderTopColor Colors.amazonite ]
                 , tbody

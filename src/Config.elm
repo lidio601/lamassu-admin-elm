@@ -270,7 +270,7 @@ textInput fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                 fieldInstance.fieldValidation
 
         valid =
-            Maybe.map (\_ -> C.Success) maybeFallbackString
+            Maybe.map (always C.Success) maybeFallbackString
                 |> Maybe.withDefault C.Fail
     in
         if enabled then
@@ -719,8 +719,17 @@ fieldComponent model fieldInstance =
                             ++ (referenceFieldInstances fieldScope model.fieldInstances fieldInstance.fieldEnabledIf)
                 in
                     List.any isField enabledInstances
+
+        focused =
+            (Just fieldLocator) == model.focused
+
+        required =
+            Maybe.map (always False) maybeFallbackFieldValue
+                |> Maybe.withDefault
+                    (enabled && (not focused) && List.member FieldRequired fieldInstance.fieldValidation)
     in
-        fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled
+        div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.RequiredComponent, required ) ] ]
+            [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
 
 
 cellView : ResolvedModel -> FieldInstance -> Html Msg
@@ -738,9 +747,6 @@ cellView model fieldInstance =
 
         crypto =
             fieldScope.crypto
-
-        focused =
-            (Just fieldLocator) == model.focused
     in
         Html.Keyed.node "td"
             []
@@ -749,8 +755,7 @@ cellView model fieldInstance =
                     ++ (machineToString machine)
                     ++ "-"
                     ++ fieldLocator.code
-              , div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ) ] ]
-                    [ fieldComponent model fieldInstance ]
+              , fieldComponent model fieldInstance
               )
             ]
 

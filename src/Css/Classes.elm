@@ -24,6 +24,7 @@ type CssClasses
     | BasicInputDisabled
     | Component
     | FocusedComponent
+    | RequiredComponent
     | TableButton
     | Fail
     | Success
