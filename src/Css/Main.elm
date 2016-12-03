@@ -258,6 +258,8 @@ css =
                     , padding2 (px 0) (px 20)
                     , colorize darkGreyScheme
                     ]
+                , (.) InvalidGroup
+                    [ color Colors.red |> important ]
                 , (.) NavBarCategoryContainer
                     [ descendants
                         [ (.) NavBarRoute

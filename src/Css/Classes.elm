@@ -28,3 +28,4 @@ type CssClasses
     | Fail
     | Success
     | StatusBar
+    | InvalidGroup

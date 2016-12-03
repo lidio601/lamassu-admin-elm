@@ -208,11 +208,15 @@ view model =
     let
         route =
             Maybe.withDefault NotFoundRoute (parseHash parseRoute model.location)
+
+        invalidConfigGroups =
+            Maybe.map .invalidConfigGroups model.status
+                |> Maybe.withDefault []
     in
         div []
             [ div [ class "grid" ]
                 [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                    [ NavBar.view route ]
+                    [ NavBar.view route invalidConfigGroups ]
                 , div [ class "unit three-quarters lamassuAdminMainRight" ]
                     [ div [ class "lamassuAdminContent" ]
                         [ content model route ]

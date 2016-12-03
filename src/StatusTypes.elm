@@ -11,6 +11,7 @@ type alias ServerRec =
 
 type alias StatusRec =
     { server : ServerRec
+    , invalidConfigGroups : List String
     }
 
 

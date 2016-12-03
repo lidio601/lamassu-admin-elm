@@ -13,4 +13,6 @@ serverDecoder =
 
 statusDecoder : Decoder StatusRec
 statusDecoder =
-    map StatusRec (field "server" serverDecoder)
+    map2 StatusRec
+        (field "server" serverDecoder)
+        (field "invalidConfigGroups" (list string))

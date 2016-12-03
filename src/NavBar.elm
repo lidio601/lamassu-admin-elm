@@ -45,9 +45,15 @@ routeToUrl route =
             Debug.crash "Need unknown route"
 
 
-activeRoute : Route -> Route -> Attribute msg
-activeRoute linkRoute route =
+linkClasses : Route -> Route -> Bool -> Attribute msg
+linkClasses linkRoute route isValid =
     let
+        validityClass =
+            if isValid then
+                []
+            else
+                [ Css.Classes.InvalidGroup ]
+
         active =
             case route of
                 PairRoute ->
@@ -66,13 +72,13 @@ activeRoute linkRoute route =
                     Debug.crash "Need NotFoundRoute"
     in
         if (active) then
-            class [ Css.Classes.NavBarRoute, Css.Classes.Active ]
+            class ([ Css.Classes.NavBarRoute, Css.Classes.Active ] ++ validityClass)
         else
-            class [ Css.Classes.NavBarRoute ]
+            class ([ Css.Classes.NavBarRoute ] ++ validityClass)
 
 
 type alias Link =
-    ( String, Route )
+    ( String, Route, Bool )
 
 
 activeCategory : Maybe Category -> Category -> Attribute msg
@@ -104,10 +110,10 @@ categoryView currentCategory link =
 linkView : Maybe Category -> Route -> Maybe Category -> Link -> Html Msg
 linkView maybeCategory currentRoute maybeLinkedCategory link =
     let
-        ( desc, linkRoute ) =
+        ( desc, linkRoute, isValid ) =
             link
     in
-        div [ onClick (NewUrl (routeToUrl linkRoute)), activeRoute linkRoute currentRoute ] [ text desc ]
+        div [ onClick (NewUrl (routeToUrl linkRoute)), linkClasses linkRoute currentRoute isValid ] [ text desc ]
 
 
 linksView : Maybe Category -> Route -> ( String, Category, Route ) -> List Link -> Html Msg
@@ -142,8 +148,8 @@ determineCategory route =
             Nothing
 
 
-view : Route -> Html Msg
-view route =
+view : Route -> List String -> Html Msg
+view route invalidGroups =
     let
         maybeCategory =
             determineCategory route
@@ -153,24 +159,30 @@ view route =
 
         ll =
             linksView maybeCategory route
+
+        isValid group =
+            not (List.member group invalidGroups)
+
+        configLink code display =
+            ( display, ConfigRoute code Nothing, isValid code )
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ ll ( "Machines", MachineCat, MachineRoute MachineActions )
-                [ ( "Actions", MachineRoute MachineActions )
+                [ ( "Actions", MachineRoute MachineActions, True )
                 ]
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
-                [ ( "Commissions", ConfigRoute "commissions" Nothing )
-                , ( "Machine settings", ConfigRoute "machineSettings" Nothing )
-                , ( "Machines", ConfigRoute "machines" Nothing )
-                , ( "Fiat currencies", ConfigRoute "fiat" Nothing )
-                , ( "Crypto services", ConfigRoute "cryptoServices" Nothing )
-                , ( "Notifications", ConfigRoute "notifications" Nothing )
-                , ( "Compliance", ConfigRoute "compliance" Nothing )
+                [ configLink "commissions" "Commissions"
+                , configLink "machineSettings" "Machine settings"
+                , configLink "machines" "Machines"
+                , configLink "fiat" "Fiat currencies"
+                , configLink "cryptoServices" "Crypto services"
+                , configLink "notifications" "Notifications"
+                , configLink "compliance" "Compliance"
                 ]
             , ll ( "Accounts", AccountCat, AccountRoute "bitgo" )
-                [ ( "BitGo", AccountRoute "bitgo" )
-                , ( "Twilio", AccountRoute "twilio" )
-                , ( "Mailjet", AccountRoute "mailjet" )
+                [ ( "BitGo", AccountRoute "bitgo", True )
+                , ( "Twilio", AccountRoute "twilio", True )
+                , ( "Mailjet", AccountRoute "mailjet", True )
                 ]
-            , l ( "Pairing", PairRoute )
+            , l ( "Pairing", PairRoute, True )
             ]
