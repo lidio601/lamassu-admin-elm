@@ -32,4 +32,6 @@ type CssClasses
     | InvalidGroup
     | NumberColumn
     | DirectionColumn
+    | TruncatedColumn
+    | DateColumn
     | TxTable

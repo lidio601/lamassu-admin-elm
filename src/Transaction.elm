@@ -27,9 +27,14 @@ init =
     NotAsked
 
 
+loadCmd : Cmd Msg
+loadCmd =
+    getTransactions
+
+
 load : ( Model, Cmd Msg )
 load =
-    ( Loading, getTransactions )
+    ( Loading, loadCmd )
 
 
 getTransactions : Cmd Msg
@@ -56,24 +61,24 @@ rowView tx =
     case tx of
         CashInTx cashIn ->
             tr []
-                [ td [ class [ C.NumberColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
+                [ td [ class [ C.NumberColumn, C.DateColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
                 , td [] [ text cashIn.machineName ]
-                , td [ class [ C.DirectionColumn ] ] [ text "cash in" ]
-                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.000000" ((toFloat cashIn.cryptoAtoms) / 1.0e8)) ]
+                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.000000" ((negate <| toFloat cashIn.cryptoAtoms) / 1.0e8)) ]
                 , td [] [ text cashIn.cryptoCode ]
                 , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashIn.fiat) ]
-                , td [ class [ C.NumberColumn ] ] [ text cashIn.toAddress ]
+                , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashIn.phone) ]
+                , td [ class [ C.NumberColumn, C.TruncatedColumn ] ] [ text cashIn.toAddress ]
                 ]
 
         CashOutTx cashOut ->
             tr []
-                [ td [ class [ C.NumberColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
+                [ td [ class [ C.NumberColumn, C.DateColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
                 , td [] [ text cashOut.machineName ]
-                , td [ class [ C.DirectionColumn ] ] [ text "cash out" ]
                 , td [ class [ C.NumberColumn ] ] [ text (format "0,0.000000" ((toFloat cashOut.cryptoAtoms) / 1.0e8)) ]
                 , td [] [ text cashOut.cryptoCode ]
-                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashOut.fiat) ]
-                , td [ class [ C.NumberColumn ] ] [ text cashOut.toAddress ]
+                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" (negate cashOut.fiat)) ]
+                , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashOut.phone) ]
+                , td [ class [ C.NumberColumn, C.TruncatedColumn ] ] [ text cashOut.toAddress ]
                 ]
 
 
@@ -85,11 +90,11 @@ tableView txs =
         table [ class [ C.TxTable ] ]
             [ thead []
                 [ tr []
-                    [ td [] []
-                    , td [] []
+                    [ td [ class [ C.DateColumn ] ] []
                     , td [] []
                     , td [ colspan 2 ] [ text "Crypto" ]
                     , td [] [ text "Fiat" ]
+                    , td [] [ text "Phone" ]
                     , td [] [ text "To address" ]
                     ]
                 ]

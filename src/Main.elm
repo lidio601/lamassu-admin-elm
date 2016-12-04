@@ -179,7 +179,17 @@ update msg model =
             urlUpdate (Debug.log "DEBUG120" location) model
 
         Interval ->
-            model ! [ getStatus ]
+            let
+                route =
+                    Maybe.withDefault NotFoundRoute (parseHash parseRoute model.location)
+
+                extraCmds =
+                    if route == TransactionRoute then
+                        [ Cmd.map TransactionMsg Transaction.loadCmd ]
+                    else
+                        []
+            in
+                model ! ([ getStatus ] ++ extraCmds)
 
 
 content : Model -> Route -> Html Msg
@@ -298,4 +308,4 @@ urlUpdate location model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    every (1000 * second) (\_ -> Interval)
+    every (5 * second) (\_ -> Interval)

@@ -180,6 +180,7 @@ css =
             ]
         , (.) TxTable
             [ borderRadius (px 7)
+              -- , property "table-layout" "fixed"
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
             , fontSize (px 14)
@@ -189,6 +190,8 @@ css =
                 [ (.) NumberColumn
                     [ textAlign right
                     ]
+                  -- , (.) DateColumn
+                  --     [ width (px 300) ]
                 , (.) DirectionColumn
                     [ textAlign left
                     , fontWeight bold
@@ -201,6 +204,13 @@ css =
                         [ td
                             [ padding2 (px 2) (px 14)
                             , borderBottom3 (px 1) solid Colors.lightGrey
+                            , whiteSpace noWrap
+                            ]
+                        , (.) TruncatedColumn
+                            [ maxWidth zero
+                            , overflow hidden
+                            , width (px 300)
+                            , textOverflow ellipsis
                             ]
                         ]
                     ]
@@ -210,7 +220,9 @@ css =
                     , color Colors.sandstone
                     , descendants
                         [ td
-                            [ borderBottom3 (px 2) solid Colors.lightGrey ]
+                            [ borderBottom3 (px 2) solid Colors.lightGrey
+                            , padding (px 5)
+                            ]
                         ]
                     ]
                 ]
