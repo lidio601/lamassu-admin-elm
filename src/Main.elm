@@ -165,7 +165,7 @@ update msg model =
             model ! [ Navigation.newUrl url ]
 
         UrlChange location ->
-            urlUpdate location model
+            urlUpdate (Debug.log "DEBUG120" location) model
 
         Interval ->
             model ! [ getStatus ]

@@ -485,7 +485,7 @@ onFocus config state =
 
 onKeyDown : Config msg idType itemType -> Items itemType -> State -> Attribute msg
 onKeyDown config items state =
-    rawOnKeyDownNoPrevent (updateKeyDown config items state)
+    rawOnKeyDown [ 13, 8, 40 ] (updateKeyDown config items state)
 
 
 onKeyDownDelete : Config msg idType itemType -> Items itemType -> State -> Attribute msg
@@ -536,7 +536,7 @@ rawOnKeyDown specialKeys tagger =
 
 rawOnKeyDownNoPrevent : (Int -> msg) -> Attribute msg
 rawOnKeyDownNoPrevent tagger =
-    on "keydown" (Json.map tagger E.keyCode)
+    onWithOptions "keydown" { stopPropagation = False, preventDefault = True } (Json.map tagger E.keyCode)
 
 
 rawOnKeyUp : (Int -> msg) -> Attribute msg

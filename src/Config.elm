@@ -1103,7 +1103,7 @@ update msg model =
                             "#config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
 
                         command =
-                            path
+                            (Debug.log "DEBUG123" path)
                                 |> Navigation.newUrl
                     in
                         { model | crypto = Just crypto } ! [ command ]
