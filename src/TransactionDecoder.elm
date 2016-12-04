@@ -1,9 +1,10 @@
 module TransactionDecoder exposing (..)
 
 import Json.Decode exposing (..)
-import Json.Decode.Extra exposing (date)
+import Json.Decode.Extra exposing (date, fromResult)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import TransactionTypes exposing (..)
+import String
 
 
 txDecode : String -> Decoder Tx
@@ -26,8 +27,18 @@ txsDecoder =
 
 txDecoder : Decoder Tx
 txDecoder =
-    (field "tx_class" string)
+    (field "txClass" string)
         |> andThen txDecode
+
+
+floatString : Decoder Float
+floatString =
+    string |> andThen (String.toFloat >> fromResult)
+
+
+intString : Decoder Int
+intString =
+    string |> andThen (String.toInt >> fromResult)
 
 
 cashInTxDecoder : Decoder CashInTxRec
@@ -36,14 +47,20 @@ cashInTxDecoder =
         |> required "id" string
         |> required "machineName" string
         |> required "toAddress" string
-        |> required "cryptoAtoms" int
+        |> required "cryptoAtoms" intString
         |> required "cryptoCode" string
-        |> required "fiat" float
+        |> required "fiat" floatString
         |> required "currencyCode" string
         |> required "txHash" (nullable string)
         |> required "phone" (nullable string)
         |> required "error" (nullable string)
         |> required "created" date
+
+
+confirmedDecoder : Decoder Bool
+confirmedDecoder =
+    map (Maybe.map (always True) >> Maybe.withDefault False)
+        (nullable string)
 
 
 cashOutTxDecoder : Decoder CashOutTxRec
@@ -52,16 +69,16 @@ cashOutTxDecoder =
         |> required "id" string
         |> required "machineName" string
         |> required "toAddress" string
-        |> required "cryptoAtoms" int
+        |> required "cryptoAtoms" intString
         |> required "cryptoCode" string
-        |> required "fiat" float
+        |> required "fiat" floatString
         |> required "currencyCode" string
         |> required "txHash" (nullable string)
         |> required "status" string
         |> required "dispensed" bool
         |> required "notified" bool
-        |> required "redeemed" bool
+        |> required "redeem" bool
         |> required "phone" (nullable string)
         |> required "error" (nullable string)
         |> required "created" date
-        |> required "confirmed" bool
+        |> required "confirmationTime" confirmedDecoder

@@ -1,7 +1,7 @@
 module Css.Main exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, thead, tbody, input, button, label, p)
+import Css.Elements exposing (body, li, a, div, td, tr, thead, tbody, input, button, label, p)
 import Css.Namespace exposing (namespace)
 import Css.Colors as Colors
 import Css.ColorSchemes exposing (..)
@@ -177,6 +177,43 @@ css =
             , backgroundColor mainBackgroundColor
             , margin3 zero zero (px 10)
             , property "animation" "fadein 0.8s"
+            ]
+        , (.) TxTable
+            [ borderRadius (px 7)
+            , margin2 (px 20) zero
+            , property "border-collapse" "collapse"
+            , fontSize (px 14)
+            , width (pct 100)
+            , backgroundColor Colors.white
+            , descendants
+                [ (.) NumberColumn
+                    [ textAlign right
+                    ]
+                , (.) DirectionColumn
+                    [ textAlign left
+                    , fontWeight bold
+                    , fontSize (pct 90)
+                    ]
+                , tbody
+                    [ fontFamilies [ "Fira Code" ]
+                    , color Colors.sandstone
+                    , descendants
+                        [ td
+                            [ padding2 (px 2) (px 14)
+                            , borderBottom3 (px 1) solid Colors.lightGrey
+                            ]
+                        ]
+                    ]
+                , thead
+                    [ fontSize (px 14)
+                    , textAlign center
+                    , color Colors.sandstone
+                    , descendants
+                        [ td
+                            [ borderBottom3 (px 2) solid Colors.lightGrey ]
+                        ]
+                    ]
+                ]
             ]
         , (.) ConfigTable
             [ fontSize (px 14)

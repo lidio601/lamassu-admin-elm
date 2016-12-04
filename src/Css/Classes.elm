@@ -30,3 +30,6 @@ type CssClasses
     | Success
     | StatusBar
     | InvalidGroup
+    | NumberColumn
+    | DirectionColumn
+    | TxTable

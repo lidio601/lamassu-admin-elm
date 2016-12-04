@@ -1,6 +1,7 @@
 module Transaction exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (colspan)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
@@ -55,22 +56,24 @@ rowView tx =
     case tx of
         CashInTx cashIn ->
             tr []
-                [ td [] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
+                [ td [ class [ C.NumberColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
                 , td [] [ text cashIn.machineName ]
-                , td [] [ text "cash in" ]
-                , td [] [ text (format "0,0.000" ((toFloat cashIn.cryptoAtoms) / 1.0e5)) ]
+                , td [ class [ C.DirectionColumn ] ] [ text "cash in" ]
+                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.000000" ((toFloat cashIn.cryptoAtoms) / 1.0e8)) ]
                 , td [] [ text cashIn.cryptoCode ]
-                , td [] [ text (format "0,0.00" cashIn.fiat) ]
+                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashIn.fiat) ]
+                , td [ class [ C.NumberColumn ] ] [ text cashIn.toAddress ]
                 ]
 
         CashOutTx cashOut ->
             tr []
-                [ td [] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
+                [ td [ class [ C.NumberColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
                 , td [] [ text cashOut.machineName ]
-                , td [] [ text "cash out" ]
-                , td [] [ text (format "0,0.000" ((toFloat cashOut.cryptoAtoms) / 1.0e5)) ]
+                , td [ class [ C.DirectionColumn ] ] [ text "cash out" ]
+                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.000000" ((toFloat cashOut.cryptoAtoms) / 1.0e8)) ]
                 , td [] [ text cashOut.cryptoCode ]
-                , td [] [ text (format "0,0.00" cashOut.fiat) ]
+                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashOut.fiat) ]
+                , td [ class [ C.NumberColumn ] ] [ text cashOut.toAddress ]
                 ]
 
 
@@ -79,15 +82,15 @@ tableView txs =
     if List.isEmpty txs then
         div [] [ text "No activity yet." ]
     else
-        table [ class [ C.ConfigTable ] ]
+        table [ class [ C.TxTable ] ]
             [ thead []
                 [ tr []
                     [ td [] []
-                    , td [] [ text "Machine" ]
-                    , td [] [ text "Direction" ]
-                    , td [] [ text "Amount (crypto)" ]
-                    , td [] [ text "Crypto" ]
-                    , td [] [ text "Amount (fiat)" ]
+                    , td [] []
+                    , td [] []
+                    , td [ colspan 2 ] [ text "Crypto" ]
+                    , td [] [ text "Fiat" ]
+                    , td [] [ text "To address" ]
                     ]
                 ]
             , tbody [] (List.map rowView txs)
@@ -107,11 +110,4 @@ view model =
             div [] [ text (toString err) ]
 
         Success txs ->
-            div []
-                [ div [ class [ C.SectionLabel ] ]
-                    [ div []
-                        [ div [ class [ C.ConfigContainer ] ]
-                            [ tableView txs ]
-                        ]
-                    ]
-                ]
+            div [] [ tableView txs ]
