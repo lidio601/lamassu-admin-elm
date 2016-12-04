@@ -12,6 +12,7 @@ import Pair
 import Account
 import Config
 import Machine
+import Transaction
 import StatusTypes
 
 
@@ -37,6 +38,7 @@ type Route
     | PairRoute
     | ConfigRoute String (Maybe String)
     | MachineRoute MachineSubRoute
+    | TransactionRoute
     | NotFoundRoute
 
 
@@ -45,6 +47,7 @@ type Msg
     | PairMsg Pair.Msg
     | ConfigMsg Config.Msg
     | MachineMsg Machine.Msg
+    | TransactionMsg Transaction.Msg
     | LoadAccounts (List ( String, String ))
     | LoadStatus StatusTypes.WebStatus
     | NewUrl String

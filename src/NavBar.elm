@@ -41,6 +41,9 @@ routeToUrl route =
         MachineRoute route ->
             "/#machine/" ++ (machineSubRouteToString route)
 
+        TransactionRoute ->
+            "/#transaction/"
+
         NotFoundRoute ->
             Debug.crash "Need unknown route"
 
@@ -56,20 +59,11 @@ linkClasses linkRoute route isValid =
 
         active =
             case route of
-                PairRoute ->
-                    linkRoute == route
-
-                AccountRoute _ ->
-                    linkRoute == route
-
                 ConfigRoute config _ ->
                     linkRoute == ConfigRoute config Nothing
 
-                MachineRoute _ ->
+                _ ->
                     linkRoute == route
-
-                NotFoundRoute ->
-                    Debug.crash "Need NotFoundRoute"
     in
         if (active) then
             class ([ Css.Classes.NavBarRoute, Css.Classes.Active ] ++ validityClass)
@@ -132,9 +126,6 @@ linksView maybeCurrentCategory currentRoute ( catDesc, cat, route ) links =
 determineCategory : Route -> Maybe Category
 determineCategory route =
     case route of
-        PairRoute ->
-            Nothing
-
         AccountRoute account ->
             Just AccountCat
 
@@ -144,7 +135,7 @@ determineCategory route =
         MachineRoute machineSubRoute ->
             Just MachineCat
 
-        NotFoundRoute ->
+        _ ->
             Nothing
 
 
@@ -167,7 +158,8 @@ view route invalidGroups =
             ( display, ConfigRoute code Nothing, isValid code )
     in
         nav [ class [ Css.Classes.NavBar ] ]
-            [ ll ( "Machines", MachineCat, MachineRoute MachineActions )
+            [ l ( "Transactions", TransactionRoute, True )
+            , ll ( "Machines", MachineCat, MachineRoute MachineActions )
                 [ ( "Actions", MachineRoute MachineActions, True )
                 ]
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )

@@ -26,7 +26,7 @@ txsDecoder =
 
 txDecoder : Decoder Tx
 txDecoder =
-    (field "code" string)
+    (field "tx_class" string)
         |> andThen txDecode
 
 

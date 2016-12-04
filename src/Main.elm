@@ -7,6 +7,7 @@ import Pair
 import Account
 import Config
 import Machine
+import Transaction
 import NavBar exposing (..)
 import UrlParser exposing ((</>), s, string, top, parseHash)
 import Http
@@ -46,6 +47,7 @@ parseRoute =
         , UrlParser.map (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
         , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
         , UrlParser.map (MachineRoute MachineActions) (s "machine" </> s "actions")
+        , UrlParser.map TransactionRoute (s "transaction")
         , UrlParser.map PairRoute top
         ]
 
@@ -77,6 +79,7 @@ type alias Model =
     , account : Account.Model
     , config : Config.Model
     , machine : Machine.Model
+    , transaction : Transaction.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
     , err : Maybe String
@@ -92,6 +95,7 @@ init location =
             , pair = Pair.init
             , config = Config.init
             , machine = Machine.init
+            , transaction = Transaction.init
             , accounts = []
             , status = Nothing
             , err = Nothing
@@ -147,6 +151,13 @@ update msg model =
             in
                 { model | machine = machineModel } ! [ Cmd.map MachineMsg cmd ]
 
+        TransactionMsg transactionMsg ->
+            let
+                ( transactionModel, cmd ) =
+                    Transaction.update transactionMsg model.transaction
+            in
+                { model | transaction = transactionModel } ! [ Cmd.map TransactionMsg cmd ]
+
         LoadAccounts accounts ->
             { model | accounts = Debug.log "DEBUG55" accounts } ! []
 
@@ -185,6 +196,9 @@ content model route =
 
         MachineRoute _ ->
             map MachineMsg (Machine.view model.machine)
+
+        TransactionRoute ->
+            map TransactionMsg (Transaction.view model.transaction)
 
         NotFoundRoute ->
             div [] [ text ("No such route") ]
@@ -266,6 +280,13 @@ urlUpdate location model =
                 in
                     { model | location = location, machine = machineModel }
                         ! [ Cmd.map MachineMsg cmd ]
+
+            TransactionRoute ->
+                let
+                    ( transactionModel, cmd ) =
+                        Transaction.load
+                in
+                    { model | location = location, transaction = transactionModel } ! [ Cmd.map TransactionMsg cmd ]
 
             NotFoundRoute ->
                 { model | location = location } ! []
