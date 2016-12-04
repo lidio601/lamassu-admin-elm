@@ -408,7 +408,7 @@ view config selectedIds availableItems fallbackIds state =
                     else
                         onKeyDownDelete config items state
                 else
-                    onKeyDown config items state
+                    onKeyDownNoDelete config items state
 
             editInput =
                 case state.status of
@@ -481,11 +481,6 @@ onBlur config state =
 onFocus : Config msg idType itemType -> State -> Attribute msg
 onFocus config state =
     E.onFocus (config.onFocus { state | status = Initial, boxPosition = -1 })
-
-
-onKeyDown : Config msg idType itemType -> Items itemType -> State -> Attribute msg
-onKeyDown config items state =
-    rawOnKeyDown [ 13, 8, 40 ] (updateKeyDown config items state)
 
 
 onKeyDownDelete : Config msg idType itemType -> Items itemType -> State -> Attribute msg
