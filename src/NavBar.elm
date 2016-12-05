@@ -75,28 +75,35 @@ type alias Link =
     ( String, Route, Bool )
 
 
-activeCategory : Maybe Category -> Category -> Attribute msg
-activeCategory maybeCurrentCategory linkedCategory =
-    case maybeCurrentCategory of
-        Nothing ->
-            class [ Css.Classes.NavBarCategory ]
-
-        Just currentCategory ->
-            if currentCategory == linkedCategory then
-                class [ Css.Classes.NavBarCategory, Css.Classes.Active ]
+activeCategory : Maybe Category -> Category -> Bool -> Attribute msg
+activeCategory maybeCurrentCategory linkedCategory isValid =
+    let
+        validityClass =
+            if isValid then
+                []
             else
-                class [ Css.Classes.NavBarCategory ]
+                [ Css.Classes.InvalidGroup ]
+    in
+        case maybeCurrentCategory of
+            Nothing ->
+                class ([ Css.Classes.NavBarCategory ] ++ validityClass)
+
+            Just currentCategory ->
+                if currentCategory == linkedCategory then
+                    class ([ Css.Classes.NavBarCategory, Css.Classes.Active ] ++ validityClass)
+                else
+                    class ([ Css.Classes.NavBarCategory ] ++ validityClass)
 
 
-categoryView : Maybe Category -> ( String, Category, Route ) -> Html Msg
+categoryView : Maybe Category -> ( String, Category, Route, Bool ) -> Html Msg
 categoryView currentCategory link =
     let
-        ( desc, category, linkRoute ) =
+        ( desc, category, linkRoute, isValid ) =
             link
     in
         div
             [ onClick (NewUrl (routeToUrl linkRoute))
-            , activeCategory currentCategory category
+            , activeCategory currentCategory category isValid
             ]
             [ text desc ]
 
@@ -110,16 +117,16 @@ linkView maybeCategory currentRoute maybeLinkedCategory link =
         div [ onClick (NewUrl (routeToUrl linkRoute)), linkClasses linkRoute currentRoute isValid ] [ text desc ]
 
 
-linksView : Maybe Category -> Route -> ( String, Category, Route ) -> List Link -> Html Msg
-linksView maybeCurrentCategory currentRoute ( catDesc, cat, route ) links =
+linksView : Maybe Category -> Route -> ( String, Category, Route, Bool ) -> List Link -> Html Msg
+linksView maybeCurrentCategory currentRoute ( catDesc, cat, route, isValid ) links =
     if maybeCurrentCategory == (Just cat) then
         div [ class [ Css.Classes.NavBarCategoryContainer ] ]
-            [ categoryView maybeCurrentCategory ( catDesc, cat, route )
+            [ categoryView maybeCurrentCategory ( catDesc, cat, route, isValid )
             , div [] (List.map (linkView maybeCurrentCategory currentRoute (Just cat)) links)
             ]
     else
         div [ class [ Css.Classes.NavBarCategoryContainer ] ]
-            [ categoryView maybeCurrentCategory ( catDesc, cat, route )
+            [ categoryView maybeCurrentCategory ( catDesc, cat, route, isValid )
             ]
 
 
@@ -154,15 +161,18 @@ view route invalidGroups =
         isValid group =
             not (List.member group invalidGroups)
 
+        allClear =
+            List.isEmpty invalidGroups
+
         configLink code display =
             ( display, ConfigRoute code Nothing, isValid code )
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Transactions", TransactionRoute, True )
-            , ll ( "Machines", MachineCat, MachineRoute MachineActions )
+            , ll ( "Machines", MachineCat, MachineRoute MachineActions, True )
                 [ ( "Actions", MachineRoute MachineActions, True )
                 ]
-            , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing )
+            , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing, allClear )
                 [ configLink "commissions" "Commissions"
                 , configLink "machineSettings" "Machine settings"
                 , configLink "machines" "Machines"
@@ -171,7 +181,7 @@ view route invalidGroups =
                 , configLink "notifications" "Notifications"
                 , configLink "compliance" "Compliance"
                 ]
-            , ll ( "Accounts", AccountCat, AccountRoute "bitgo" )
+            , ll ( "Accounts", AccountCat, AccountRoute "bitgo", True )
                 [ ( "BitGo", AccountRoute "bitgo", True )
                 , ( "Twilio", AccountRoute "twilio", True )
                 , ( "Mailjet", AccountRoute "mailjet", True )
