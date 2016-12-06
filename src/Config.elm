@@ -15,7 +15,6 @@ import Css.Admin exposing (..)
 import Css.Classes as C
 import Selectize
 import Maybe
-import Maybe.Extra
 import SelectizeHelper exposing (buildConfig)
 import FuzzyMatch
 import Process
@@ -659,11 +658,12 @@ fallbackValue fieldScope fieldInstances fieldCode =
 
         maybeSpecific =
             pick fieldScope.crypto fieldScope.machine
+
+        _ =
+            Debug.log "DEBUG24" ( fieldCode, fieldScope, maybeGlobal, maybeGlobalCrypto, maybeGlobalMachine, maybeSpecific )
     in
-        maybeSpecific
-            |> Maybe.Extra.or maybeGlobalMachine
-            |> Maybe.Extra.or maybeGlobalCrypto
-            |> Maybe.Extra.or maybeGlobal
+        List.filterMap identity [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
+            |> List.head
 
 
 fieldInstanceToField : FieldInstance -> Maybe Field

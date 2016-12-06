@@ -19,7 +19,6 @@ import AccountsDecoder exposing (accountsDecoder)
 import StatusTypes exposing (..)
 import StatusDecoder exposing (..)
 import Time exposing (..)
-import Maybe.Extra
 import Css.Admin
 import Css.Classes as C
 import Markdown
@@ -117,7 +116,7 @@ update msg model =
         PairMsg pairMsg ->
             let
                 ( pairModel, cmd ) =
-                    Pair.update (Debug.log "DEBUG22" pairMsg) model.pair
+                    Pair.update pairMsg model.pair
             in
                 { model | pair = pairModel } ! [ Cmd.map PairMsg cmd ]
 
@@ -159,13 +158,13 @@ update msg model =
                 { model | transaction = transactionModel } ! [ Cmd.map TransactionMsg cmd ]
 
         LoadAccounts accounts ->
-            { model | accounts = Debug.log "DEBUG55" accounts } ! []
+            { model | accounts = accounts } ! []
 
         LoadStatus webStatus ->
             let
                 newStatus =
-                    RemoteData.toMaybe webStatus
-                        |> Maybe.Extra.orElse model.status
+                    List.filterMap identity [ RemoteData.toMaybe webStatus, model.status ]
+                        |> List.head
 
                 serverStatus =
                     Maybe.withDefault False <| Maybe.map (\status -> status.server.up) newStatus
@@ -176,7 +175,7 @@ update msg model =
             model ! [ Navigation.newUrl url ]
 
         UrlChange location ->
-            urlUpdate (Debug.log "DEBUG120" location) model
+            urlUpdate location model
 
         Interval ->
             let
