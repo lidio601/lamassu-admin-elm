@@ -55,7 +55,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Load webData ->
-            { model | totem = webData } ! []
+            let
+                _ =
+                    Debug.log "TOTEM" (RemoteData.withDefault "Network Error" webData)
+            in
+                { model | totem = webData } ! []
 
         InputName name ->
             { model | name = name } ! []
@@ -67,7 +71,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     if model.serverStatus then
-        case Debug.log "DEBUG33" model.totem of
+        case model.totem of
             NotAsked ->
                 div []
                     [ h1 [] [ text "Pair a new Lamassu cryptomat" ]
@@ -107,7 +111,7 @@ view model =
                             , ( "border-radius", "6px" )
                             ]
                         ]
-                        [ node "qr-code" [ attribute "data" (Debug.log "Totem" totem) ] [] ]
+                        [ node "qr-code" [ attribute "data" totem ] [] ]
                     , div []
                         [ span [] [ text "Scan this QR to pair " ]
                         , strong [] [ text model.name ]

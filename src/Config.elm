@@ -658,9 +658,6 @@ fallbackValue fieldScope fieldInstances fieldCode =
 
         maybeSpecific =
             pick fieldScope.crypto fieldScope.machine
-
-        _ =
-            Debug.log "DEBUG24" ( fieldCode, fieldScope, maybeGlobal, maybeGlobalCrypto, maybeGlobalMachine, maybeSpecific )
     in
         List.filterMap identity [ maybeSpecific, maybeGlobalMachine, maybeGlobalCrypto, maybeGlobal ]
             |> List.head
