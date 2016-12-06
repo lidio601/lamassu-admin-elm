@@ -11,17 +11,38 @@ import AccountEncoder exposing (..)
 import FieldSet
 import Css.Admin exposing (..)
 import Css.Classes
+import Process
+import Time exposing (second)
+import Task
+
+
+type alias SubModel =
+    { status : SavingStatus
+    , account : Account
+    }
 
 
 type alias Model =
-    RemoteData.WebData Account
+    RemoteData.WebData SubModel
+
+
+type SavingStatus
+    = Saving
+    | Saved
+    | Editing
+    | NotSaving
+
+
+toModel : SavingStatus -> Account -> SubModel
+toModel status account =
+    { status = status, account = account }
 
 
 getForm : String -> Cmd Msg
 getForm code =
     get ("/api/account/" ++ code)
         |> withExpect (Http.expectJson accountDecoder)
-        |> send RemoteData.fromResult
+        |> send (Result.map (toModel NotSaving) >> RemoteData.fromResult)
         |> Cmd.map Load
 
 
@@ -30,7 +51,7 @@ postForm account =
     post "/api/account"
         |> withJsonBody (encodeAccount account)
         |> withExpect (Http.expectJson accountDecoder)
-        |> send RemoteData.fromResult
+        |> send (Result.map (toModel Saved) >> RemoteData.fromResult)
         |> Cmd.map Load
 
 
@@ -52,37 +73,60 @@ type Msg
     = Load Model
     | Submit
     | FieldSetMsg FieldSet.Msg
+    | HideSaveIndication
+
+
+saveUpdate : SubModel -> ( SubModel, Cmd Msg )
+saveUpdate model =
+    let
+        cmd =
+            if (model.status == Saved) then
+                Process.sleep (2 * second)
+                    |> Task.perform (\_ -> HideSaveIndication)
+            else
+                Cmd.none
+    in
+        model ! [ cmd ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg webModel =
     case msg of
         Load newModel ->
-            ( newModel, Cmd.none )
+            RemoteData.update saveUpdate newModel
 
         Submit ->
-            case model of
-                Success account ->
-                    Debug.log "DEBUG1" model ! [ postForm account ]
+            RemoteData.update (\model -> model ! [ postForm model.account ]) webModel
 
-                _ ->
-                    model ! []
+        HideSaveIndication ->
+            RemoteData.update (\model -> { model | status = NotSaving } ! []) webModel
 
         FieldSetMsg fieldSetMsg ->
             let
-                mapper account =
-                    let
-                        ( fields, fieldSetCmd ) =
-                            FieldSet.update fieldSetMsg account.fields
-                    in
-                        { account | fields = fields } ! [ Cmd.map FieldSetMsg fieldSetCmd ]
+                updateFields model =
+                    FieldSet.update fieldSetMsg model.account.fields
+
+                newAccount account fields =
+                    { account | fields = fields }
+
+                toModel model fieldsUpdate =
+                    { model
+                        | account =
+                            newAccount model.account
+                                (Tuple.first fieldsUpdate)
+                    }
+                        ! [ Cmd.map FieldSetMsg (Tuple.second fieldsUpdate) ]
+
+                mapper model =
+                    updateFields model
+                        |> (toModel model)
             in
-                RemoteData.update mapper model
+                RemoteData.update mapper webModel
 
 
 view : Model -> Html Msg
-view model =
-    case model of
+view webModel =
+    case webModel of
         NotAsked ->
             div [] []
 
@@ -92,17 +136,26 @@ view model =
         Failure err ->
             div [] [ text (toString err) ]
 
-        Success account ->
+        Success model ->
             let
                 fieldSetView =
-                    Html.map FieldSetMsg (FieldSet.view account.fields)
+                    Html.map FieldSetMsg (FieldSet.view model.account.fields)
+
+                statusString =
+                    case Debug.log "DEBUG87" model.status of
+                        Saved ->
+                            "Saved"
+
+                        _ ->
+                            ""
             in
                 div []
-                    [ div [ class [ Css.Classes.SectionLabel ] ] [ text account.display ]
+                    [ div [ class [ Css.Classes.SectionLabel ] ] [ text model.account.display ]
                     , div []
                         [ fieldSetView
                         , div [ class [ Css.Classes.ButtonRow ] ]
                             [ div [ onClick Submit, class [ Css.Classes.Button ] ] [ text "Submit" ]
+                            , div [] [ text (Debug.log "DEBUG88" statusString) ]
                             ]
                         ]
                     ]
