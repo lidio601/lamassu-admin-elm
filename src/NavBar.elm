@@ -183,6 +183,7 @@ view route invalidGroups =
                 ]
             , ll ( "Accounts", AccountCat, AccountRoute "bitgo", True )
                 [ ( "BitGo", AccountRoute "bitgo", True )
+                , ( "BitStamp", AccountRoute "bitstamp", True )
                 , ( "Twilio", AccountRoute "twilio", True )
                 , ( "Mailjet", AccountRoute "mailjet", True )
                 ]

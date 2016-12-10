@@ -292,7 +292,8 @@ css =
             ]
         , (.) NavBar
             [ margin zero
-            , padding zero
+            , padding4 zero zero (px 60) zero
+            , backgroundColor Colors.darkGrey
             , fontSize (px 18)
             , descendants
                 [ (.) NavBarRoute

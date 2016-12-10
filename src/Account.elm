@@ -142,7 +142,7 @@ view webModel =
                     Html.map FieldSetMsg (FieldSet.view model.account.fields)
 
                 statusString =
-                    case Debug.log "DEBUG87" model.status of
+                    case model.status of
                         Saved ->
                             "Saved"
 
@@ -155,7 +155,7 @@ view webModel =
                         [ fieldSetView
                         , div [ class [ Css.Classes.ButtonRow ] ]
                             [ div [ onClick Submit, class [ Css.Classes.Button ] ] [ text "Submit" ]
-                            , div [] [ text (Debug.log "DEBUG88" statusString) ]
+                            , div [] [ text statusString ]
                             ]
                         ]
                     ]
