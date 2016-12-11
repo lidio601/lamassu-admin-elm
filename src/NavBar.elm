@@ -173,10 +173,10 @@ view route invalidGroups =
                 [ ( "Actions", MachineRoute MachineActions, True )
                 ]
             , ll ( "Configuration", ConfigCat, ConfigRoute "commissions" Nothing, allClear )
-                [ configLink "commissions" "Commissions"
+                [ configLink "fiat" "Fiat currencies"
+                , configLink "commissions" "Commissions"
                 , configLink "machineSettings" "Machine settings"
                 , configLink "machines" "Machines"
-                , configLink "fiat" "Fiat currencies"
                 , configLink "cryptoServices" "Crypto services"
                 , configLink "notifications" "Notifications"
                 , configLink "compliance" "Compliance"

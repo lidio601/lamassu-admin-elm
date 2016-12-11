@@ -35,3 +35,5 @@ type CssClasses
     | TruncatedColumn
     | DateColumn
     | TxTable
+    | InputContainer
+    | UnitDisplay

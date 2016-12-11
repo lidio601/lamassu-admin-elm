@@ -37,6 +37,7 @@ type alias Model =
     { webConfigGroup : WebConfigGroup
     , fieldInstances : List FieldInstance
     , crypto : Maybe Crypto
+    , fiat : Maybe String
     , status : SavingStatus
     , focused : Maybe FieldLocator
     }
@@ -46,6 +47,7 @@ type alias ResolvedModel =
     { configGroup : ConfigGroup
     , fieldInstances : List FieldInstance
     , crypto : Crypto
+    , fiat : String
     , status : SavingStatus
     , focused : Maybe FieldLocator
     }
@@ -56,6 +58,7 @@ toResolvedModel model configGroup =
     { configGroup = configGroup
     , fieldInstances = model.fieldInstances
     , crypto = Maybe.withDefault GlobalCrypto model.crypto
+    , fiat = Maybe.withDefault "Fiat" model.fiat
     , status = model.status
     , focused = model.focused
     }
@@ -83,6 +86,7 @@ init =
     { webConfigGroup = RemoteData.NotAsked
     , fieldInstances = []
     , crypto = Nothing
+    , fiat = Nothing
     , status = NotSaving
     , focused = Nothing
     }
@@ -243,8 +247,32 @@ buildValidationAttribute fieldValidator =
             Nothing
 
 
-textInput : FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
-textInput fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
+unitDisplay : String -> FieldInstance -> Html Msg
+unitDisplay fiat fieldInstance =
+    case fieldInstance.fieldLocator.fieldType of
+        FieldPercentageType ->
+            div [ class [ C.UnitDisplay ] ] [ text "%" ]
+
+        FieldIntegerType ->
+            case fieldInstance.fieldLocator.fieldClass of
+                Just "fiat" ->
+                    div [ class [ C.UnitDisplay ] ] [ text fiat ]
+
+                Just "banknotes" ->
+                    div [ class [ C.UnitDisplay ] ] [ text "notes" ]
+
+                Just _ ->
+                    div [] []
+
+                Nothing ->
+                    div [] []
+
+        _ ->
+            div [] []
+
+
+textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
+textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -273,18 +301,21 @@ textInput fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                 |> Maybe.withDefault C.Fail
     in
         if enabled then
-            input
-                ([ onInput (Input fieldLocator)
-                 , onFocus (Focus fieldLocator)
-                 , onBlur (Blur fieldLocator)
-                 , defaultValue defaultString
-                 , placeholder fallbackString
-                 , class [ C.BasicInput, valid ]
-                 , type_ inputType
-                 ]
-                    ++ validations
-                )
-                []
+            div [ class [ C.InputContainer ] ]
+                [ input
+                    ([ onInput (Input fieldLocator)
+                     , onFocus (Focus fieldLocator)
+                     , onBlur (Blur fieldLocator)
+                     , defaultValue defaultString
+                     , placeholder fallbackString
+                     , class [ C.BasicInput, valid ]
+                     , type_ inputType
+                     ]
+                        ++ validations
+                    )
+                    []
+                , unitDisplay fiat fieldInstance
+                ]
         else
             div [ class [ C.BasicInputDisabled ] ] [ text "N/A" ]
 
@@ -583,7 +614,7 @@ fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldVa
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
     case fieldInstance.component of
         InputBoxComponent ->
-            textInput fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
+            textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
 
         SelectizeComponent selectizeState ->
             selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled
@@ -926,8 +957,14 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
             , fieldClass = fieldDescriptor.fieldClass
             }
 
+        equivalentFieldLocator a b =
+            a.fieldScope
+                == b.fieldScope
+                && a.code
+                == b.code
+
         maybeValue =
-            List.filter (((==) fieldLocator) << .fieldLocator) configGroup.values
+            List.filter ((equivalentFieldLocator fieldLocator) << .fieldLocator) configGroup.values
                 |> List.head
                 |> Maybe.map .fieldValue
 
@@ -1020,6 +1057,13 @@ updateSelectize fieldLocator state model =
         { model | fieldInstances = List.map updateInstance fieldInstances }
 
 
+pickFiat : List Field -> Maybe String
+pickFiat fields =
+    List.filter (((==) "fiatCurrency") << .code << .fieldLocator) fields
+        |> List.head
+        |> Maybe.map (fieldValueToString << .fieldValue)
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -1039,6 +1083,14 @@ update msg model =
 
                         _ ->
                             []
+
+                fiat =
+                    case webConfigGroup of
+                        Success configGroup ->
+                            pickFiat configGroup.values
+
+                        _ ->
+                            Nothing
 
                 defaultCrypto =
                     case webConfigGroup of
@@ -1073,6 +1125,7 @@ update msg model =
                     , fieldInstances = fieldInstances
                     , status = status
                     , crypto = crypto
+                    , fiat = fiat
                   }
                 , cmd
                 )

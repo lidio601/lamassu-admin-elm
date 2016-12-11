@@ -236,6 +236,18 @@ css =
             , descendants
                 [ (.) Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
+                , (.) InputContainer
+                    [ displayFlex
+                    ]
+                , (.) UnitDisplay
+                    [ borderRadius4 (px 0) (px 3) (px 3) (px 0)
+                    , backgroundColor Colors.darkerLightGrey
+                    , color Colors.sandstone
+                    , padding2 zero (px 5)
+                    , fontWeight (int 700)
+                    , fontSize (pct 80)
+                    , lineHeight (px 25)
+                    ]
                 , input
                     [ border zero
                     , borderRadius (px 3)
@@ -245,7 +257,7 @@ css =
                     , fontFamilies [ "Fira Code" ]
                     , fontWeight (int 600)
                     , outline none
-                    , backgroundColor inherit
+                    , backgroundColor Colors.white
                     , invalid
                         [ color Colors.red
                         ]
