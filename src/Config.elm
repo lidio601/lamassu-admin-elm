@@ -2,7 +2,7 @@ module Config exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (defaultValue, placeholder, type_, disabled)
+import Html.Attributes exposing (defaultValue, placeholder, type_, disabled, colspan)
 import Html.Keyed
 import Navigation
 import RemoteData exposing (..)
@@ -271,6 +271,19 @@ unitDisplay fiat fieldInstance =
             div [] []
 
 
+fieldTypeToClass : FieldType -> C.CssClasses
+fieldTypeToClass fieldType =
+    case fieldType of
+        FieldPercentageType ->
+            C.ShortCell
+
+        FieldIntegerType ->
+            C.ShortCell
+
+        _ ->
+            C.LongCell
+
+
 textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
 textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
     let
@@ -296,6 +309,9 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             List.filterMap buildValidationAttribute
                 fieldInstance.fieldValidation
 
+        fieldClass =
+            fieldTypeToClass fieldInstance.fieldLocator.fieldType
+
         valid =
             Maybe.map (always C.Success) maybeFallbackString
                 |> Maybe.withDefault C.Fail
@@ -308,7 +324,7 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                      , onBlur (Blur fieldLocator)
                      , defaultValue defaultString
                      , placeholder fallbackString
-                     , class [ C.BasicInput, valid ]
+                     , class [ C.BasicInput, valid, fieldClass ]
                      , type_ inputType
                      ]
                         ++ validations
@@ -842,14 +858,30 @@ rowView model fieldInstances machineDisplay =
             )
 
 
-headerCellView : FieldDescriptor -> Html Msg
-headerCellView fieldDescriptor =
-    td [] [ text fieldDescriptor.display ]
+topHeaderRowView : ConfigGroup -> Crypto -> Html Msg
+topHeaderRowView configGroup crypto =
+    let
+        headerCellView fieldDescriptor =
+            case fieldDescriptor.displayTop of
+                DisplayTopLeader cols display ->
+                    Just <| th [ colspan cols, class [ C.MultiDisplay ] ] [ text display ]
+
+                DisplayTopSolo display ->
+                    Just <| th [] [ text display ]
+
+                DisplayTopNone ->
+                    Nothing
+    in
+        tr [ class [ C.TopDisplay ] ] ((th [] []) :: List.filterMap headerCellView configGroup.schema.entries)
 
 
-headerRowView : ConfigGroup -> Crypto -> Html Msg
-headerRowView configGroup crypto =
-    tr [] ((td [] []) :: List.map headerCellView configGroup.schema.entries)
+bottomHeaderRowView : ConfigGroup -> Crypto -> Html Msg
+bottomHeaderRowView configGroup crypto =
+    let
+        headerCellView fieldDescriptor =
+            th [] [ text fieldDescriptor.displayBottom ]
+    in
+        tr [] ((th [] []) :: List.map headerCellView configGroup.schema.entries)
 
 
 tableView : ResolvedModel -> Html Msg
@@ -861,8 +893,11 @@ tableView model =
         crypto =
             model.crypto
 
-        headerRow =
-            headerRowView configGroup crypto
+        topHeaderRow =
+            topHeaderRowView configGroup crypto
+
+        bottomHeaderRow =
+            bottomHeaderRowView configGroup crypto
 
         machines =
             listMachines configGroup
@@ -878,7 +913,7 @@ tableView model =
             List.map (rowView model instances) machines
     in
         table [ class [ C.ConfigTable ] ]
-            [ thead [] [ headerRow ]
+            [ thead [] [ topHeaderRow, bottomHeaderRow ]
             , tbody [] rows
             ]
 

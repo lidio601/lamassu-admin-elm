@@ -16,6 +16,11 @@ type CssClasses
     | ConfigTable
     | ConfigTableGlobalRow
     | ConfigContainer
+    | TopDisplay
+    | BottomDisplay
+    | MultiDisplay
+    | ShortCell
+    | LongCell
     | FormRow
     | Button
     | ButtonRow

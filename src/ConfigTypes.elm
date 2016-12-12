@@ -114,9 +114,17 @@ type FieldValidator
     | FieldRequired
 
 
+type DisplayTop
+    = DisplayTopLeader Int String
+    | DisplayTopSolo String
+    | DisplayTopNone
+
+
 type alias FieldDescriptor =
     { code : String
-    , display : String
+    , displayTop : DisplayTop
+    , displayBottom : String
+    , displayCount : Maybe Int
     , fieldType : FieldType
     , fieldValidation : List FieldValidator
     , fieldClass : Maybe String

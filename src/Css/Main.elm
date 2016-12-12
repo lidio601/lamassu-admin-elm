@@ -1,7 +1,7 @@
 module Css.Main exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, tr, thead, tbody, input, button, label, p)
+import Css.Elements exposing (body, li, a, div, td, th, tr, thead, tbody, input, button, label, p)
 import Css.Namespace exposing (namespace)
 import Css.Colors as Colors
 import Css.ColorSchemes exposing (..)
@@ -190,8 +190,6 @@ css =
                 [ (.) NumberColumn
                     [ textAlign right
                     ]
-                  -- , (.) DateColumn
-                  --     [ width (px 300) ]
                 , (.) DirectionColumn
                     [ textAlign left
                     , fontWeight bold
@@ -238,6 +236,7 @@ css =
                     [ Css.Selectize.component ]
                 , (.) InputContainer
                     [ displayFlex
+                    , property "justify-content" "flex-end"
                     ]
                 , (.) UnitDisplay
                     [ borderRadius4 (px 0) (px 3) (px 3) (px 0)
@@ -262,6 +261,8 @@ css =
                         [ color Colors.red
                         ]
                     ]
+                , (.) ShortCell
+                    [ width (em 5) ]
                 , (.) BasicInputDisabled
                     [ backgroundColor Colors.lighterLightGrey
                     , height (px 25)
@@ -276,6 +277,7 @@ css =
                     [ padding2 (px 3) (px 4)
                     , textAlign center
                     , verticalAlign middle
+                    , width (px 1)
                     ]
                 , (.) Component
                     [ borderRadius (px 3)
@@ -297,6 +299,16 @@ css =
                 , thead
                     [ fontWeight bold
                     , textAlign left
+                    ]
+                , (.) MultiDisplay
+                    [ backgroundColor Colors.darkerLightGrey
+                    , borderLeft3 (px 3) solid Colors.lightGrey
+                    , borderRight3 (px 3) solid Colors.lightGrey
+                    , borderRadius (px 3)
+                    ]
+                , th
+                    [ padding2 (px 3) (px 4)
+                    , textAlign center
                     ]
                 , (.) ConfigTableGlobalRow
                     [ fontWeight bold ]

@@ -190,11 +190,36 @@ fieldValidatorDecoder =
         |> andThen fieldValidatorDecode
 
 
+displayTopDecoderHelper : Maybe Int -> Decoder DisplayTop
+displayTopDecoderHelper maybeDisplayTopCount =
+    case maybeDisplayTopCount of
+        Nothing ->
+            (maybe <| (field "displayTop" string))
+                |> map (DisplayTopSolo << (Maybe.withDefault ""))
+
+        Just 0 ->
+            succeed DisplayTopNone
+
+        Just 1 ->
+            succeed DisplayTopNone
+
+        Just x ->
+            map (DisplayTopLeader x) (field "displayTop" string)
+
+
+displayTopDecoder : Decoder DisplayTop
+displayTopDecoder =
+    (maybe <| (field "displayTopCount" int))
+        |> andThen displayTopDecoderHelper
+
+
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
-    map6 FieldDescriptor
+    map8 FieldDescriptor
         (field "code" string)
-        (field "display" string)
+        displayTopDecoder
+        (field "displayBottom" string)
+        (maybe <| (field "displayCount" int))
         (field "fieldType" string |> andThen fieldTypeDecoder)
         (field "fieldValidation" <| list fieldValidatorDecoder)
         (field "fieldClass" (nullOr string))
