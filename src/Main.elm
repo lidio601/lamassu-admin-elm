@@ -181,7 +181,11 @@ update msg model =
                 { model | status = newStatus, pair = newPair, config = newConfig } ! []
 
         NewUrl url ->
-            model ! [ Navigation.newUrl url ]
+            let
+                ( configModel, configCmd ) =
+                    Config.submitNoLoad model.config
+            in
+                { model | config = configModel } ! [ Navigation.newUrl url, Cmd.map ConfigMsg configCmd ]
 
         UrlChange location ->
             urlUpdate location model

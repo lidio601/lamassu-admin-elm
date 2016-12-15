@@ -83,6 +83,12 @@ postForm configGroupCode fieldInstances =
         |> Cmd.map Load
 
 
+postFormNoLoad : String -> List FieldInstance -> Cmd Msg
+postFormNoLoad configGroupCode fieldInstances =
+    postForm configGroupCode fieldInstances
+        |> Cmd.map (\_ -> NoOp)
+
+
 init : Model
 init =
     { webConfigGroup = RemoteData.NotAsked
@@ -944,6 +950,7 @@ type Msg
     | Add FieldLocator String Selectize.State
     | Remove FieldLocator Selectize.State
     | HideSaveIndication
+    | NoOp
 
 
 maybeToList : Maybe a -> List a
@@ -1107,6 +1114,28 @@ updateRates rates model =
     { model | rates = rates }
 
 
+submit : Model -> ( Model, Cmd Msg )
+submit model =
+    case model.webConfigGroup of
+        Success configGroup ->
+            { model | status = Saving }
+                ! [ postForm configGroup.schema.code model.fieldInstances ]
+
+        _ ->
+            model ! []
+
+
+submitNoLoad : Model -> ( Model, Cmd Msg )
+submitNoLoad model =
+    case model.webConfigGroup of
+        Success configGroup ->
+            { model | status = Saving }
+                ! [ postFormNoLoad configGroup.schema.code model.fieldInstances ]
+
+        _ ->
+            model ! []
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -1174,13 +1203,7 @@ update msg model =
                 )
 
         Submit ->
-            case model.webConfigGroup of
-                Success configGroup ->
-                    { model | status = Saving }
-                        ! [ postForm configGroup.schema.code model.fieldInstances ]
-
-                _ ->
-                    model ! []
+            submit model
 
         Input fieldLocator valueString ->
             updateInput fieldLocator (Just valueString) model ! []
@@ -1239,6 +1262,9 @@ update msg model =
 
         HideSaveIndication ->
             { model | status = NotSaving } ! []
+
+        NoOp ->
+            model ! []
 
 
 cryptoView : Maybe Crypto -> CryptoDisplay -> Html Msg
