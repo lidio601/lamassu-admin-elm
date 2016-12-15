@@ -168,8 +168,17 @@ update msg model =
 
                 serverStatus =
                     Maybe.withDefault False <| Maybe.map (\status -> status.server.up) newStatus
+
+                newPair =
+                    Pair.updateStatus serverStatus model.pair
+
+                rates =
+                    Maybe.withDefault [] <| Maybe.map (\status -> status.server.rates) newStatus
+
+                newConfig =
+                    Config.updateRates rates model.config
             in
-                { model | status = newStatus, pair = Pair.updateStatus serverStatus model.pair } ! []
+                { model | status = newStatus, pair = newPair, config = newConfig } ! []
 
         NewUrl url ->
             model ! [ Navigation.newUrl url ]
@@ -307,4 +316,4 @@ urlUpdate location model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    every (5 * second) (\_ -> Interval)
+    every (10 * second) (\_ -> Interval)

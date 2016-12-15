@@ -140,7 +140,7 @@ rowView machine =
 tableView : Machines -> Html Msg
 tableView machines =
     if List.isEmpty machines then
-        div [] [ text "No paired machines." ]
+        div [ class [ C.EmptyTable ] ] [ text "No paired machines." ]
     else
         table [ class [ C.ConfigTable ] ]
             [ thead []

@@ -20,6 +20,7 @@ import FuzzyMatch
 import Process
 import Time exposing (second)
 import Task
+import StatusTypes
 
 
 type alias WebConfigGroup =
@@ -40,6 +41,7 @@ type alias Model =
     , fiat : Maybe String
     , status : SavingStatus
     , focused : Maybe FieldLocator
+    , rates : List StatusTypes.Rate
     }
 
 
@@ -89,6 +91,7 @@ init =
     , fiat = Nothing
     , status = NotSaving
     , focused = Nothing
+    , rates = []
     }
 
 
@@ -1099,6 +1102,11 @@ pickFiat fields =
         |> Maybe.map (fieldValueToString << .fieldValue)
 
 
+updateRates : List StatusTypes.Rate -> Model -> Model
+updateRates rates model =
+    { model | rates = rates }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -1289,14 +1297,20 @@ view model =
                         _ ->
                             ""
 
+                machines =
+                    listMachines resolvedModel.configGroup
+
                 form =
-                    Html.form []
-                        [ div [] [ configGroupView ]
-                        , div [ class [ C.ButtonRow ] ]
-                            [ div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
-                            , div [] [ text statusString ]
+                    if List.isEmpty machines then
+                        div [ class [ C.EmptyTable ] ] [ text "No paired machines." ]
+                    else
+                        Html.form []
+                            [ div [] [ configGroupView ]
+                            , div [ class [ C.ButtonRow ] ]
+                                [ div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
+                                , div [] [ text statusString ]
+                                ]
                             ]
-                        ]
             in
                 if (configGroup.schema.cryptoScope == Global) then
                     div []

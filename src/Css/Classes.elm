@@ -42,3 +42,4 @@ type CssClasses
     | TxTable
     | InputContainer
     | UnitDisplay
+    | EmptyTable

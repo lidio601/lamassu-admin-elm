@@ -225,6 +225,10 @@ css =
                     ]
                 ]
             ]
+        , (.) EmptyTable
+            [ fontSize (px 20)
+            , fontWeight normal
+            ]
         , (.) ConfigTable
             [ fontSize (px 14)
             , borderRadius (px 7)
