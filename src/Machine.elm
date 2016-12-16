@@ -13,10 +13,26 @@ import MachinesEncoder exposing (encodeAction)
 import MachineTypes exposing (..)
 import String
 import List
+import Process
+import Task
+import Time exposing (second)
+
+
+type SavingStatus
+    = Saving
+    | Saved
+    | Editing
+    | NotSaving
+
+
+type alias SubModel =
+    { status : SavingStatus
+    , machines : Machines
+    }
 
 
 type alias Model =
-    RemoteData.WebData Machines
+    RemoteData.WebData SubModel
 
 
 init : Model
@@ -29,11 +45,16 @@ load =
     ( Loading, getForm )
 
 
+toModel : SavingStatus -> Machines -> SubModel
+toModel status machines =
+    { status = status, machines = machines }
+
+
 getForm : Cmd Msg
 getForm =
     get ("/api/machines")
         |> withExpect (Http.expectJson machinesDecoder)
-        |> send RemoteData.fromResult
+        |> send (Result.map (toModel NotSaving) >> RemoteData.fromResult)
         |> Cmd.map Load
 
 
@@ -42,7 +63,7 @@ postForm action =
     post "/api/machines"
         |> withJsonBody (encodeAction action)
         |> withExpect (Http.expectJson machinesDecoder)
-        |> send RemoteData.fromResult
+        |> send (Result.map (toModel Saved) >> RemoteData.fromResult)
         |> Cmd.map Load
 
 
@@ -51,6 +72,7 @@ type Msg
     | Load Model
     | InputCassette Machine Position String
     | SubmitResetBills Machine
+    | HideSaveIndication
 
 
 type Position
@@ -66,8 +88,8 @@ updateMachine machine oldMachine =
         oldMachine
 
 
-updateCassette : Machine -> Position -> String -> Machines -> ( Machines, Cmd Msg )
-updateCassette machine position str machines =
+updateCassette : Machine -> Position -> String -> SubModel -> ( SubModel, Cmd Msg )
+updateCassette machine position str subModel =
     let
         countResult =
             String.toInt str
@@ -84,13 +106,29 @@ updateCassette machine position str machines =
 
                 Err _ ->
                     machine
+
+        machines =
+            List.map (updateMachine updatedMachine) subModel.machines
     in
-        (List.map (updateMachine updatedMachine) machines) ! []
+        { subModel | machines = machines } ! []
 
 
-updateSubmitCassette : Machine -> Machines -> ( Machines, Cmd Msg )
-updateSubmitCassette machine machines =
-    machines ! [ postForm (ResetCashOutBills machine) ]
+updateSubmitCassette : Machine -> SubModel -> ( SubModel, Cmd Msg )
+updateSubmitCassette machine subModel =
+    subModel ! [ postForm (ResetCashOutBills machine) ]
+
+
+saveUpdate : SubModel -> ( SubModel, Cmd Msg )
+saveUpdate model =
+    let
+        cmd =
+            if (model.status == Saved) then
+                Process.sleep (2 * second)
+                    |> Task.perform (\_ -> HideSaveIndication)
+            else
+                Cmd.none
+    in
+        model ! [ cmd ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,14 +137,17 @@ update msg model =
         Action ->
             model ! []
 
-        Load loadedModel ->
-            loadedModel ! []
+        Load newModel ->
+            RemoteData.update saveUpdate newModel
 
         InputCassette machine position str ->
             RemoteData.update (updateCassette machine position str) model
 
         SubmitResetBills machine ->
             RemoteData.update (updateSubmitCassette machine) model
+
+        HideSaveIndication ->
+            RemoteData.update (\subModel -> { subModel | status = NotSaving } ! []) model
 
 
 inputCassetteView : Machine -> Position -> Int -> Html Msg
@@ -166,12 +207,23 @@ view model =
         Failure err ->
             div [] [ text (toString err) ]
 
-        Success machines ->
-            div []
-                [ div [ class [ C.SectionLabel ] ]
-                    [ div []
-                        [ div [ class [ C.ConfigContainer ] ]
-                            [ tableView machines ]
+        Success subModel ->
+            let
+                statusString =
+                    case subModel.status of
+                        Saved ->
+                            "Saved"
+
+                        _ ->
+                            ""
+            in
+                div []
+                    [ div [ class [ C.SectionLabel ] ]
+                        [ div []
+                            [ div [ class [ C.ConfigContainer ] ]
+                                [ tableView subModel.machines
+                                , div [ class [ C.Saving ] ] [ text statusString ]
+                                ]
+                            ]
                         ]
                     ]
-                ]

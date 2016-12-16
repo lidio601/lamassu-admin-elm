@@ -43,3 +43,4 @@ type CssClasses
     | InputContainer
     | UnitDisplay
     | EmptyTable
+    | Saving

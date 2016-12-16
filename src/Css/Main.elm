@@ -318,6 +318,11 @@ css =
                     [ fontWeight bold ]
                 ]
             ]
+        , (.) Saving
+            [ fontSize (px 18)
+            , fontWeight normal
+            , textAlign right
+            ]
         , (.) NavBar
             [ margin zero
             , padding4 zero zero (px 60) zero
