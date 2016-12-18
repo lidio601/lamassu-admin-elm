@@ -4,6 +4,14 @@ import Json.Decode exposing (..)
 import FieldSetTypes exposing (..)
 
 
+fieldPasswordDecoder : Bool -> FieldValue
+fieldPasswordDecoder present =
+    if present then
+        FieldPassword PasswordHidden
+    else
+        FieldPassword PasswordEmpty
+
+
 fieldValueDecoder : String -> Decoder FieldValue
 fieldValueDecoder fieldType =
     case fieldType of
@@ -11,7 +19,7 @@ fieldValueDecoder fieldType =
             map FieldString string
 
         "password" ->
-            succeed (FieldPassword Nothing)
+            map fieldPasswordDecoder bool
 
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
@@ -22,10 +30,9 @@ fieldDecoder =
     (field "fieldType" string)
         |> andThen
             (\fieldType ->
-                map6 Field
+                map5 Field
                     (field "code" string)
                     (field "display" string)
-                    (field "secret" bool)
                     (field "required" bool)
                     (field "value" (fieldValueDecoder fieldType))
                     (field "value" (fieldValueDecoder fieldType))

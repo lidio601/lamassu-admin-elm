@@ -4,16 +4,21 @@ module FieldSetTypes exposing (..)
 type alias Field =
     { code : String
     , display : String
-    , secret : Bool
     , required : Bool
     , value : FieldValue
     , loadedValue : FieldValue
     }
 
 
+type FieldPasswordType
+    = Password String
+    | PasswordEmpty
+    | PasswordHidden
+
+
 type FieldValue
     = FieldString String
-    | FieldPassword (Maybe String)
+    | FieldPassword FieldPasswordType
 
 
 updateFieldValue : String -> FieldValue -> FieldValue
@@ -23,4 +28,4 @@ updateFieldValue stringValue oldFieldValue =
             FieldString stringValue
 
         FieldPassword _ ->
-            FieldPassword (Just stringValue)
+            FieldPassword (Password stringValue)

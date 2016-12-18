@@ -11,5 +11,5 @@ encodeAccount account =
     Json.Encode.object
         [ ( "code", string account.code )
         , ( "display", string account.display )
-        , ( "fields", list (List.map encodeField account.fields) )
+        , ( "fields", list (List.filterMap encodeField account.fields) )
         ]

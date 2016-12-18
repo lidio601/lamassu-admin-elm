@@ -1,7 +1,7 @@
 module FieldSet exposing (Msg, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (value, type_)
+import Html.Attributes exposing (value, type_, placeholder)
 import Html.Events exposing (..)
 import FieldSetTypes exposing (..)
 import List
@@ -51,10 +51,17 @@ fieldComponent field =
                         [ onInput (Input field.code), value string ]
                         []
 
-                FieldPassword _ ->
-                    input
-                        [ onInput (Input field.code), type_ "password" ]
-                        []
+                FieldPassword pass ->
+                    case pass of
+                        PasswordEmpty ->
+                            input
+                                [ onInput (Input field.code), type_ "password" ]
+                                []
+
+                        _ ->
+                            input
+                                [ onInput (Input field.code), type_ "password", placeholder "••• Field is set •••" ]
+                                []
     in
         label []
             [ div [] [ text field.display ]
