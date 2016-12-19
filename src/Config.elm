@@ -778,7 +778,7 @@ fieldComponent model fieldInstance =
         fieldValid =
             validateFieldInstance configGroup fieldInstances fieldInstance
     in
-        div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.RequiredComponent, not fieldValid ) ] ]
+        div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.InvalidComponent, not fieldValid ) ] ]
             [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
 
 
@@ -1014,8 +1014,8 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         }
 
 
-validateFieldInstance : ConfigGroup -> List FieldInstance -> FieldInstance -> Bool
-validateFieldInstance configGroup fieldInstances fieldInstance =
+validateRequired : List FieldInstance -> FieldInstance -> Bool
+validateRequired fieldInstances fieldInstance =
     let
         fieldScope =
             fieldInstance.fieldLocator.fieldScope
@@ -1032,17 +1032,62 @@ validateFieldInstance configGroup fieldInstances fieldInstance =
         isEmpty =
             Maybe.map String.isEmpty maybeFallbackString
                 |> Maybe.withDefault True
+    in
+        not isEmpty
+
+
+validateMin : Int -> FieldValue -> Bool
+validateMin min fieldValue =
+    case fieldValue of
+        FieldPercentageValue v ->
+            (ceiling v) > min
+
+        FieldIntegerValue v ->
+            v > min
+
+        _ ->
+            True
+
+
+validateMax : Int -> FieldValue -> Bool
+validateMax max fieldValue =
+    case fieldValue of
+        FieldPercentageValue v ->
+            (floor v) < max
+
+        FieldIntegerValue v ->
+            v < max
+
+        _ ->
+            True
+
+
+validate : List FieldInstance -> FieldInstance -> FieldValidator -> Bool
+validate fieldInstances fieldInstance fieldValidator =
+    case fieldValidator of
+        FieldRequired ->
+            validateRequired fieldInstances fieldInstance
+
+        FieldMin min ->
+            fieldHolderMap True (validateMin min) fieldInstance.fieldHolder
+
+        FieldMax max ->
+            fieldHolderMap True (validateMax max) fieldInstance.fieldHolder
+
+
+validateFieldInstance : ConfigGroup -> List FieldInstance -> FieldInstance -> Bool
+validateFieldInstance configGroup fieldInstances fieldInstance =
+    let
+        fieldScope =
+            fieldInstance.fieldLocator.fieldScope
 
         isRequired =
             List.member FieldRequired fieldInstance.fieldValidation
 
         isEnabled =
             checkEnabled fieldInstances configGroup fieldInstance.fieldEnabledIf fieldScope
-
-        fieldValid =
-            not (isEnabled && isRequired && isEmpty)
     in
-        fieldValid
+        not isEnabled || List.all (validate fieldInstances fieldInstance) fieldInstance.fieldValidation
 
 
 initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance

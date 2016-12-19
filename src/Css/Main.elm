@@ -266,9 +266,6 @@ css =
                     , fontWeight (int 600)
                     , outline none
                     , backgroundColor Colors.white
-                    , invalid
-                        [ color Colors.red
-                        ]
                     ]
                 , (.) ShortCell
                     [ width (em 5) ]
@@ -293,8 +290,14 @@ css =
                     , border3 (px 2) solid Colors.lightGrey
                     , backgroundColor Colors.white
                     ]
-                , (.) RequiredComponent
-                    [ borderTopColor Colors.red ]
+                , (.) InvalidComponent
+                    [ borderTopColor Colors.red
+                    , descendants
+                        [ input
+                            [ color Colors.red
+                            ]
+                        ]
+                    ]
                 , (.) FocusedComponent
                     [ borderTopColor Colors.amazonite ]
                 , tbody

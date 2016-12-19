@@ -29,7 +29,7 @@ type CssClasses
     | BasicInputDisabled
     | Component
     | FocusedComponent
-    | RequiredComponent
+    | InvalidComponent
     | TableButton
     | Fail
     | Success

@@ -403,3 +403,13 @@ stringToFieldHolder fieldType s =
 groupMember : ConfigGroup -> String -> Bool
 groupMember configGroup fieldCode =
     List.any (.code >> ((==) fieldCode)) configGroup.schema.entries
+
+
+fieldHolderMap : a -> (FieldValue -> a) -> FieldHolder -> a
+fieldHolderMap default mapper fieldHolder =
+    case fieldHolder of
+        FieldOk v ->
+            mapper v
+
+        _ ->
+            default
