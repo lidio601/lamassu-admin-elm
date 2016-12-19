@@ -171,8 +171,8 @@ listToFieldHolder modifier list =
         FieldOk <| modifier <| list
 
 
-updateStringFieldInstance : FieldLocator -> Maybe String -> FieldInstance -> FieldInstance
-updateStringFieldInstance fieldLocator maybeString fieldInstance =
+updateStringFieldInstance : List FieldInstance -> FieldLocator -> Maybe String -> FieldInstance -> FieldInstance
+updateStringFieldInstance fieldInstances fieldLocator maybeString fieldInstance =
     if fieldInstance.fieldLocator == fieldLocator then
         case fieldLocator.fieldType of
             FieldLanguageType ->
@@ -215,7 +215,7 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
                             Just s ->
                                 stringToFieldHolder fieldLocator.fieldType s
                 in
-                    { fieldInstance | fieldHolder = fieldHolder }
+                    { fieldInstance | fieldHolder = fieldHolder } |> validateFieldInstance fieldInstances
     else
         fieldInstance
 
@@ -223,8 +223,12 @@ updateStringFieldInstance fieldLocator maybeString fieldInstance =
 updateInput : FieldLocator -> Maybe String -> Model -> Model
 updateInput fieldLocator maybeValueString model =
     let
+        oldFieldInstances =
+            model.fieldInstances
+
         fieldInstances =
-            List.map (updateStringFieldInstance fieldLocator maybeValueString) model.fieldInstances
+            List.map (updateStringFieldInstance oldFieldInstances fieldLocator maybeValueString)
+                oldFieldInstances
     in
         { model | fieldInstances = fieldInstances }
 
@@ -241,19 +245,6 @@ fieldTypeToInputType fieldType =
 
         _ ->
             "string"
-
-
-buildValidationAttribute : FieldValidator -> Maybe (Attribute Msg)
-buildValidationAttribute fieldValidator =
-    case fieldValidator of
-        FieldMin n ->
-            Just <| Html.Attributes.min (toString n)
-
-        FieldMax n ->
-            Just <| Html.Attributes.max (toString n)
-
-        FieldRequired ->
-            Nothing
 
 
 unitDisplay : String -> FieldInstance -> Html Msg
@@ -314,30 +305,26 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
         inputType =
             fieldTypeToInputType fieldLocator.fieldType
 
-        validations =
-            List.filterMap buildValidationAttribute
-                fieldInstance.fieldValidation
-
         fieldClass =
             fieldTypeToClass fieldInstance.fieldLocator.fieldType
 
-        valid =
-            Maybe.map (always C.Success) maybeFallbackString
-                |> Maybe.withDefault C.Fail
+        validClass =
+            if fieldInstance.fieldValid then
+                C.Success
+            else
+                C.Fail
     in
         if enabled then
             div [ class [ C.InputContainer ] ]
                 [ input
-                    ([ onInput (Input fieldLocator)
-                     , onFocus (Focus fieldLocator)
-                     , onBlur (Blur fieldLocator)
-                     , defaultValue defaultString
-                     , placeholder fallbackString
-                     , class [ C.BasicInput, valid, fieldClass ]
-                     , type_ inputType
-                     ]
-                        ++ validations
-                    )
+                    [ onInput (Input fieldLocator)
+                    , onFocus (Focus fieldLocator)
+                    , onBlur (Blur fieldLocator)
+                    , defaultValue defaultString
+                    , placeholder fallbackString
+                    , class [ C.BasicInput, validClass, fieldClass ]
+                    , type_ inputType
+                    ]
                     []
                 , unitDisplay fiat fieldInstance
                 ]
@@ -791,12 +778,10 @@ fieldComponent model fieldInstance =
         focused =
             (Just fieldLocator) == model.focused
 
-        required =
-            Maybe.map (always False) maybeFallbackFieldValue
-                |> Maybe.withDefault
-                    (enabled && (not focused) && List.member FieldRequired fieldInstance.fieldValidation)
+        fieldValid =
+            fieldInstance.fieldValid
     in
-        div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.RequiredComponent, required ) ] ]
+        div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.RequiredComponent, not fieldValid ) ] ]
             [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
 
 
@@ -1019,14 +1004,49 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         maybeToFieldHolder maybe =
             Maybe.map FieldOk maybe
                 |> Maybe.withDefault FieldEmpty
+
+        fieldHolder =
+            maybeToFieldHolder maybeValue
     in
         { fieldLocator = fieldLocator
         , component = component
-        , fieldHolder = maybeToFieldHolder maybeValue
-        , loadedFieldHolder = maybeToFieldHolder maybeValue
+        , fieldHolder = fieldHolder
+        , loadedFieldHolder = fieldHolder
         , fieldValidation = fieldDescriptor.fieldValidation
         , fieldEnabledIf = fieldDescriptor.fieldEnabledIf
+        , fieldValid = False
         }
+
+
+validateFieldInstance : List FieldInstance -> FieldInstance -> FieldInstance
+validateFieldInstance fieldInstances fieldInstance =
+    let
+        fieldScope =
+            fieldInstance.fieldLocator.fieldScope
+
+        fieldCode =
+            fieldInstance.fieldLocator.code
+
+        maybeFallbackFieldValue =
+            fallbackValue fieldScope fieldInstances fieldCode
+
+        maybeFallbackString =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+
+        isEmpty =
+            Maybe.map String.isEmpty maybeFallbackString
+                |> Maybe.withDefault True
+
+        isRequired =
+            List.member FieldRequired fieldInstance.fieldValidation
+
+        fieldValid =
+            not (isRequired && isEmpty)
+
+        _ =
+            Debug.log "DEBUG88" ( fieldCode, fieldValid, isRequired, isEmpty, maybeFallbackString )
+    in
+        { fieldInstance | fieldValid = fieldValid }
 
 
 initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
@@ -1036,7 +1056,11 @@ initFieldInstancesPerEntry configGroup fieldDescriptor =
 
 initFieldInstances : ConfigGroup -> List FieldInstance
 initFieldInstances configGroup =
-    List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
+    let
+        rawFieldInstances =
+            List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
+    in
+        List.map (validateFieldInstance rawFieldInstances) rawFieldInstances
 
 
 pickFieldInstance : String -> FieldScope -> List FieldInstance -> Maybe FieldInstance
@@ -1326,6 +1350,12 @@ view model =
                 machines =
                     listMachines resolvedModel.configGroup
 
+                submitButton =
+                    if (Debug.log "DEBUG99" (List.all .fieldValid resolvedModel.fieldInstances)) then
+                        div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
+                    else
+                        div [ class [ C.Button, C.Disabled ] ] [ text "Submit" ]
+
                 form =
                     if List.isEmpty machines then
                         div [ class [ C.EmptyTable ] ] [ text "No paired machines." ]
@@ -1333,7 +1363,7 @@ view model =
                         Html.form []
                             [ div [] [ configGroupView ]
                             , div [ class [ C.ButtonRow ] ]
-                                [ div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
+                                [ submitButton
                                 , div [] [ text statusString ]
                                 ]
                             ]

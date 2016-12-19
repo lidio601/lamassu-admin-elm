@@ -71,6 +71,7 @@ type alias FieldInstance =
     , loadedFieldHolder : FieldHolder
     , fieldValidation : List FieldValidator
     , fieldEnabledIf : List String
+    , fieldValid : Bool
     }
 
 

@@ -136,6 +136,10 @@ css =
             , padding2 (px 10) (px 15)
             , display inlineBlock
             , borderRadius (px 5)
+            , withClass Disabled
+                [ backgroundColor (hex "#ff0000")
+                , color Colors.white
+                ]
             ]
         , (.) MainLeft
             [ backgroundColor navBackgroundColor

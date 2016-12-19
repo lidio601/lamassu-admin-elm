@@ -44,3 +44,5 @@ type CssClasses
     | UnitDisplay
     | EmptyTable
     | Saving
+    | Enabled
+    | Disabled
