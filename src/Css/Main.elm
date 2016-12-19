@@ -137,8 +137,9 @@ css =
             , display inlineBlock
             , borderRadius (px 5)
             , withClass Disabled
-                [ backgroundColor (hex "#ff0000")
+                [ backgroundColor Colors.darkerLightGrey
                 , color Colors.white
+                , cursor default
                 ]
             ]
         , (.) MainLeft

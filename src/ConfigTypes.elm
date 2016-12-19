@@ -71,7 +71,6 @@ type alias FieldInstance =
     , loadedFieldHolder : FieldHolder
     , fieldValidation : List FieldValidator
     , fieldEnabledIf : List String
-    , fieldValid : Bool
     }
 
 
@@ -294,7 +293,7 @@ allCryptos cryptoDisplays cryptoScope cryptoStrings =
                 [ globalCryptoDisplay ]
 
             Specific ->
-                Debug.log "DEBUG88" allSpecificCryptos
+                allSpecificCryptos
 
             Both ->
                 globalCryptoDisplay :: allSpecificCryptos

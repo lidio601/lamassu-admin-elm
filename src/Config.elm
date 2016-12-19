@@ -215,7 +215,7 @@ updateStringFieldInstance fieldInstances fieldLocator maybeString fieldInstance 
                             Just s ->
                                 stringToFieldHolder fieldLocator.fieldType s
                 in
-                    { fieldInstance | fieldHolder = fieldHolder } |> validateFieldInstance fieldInstances
+                    { fieldInstance | fieldHolder = fieldHolder }
     else
         fieldInstance
 
@@ -308,11 +308,8 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
         fieldClass =
             fieldTypeToClass fieldInstance.fieldLocator.fieldType
 
-        validClass =
-            if fieldInstance.fieldValid then
-                C.Success
-            else
-                C.Fail
+        fieldValid =
+            validateFieldInstance
     in
         if enabled then
             div [ class [ C.InputContainer ] ]
@@ -322,7 +319,7 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                     , onBlur (Blur fieldLocator)
                     , defaultValue defaultString
                     , placeholder fallbackString
-                    , class [ C.BasicInput, validClass, fieldClass ]
+                    , class [ C.BasicInput, fieldClass ]
                     , type_ inputType
                     ]
                     []
@@ -779,7 +776,7 @@ fieldComponent model fieldInstance =
             (Just fieldLocator) == model.focused
 
         fieldValid =
-            fieldInstance.fieldValid
+            validateFieldInstance configGroup fieldInstances fieldInstance
     in
         div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.RequiredComponent, not fieldValid ) ] ]
             [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
@@ -1014,12 +1011,11 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         , loadedFieldHolder = fieldHolder
         , fieldValidation = fieldDescriptor.fieldValidation
         , fieldEnabledIf = fieldDescriptor.fieldEnabledIf
-        , fieldValid = False
         }
 
 
-validateFieldInstance : List FieldInstance -> FieldInstance -> FieldInstance
-validateFieldInstance fieldInstances fieldInstance =
+validateFieldInstance : ConfigGroup -> List FieldInstance -> FieldInstance -> Bool
+validateFieldInstance configGroup fieldInstances fieldInstance =
     let
         fieldScope =
             fieldInstance.fieldLocator.fieldScope
@@ -1040,13 +1036,13 @@ validateFieldInstance fieldInstances fieldInstance =
         isRequired =
             List.member FieldRequired fieldInstance.fieldValidation
 
-        fieldValid =
-            not (isRequired && isEmpty)
+        isEnabled =
+            checkEnabled fieldInstances configGroup fieldInstance.fieldEnabledIf fieldScope
 
-        _ =
-            Debug.log "DEBUG88" ( fieldCode, fieldValid, isRequired, isEmpty, maybeFallbackString )
+        fieldValid =
+            not (isEnabled && isRequired && isEmpty)
     in
-        { fieldInstance | fieldValid = fieldValid }
+        fieldValid
 
 
 initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
@@ -1056,11 +1052,7 @@ initFieldInstancesPerEntry configGroup fieldDescriptor =
 
 initFieldInstances : ConfigGroup -> List FieldInstance
 initFieldInstances configGroup =
-    let
-        rawFieldInstances =
-            List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
-    in
-        List.map (validateFieldInstance rawFieldInstances) rawFieldInstances
+    List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
 
 
 pickFieldInstance : String -> FieldScope -> List FieldInstance -> Maybe FieldInstance
@@ -1350,8 +1342,11 @@ view model =
                 machines =
                     listMachines resolvedModel.configGroup
 
+                fieldInstances =
+                    resolvedModel.fieldInstances
+
                 submitButton =
-                    if (Debug.log "DEBUG99" (List.all .fieldValid resolvedModel.fieldInstances)) then
+                    if List.all (validateFieldInstance configGroup fieldInstances) fieldInstances then
                         div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
                     else
                         div [ class [ C.Button, C.Disabled ] ] [ text "Submit" ]
