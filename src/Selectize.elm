@@ -134,11 +134,11 @@ addSelection config items state =
 
 updateKeyDown : Config msg idType itemType -> Items itemType -> State -> Int -> msg
 updateKeyDown config items state keyCode =
-    if List.length items.selectedItems == config.maxItems then
+    if config.maxItems > 1 && List.length items.selectedItems == config.maxItems then
         case keyCode of
             -- backspace
             8 ->
-                if String.isEmpty (Debug.log "DEBUG10" state.string) && (not << List.isEmpty) items.selectedItems then
+                if String.isEmpty state.string && (not << List.isEmpty) items.selectedItems then
                     config.onRemove state
                 else
                     config.toMsg state
@@ -274,16 +274,22 @@ idleBoxView config items state =
         h =
             config.htmlOptions
 
+        numSelected =
+            List.length items.selectedItems
+
         remainingItems =
-            List.length items.availableItems - List.length items.selectedItems
+            List.length items.availableItems - numSelected
 
         typeForMore =
             if remainingItems > config.boxLength then
-                div [ class h.classes.info ] [ text h.typeForMore ]
+                if numSelected < config.maxItems then
+                    div [ class h.classes.info ] [ text h.typeForMore ]
+                else
+                    div [ class h.classes.info ] [ text "Backspace for more" ]
             else
                 span [] []
     in
-        if List.length items.selectedItems == config.maxItems then
+        if config.maxItems > 1 && List.length items.selectedItems == config.maxItems then
             span [] []
         else
             div [ class h.classes.boxContainer ]
@@ -408,7 +414,7 @@ view config selectedIds availableItems fallbackIds state =
                     else
                         onKeyDownDelete config items state
                 else
-                    onKeyDownNoDelete config items state
+                    onKeyDown config items state
 
             editInput =
                 case state.status of
@@ -493,6 +499,11 @@ onKeyDownNoDelete config items state =
     rawOnKeyDown noDeleteSpecialKeys (updateKeyDown config items state)
 
 
+onKeyDown : Config msg idType itemType -> Items itemType -> State -> Attribute msg
+onKeyDown config items state =
+    rawOnKeyDownNoPrevent (updateKeyDown config items state)
+
+
 onKeyUp : Config msg idType itemType -> Items itemType -> State -> Attribute msg
 onKeyUp config items state =
     rawOnKeyUp (updateKeyUp config items state)
@@ -500,12 +511,12 @@ onKeyUp config items state =
 
 noDeleteSpecialKeys : List Int
 noDeleteSpecialKeys =
-    [ 8, 38, 40, 9, 13 ]
+    [ 8, 38, 40, 9, 13, 27 ]
 
 
 deleteSpecialKeys : List Int
 deleteSpecialKeys =
-    [ 38, 40, 9, 13 ]
+    [ 38, 40, 9, 13, 27 ]
 
 
 preventSpecialDecoder : List Int -> Json.Decoder Int
@@ -531,7 +542,7 @@ rawOnKeyDown specialKeys tagger =
 
 rawOnKeyDownNoPrevent : (Int -> msg) -> Attribute msg
 rawOnKeyDownNoPrevent tagger =
-    onWithOptions "keydown" { stopPropagation = False, preventDefault = True } (Json.map tagger E.keyCode)
+    onWithOptions "keydown" { stopPropagation = False, preventDefault = False } (Json.map tagger E.keyCode)
 
 
 rawOnKeyUp : (Int -> msg) -> Attribute msg
