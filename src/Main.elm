@@ -236,7 +236,7 @@ statusBar maybeStatus =
             let
                 serverStatus =
                     if status.server.up then
-                        [ Markdown.toHtml [] "**lamassu-server** is up" ]
+                        [ Markdown.toHtml [] ("**lamassu-server** is up **/** " ++ status.server.machineStatus) ]
                     else
                         case status.server.lastPing of
                             Nothing ->

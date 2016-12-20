@@ -14,10 +14,11 @@ rateDecoder =
 
 serverDecoder : Decoder ServerRec
 serverDecoder =
-    map3 ServerRec
+    map4 ServerRec
         (field "up" bool)
         (field "lastPing" (nullable string))
         (field "rates" (list rateDecoder))
+        (field "machineStatus" string)
 
 
 statusDecoder : Decoder StatusRec

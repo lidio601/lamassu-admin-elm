@@ -14,6 +14,7 @@ type alias ServerRec =
     { up : Bool
     , lastPing : Maybe String
     , rates : List Rate
+    , machineStatus : String
     }
 
 
