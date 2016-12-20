@@ -528,6 +528,41 @@ languageSelectizeView model localConfig fieldInstance selectizeState maybeFieldV
             selectizeState
 
 
+countrySelectizeView :
+    ResolvedModel
+    -> LocalConfig
+    -> FieldInstance
+    -> Selectize.State
+    -> Maybe FieldValue
+    -> Maybe FieldValue
+    -> Html Msg
+countrySelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+    let
+        specificConfig =
+            { maxItems = 1
+            , selectedDisplay = .code
+            , optionDisplay = .display
+            , match = FuzzyMatch.match
+            }
+
+        availableItems =
+            model.configGroup.data.countries
+
+        selectedIds =
+            Maybe.map fieldValueToString maybeFieldValue
+                |> maybeToList
+
+        fallbackIds =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+                |> maybeToList
+    in
+        Selectize.view (buildConfig localConfig specificConfig)
+            selectedIds
+            availableItems
+            fallbackIds
+            selectizeState
+
+
 selectizeView :
     ResolvedModel
     -> FieldInstance
@@ -578,6 +613,14 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
 
             FieldLanguageType ->
                 languageSelectizeView model
+                    localConfig
+                    fieldInstance
+                    selectizeState
+                    maybeFieldValue
+                    maybeFallbackFieldValue
+
+            FieldCountryType ->
+                countrySelectizeView model
                     localConfig
                     fieldInstance
                     selectizeState
@@ -993,6 +1036,9 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             SelectizeComponent Selectize.initialSelectize
 
         FieldLanguageType ->
+            SelectizeComponent Selectize.initialSelectize
+
+        FieldCountryType ->
             SelectizeComponent Selectize.initialSelectize
 
 

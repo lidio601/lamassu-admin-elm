@@ -31,6 +31,9 @@ fieldValueTypeDecoder fieldType =
         "language" ->
             map FieldLanguageValue (field "value" (list string))
 
+        "country" ->
+            map FieldCountryValue (field "value" string)
+
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
 
@@ -153,6 +156,9 @@ basicFieldTypeDecoder s =
         "language" ->
             succeed FieldLanguageType
 
+        "country" ->
+            succeed FieldCountryType
+
         _ ->
             fail ("No such FieldType " ++ s)
 
@@ -263,9 +269,10 @@ accountRecDecoder =
 
 configDataDecoder : Decoder ConfigData
 configDataDecoder =
-    map5 ConfigData
+    map6 ConfigData
         (field "cryptoCurrencies" (list cryptoDisplayDecoder))
         (field "currencies" (list displayRecDecoder))
         (field "languages" (list displayRecDecoder))
+        (field "countries" (list displayRecDecoder))
         (field "accounts" (list accountRecDecoder))
         (field "machines" (list machineDisplayDecoder))

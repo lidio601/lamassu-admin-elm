@@ -95,6 +95,7 @@ type FieldType
     | FieldFiatCurrencyType
     | FieldCryptoCurrencyType
     | FieldLanguageType
+    | FieldCountryType
 
 
 type FieldValue
@@ -106,6 +107,7 @@ type FieldValue
     | FieldFiatCurrencyValue String
     | FieldCryptoCurrencyValue (List String)
     | FieldLanguageValue (List String)
+    | FieldCountryValue String
 
 
 type FieldValidator
@@ -168,6 +170,7 @@ type alias ConfigData =
     { cryptoCurrencies : List CryptoDisplay
     , currencies : List DisplayRec
     , languages : List DisplayRec
+    , countries : List DisplayRec
     , accounts : List AccountRec
     , machines : List MachineDisplay
     }
@@ -216,6 +219,9 @@ fieldValueToString fieldValue =
 
         FieldLanguageValue v ->
             String.join "," v
+
+        FieldCountryValue v ->
+            v
 
 
 machineToString : Machine -> String
@@ -398,6 +404,9 @@ stringToFieldHolder fieldType s =
 
             FieldLanguageType ->
                 FieldOk (FieldLanguageValue [ s ])
+
+            FieldCountryType ->
+                FieldOk (FieldCountryValue s)
 
 
 groupMember : ConfigGroup -> String -> Bool

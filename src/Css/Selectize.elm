@@ -56,6 +56,8 @@ component =
                 ]
             , (.) BoxItem
                 [ padding2 (px 3) (px 6)
+                , overflow hidden
+                , textOverflow ellipsis
                 ]
             , (.) Info
                 [ padding2 (px 3) (px 6)
