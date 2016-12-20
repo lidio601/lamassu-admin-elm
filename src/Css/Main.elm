@@ -334,6 +334,8 @@ css =
                             ]
                         ]
                     ]
+                , (.) TextCell
+                    [ textAlign left ]
                 , (.) ShortCell
                     [ minWidth (em 5) ]
                 , (.) MediumCell

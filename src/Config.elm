@@ -271,23 +271,29 @@ unitDisplay fiat fieldInstance =
             div [] []
 
 
-fieldInstanceClass : FieldInstance -> C.CssClasses
-fieldInstanceClass fieldInstance =
+fieldInstanceClasses : FieldInstance -> List C.CssClasses
+fieldInstanceClasses fieldInstance =
     case fieldInstance.fieldLocator.fieldType of
         FieldPercentageType ->
-            C.ShortCell
+            [ C.ShortCell ]
 
         FieldIntegerType ->
-            C.ShortCell
+            [ C.ShortCell ]
 
         FieldAccountType ->
-            C.MediumCell
+            [ C.MediumCell ]
 
         FieldStringType ->
-            C.LongCell
+            [ C.LongCell, C.TextCell ]
+
+        FieldLanguageType ->
+            [ C.MediumCell ]
+
+        FieldCryptoCurrencyType ->
+            [ C.MediumCell ]
 
         _ ->
-            C.ShortCell
+            [ C.ShortCell ]
 
 
 textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
@@ -311,8 +317,8 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
         inputType =
             fieldTypeToInputType fieldLocator.fieldType
 
-        fieldClass =
-            fieldInstanceClass fieldInstance
+        fieldClasses =
+            fieldInstanceClasses fieldInstance
 
         fieldValid =
             validateFieldInstance
@@ -325,7 +331,7 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                     , onBlur (Blur fieldLocator)
                     , defaultValue defaultString
                     , placeholder fallbackString
-                    , class [ C.BasicInput, fieldClass ]
+                    , class (C.BasicInput :: fieldClasses)
                     , type_ inputType
                     ]
                     []
@@ -784,16 +790,17 @@ fieldComponent model fieldInstance =
         fieldValid =
             validateFieldInstance configGroup fieldInstances fieldInstance
 
-        fieldLengthClass =
-            fieldInstanceClass fieldInstance
+        fieldLengthClasses =
+            List.map (\class -> ( class, True )) (fieldInstanceClasses fieldInstance)
     in
         div
             [ classList
-                [ ( C.Component, True )
-                , ( C.FocusedComponent, focused )
-                , ( C.InvalidComponent, not fieldValid )
-                , ( fieldLengthClass, True )
-                ]
+                ([ ( C.Component, True )
+                 , ( C.FocusedComponent, focused )
+                 , ( C.InvalidComponent, not fieldValid )
+                 ]
+                    ++ fieldLengthClasses
+                )
             ]
             [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
 

@@ -22,6 +22,7 @@ type CssClasses
     | ShortCell
     | MediumCell
     | LongCell
+    | TextCell
     | FormRow
     | Button
     | ButtonRow

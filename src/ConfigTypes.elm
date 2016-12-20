@@ -212,10 +212,10 @@ fieldValueToString fieldValue =
             v
 
         FieldCryptoCurrencyValue v ->
-            Debug.crash "N/A for cryptoCurrency"
+            String.join "," v
 
         FieldLanguageValue v ->
-            Debug.crash "N/A for language"
+            String.join "," v
 
 
 machineToString : Machine -> String
