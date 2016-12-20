@@ -1358,8 +1358,7 @@ update msg model =
                             "#config/" ++ configGroup.schema.code ++ "/" ++ cryptoCode
 
                         command =
-                            (Debug.log "DEBUG123" path)
-                                |> Navigation.newUrl
+                            Navigation.newUrl path
                     in
                         { model | crypto = Just crypto } ! [ command ]
 
@@ -1468,8 +1467,12 @@ view model =
                 fieldInstances =
                     resolvedModel.fieldInstances
 
+                cryptoFieldInstances =
+                    List.filter (\fi -> fi.fieldLocator.fieldScope.crypto == resolvedModel.crypto)
+                        fieldInstances
+
                 submitButton =
-                    if List.all (validateFieldInstance configGroup fieldInstances) fieldInstances then
+                    if List.all (validateFieldInstance configGroup fieldInstances) cryptoFieldInstances then
                         div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
                     else
                         div [ class [ C.Button, C.Disabled ] ] [ text "Submit" ]
