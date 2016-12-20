@@ -1040,10 +1040,10 @@ validateMin : Int -> FieldValue -> Bool
 validateMin min fieldValue =
     case fieldValue of
         FieldPercentageValue v ->
-            (ceiling v) > min
+            (ceiling v) >= min
 
         FieldIntegerValue v ->
-            v > min
+            v >= min
 
         _ ->
             True
@@ -1053,10 +1053,10 @@ validateMax : Int -> FieldValue -> Bool
 validateMax max fieldValue =
     case fieldValue of
         FieldPercentageValue v ->
-            (floor v) < max
+            (floor v) <= max
 
         FieldIntegerValue v ->
-            v < max
+            v <= max
 
         _ ->
             True
