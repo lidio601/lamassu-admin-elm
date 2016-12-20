@@ -152,9 +152,17 @@ encodeFieldResult fieldInstance =
         dirtyEncode fieldInstance.fieldHolder
 
 
-encodeResults : String -> List FieldInstance -> Value
+encodeResults : String -> List FieldInstance -> Maybe Value
 encodeResults configGroupCode fieldInstances =
-    Json.Encode.object
-        [ ( "groupCode", string configGroupCode )
-        , ( "values", list (List.filterMap encodeFieldResult fieldInstances) )
-        ]
+    let
+        results =
+            List.filterMap encodeFieldResult fieldInstances
+    in
+        if List.isEmpty results then
+            Nothing
+        else
+            Json.Encode.object
+                [ ( "groupCode", string configGroupCode )
+                , ( "values", Debug.log "DEBUG22" (list (List.filterMap encodeFieldResult fieldInstances)) )
+                ]
+                |> Just

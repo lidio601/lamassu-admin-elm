@@ -76,11 +76,20 @@ getForm code =
 
 postForm : String -> List FieldInstance -> Cmd Msg
 postForm configGroupCode fieldInstances =
-    post ("/api/config")
-        |> withJsonBody (encodeResults configGroupCode fieldInstances)
-        |> withExpect (Http.expectJson configGroupDecoder)
-        |> send RemoteData.fromResult
-        |> Cmd.map Load
+    let
+        maybeResults =
+            encodeResults configGroupCode fieldInstances
+    in
+        case maybeResults of
+            Nothing ->
+                Cmd.none
+
+            Just results ->
+                post ("/api/config")
+                    |> withJsonBody (results)
+                    |> withExpect (Http.expectJson configGroupDecoder)
+                    |> send RemoteData.fromResult
+                    |> Cmd.map Load
 
 
 postFormNoLoad : String -> List FieldInstance -> Cmd Msg
@@ -1259,7 +1268,7 @@ submitNoLoad : Model -> ( Model, Cmd Msg )
 submitNoLoad model =
     case model.webConfigGroup of
         Success configGroup ->
-            { model | status = Saving }
+            model
                 ! [ postFormNoLoad configGroup.schema.code model.fieldInstances ]
 
         _ ->
