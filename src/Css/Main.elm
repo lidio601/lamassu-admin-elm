@@ -236,10 +236,10 @@ css =
             ]
         , (.) ConfigTable
             [ fontSize (px 14)
+            , fontWeight bold
             , borderRadius (px 7)
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
-            , width (pct 100)
             , descendants
                 [ (.) Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
@@ -267,8 +267,6 @@ css =
                     , outline none
                     , backgroundColor Colors.white
                     ]
-                , (.) ShortCell
-                    [ width (em 5) ]
                 , (.) BasicInputDisabled
                     [ backgroundColor Colors.lighterLightGrey
                     , height (px 25)
@@ -283,7 +281,7 @@ css =
                     [ padding2 (px 3) (px 4)
                     , textAlign center
                     , verticalAlign middle
-                    , width (px 1)
+                    , width (em 5)
                     ]
                 , (.) Component
                     [ borderRadius (px 3)
@@ -306,6 +304,11 @@ css =
                             [ textAlign right
                             , whiteSpace noWrap
                             ]
+                        , td
+                            [ firstChild
+                                [ fontWeight normal
+                                ]
+                            ]
                         ]
                     ]
                 , thead
@@ -323,7 +326,20 @@ css =
                     , textAlign center
                     ]
                 , (.) ConfigTableGlobalRow
-                    [ fontWeight bold ]
+                    [ descendants
+                        [ td
+                            [ firstChild
+                                [ fontWeight bold
+                                ]
+                            ]
+                        ]
+                    ]
+                , (.) ShortCell
+                    [ minWidth (em 5) ]
+                , (.) MediumCell
+                    [ minWidth (em 10) ]
+                , (.) LongCell
+                    [ minWidth (em 20) ]
                 ]
             ]
         , (.) Saving

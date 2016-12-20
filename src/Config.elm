@@ -271,17 +271,23 @@ unitDisplay fiat fieldInstance =
             div [] []
 
 
-fieldTypeToClass : FieldType -> C.CssClasses
-fieldTypeToClass fieldType =
-    case fieldType of
+fieldInstanceClass : FieldInstance -> C.CssClasses
+fieldInstanceClass fieldInstance =
+    case fieldInstance.fieldLocator.fieldType of
         FieldPercentageType ->
             C.ShortCell
 
         FieldIntegerType ->
             C.ShortCell
 
-        _ ->
+        FieldAccountType ->
+            C.MediumCell
+
+        FieldStringType ->
             C.LongCell
+
+        _ ->
+            C.ShortCell
 
 
 textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
@@ -306,7 +312,7 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             fieldTypeToInputType fieldLocator.fieldType
 
         fieldClass =
-            fieldTypeToClass fieldInstance.fieldLocator.fieldType
+            fieldInstanceClass fieldInstance
 
         fieldValid =
             validateFieldInstance
@@ -777,8 +783,18 @@ fieldComponent model fieldInstance =
 
         fieldValid =
             validateFieldInstance configGroup fieldInstances fieldInstance
+
+        fieldLengthClass =
+            fieldInstanceClass fieldInstance
     in
-        div [ classList [ ( C.Component, True ), ( C.FocusedComponent, focused ), ( C.InvalidComponent, not fieldValid ) ] ]
+        div
+            [ classList
+                [ ( C.Component, True )
+                , ( C.FocusedComponent, focused )
+                , ( C.InvalidComponent, not fieldValid )
+                , ( fieldLengthClass, True )
+                ]
+            ]
             [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
 
 

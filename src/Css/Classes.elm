@@ -20,6 +20,7 @@ type CssClasses
     | BottomDisplay
     | MultiDisplay
     | ShortCell
+    | MediumCell
     | LongCell
     | FormRow
     | Button

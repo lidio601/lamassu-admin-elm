@@ -96,6 +96,7 @@ component =
                 , property "background-color" "inherit"
                 , padding2 (px 6) (px 2)
                 , width (em 6)
+                , cursor default
                 ]
             ]
         ]
