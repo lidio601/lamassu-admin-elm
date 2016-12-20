@@ -185,7 +185,6 @@ css =
             ]
         , (.) TxTable
             [ borderRadius (px 7)
-              -- , property "table-layout" "fixed"
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
             , fontSize (px 14)
@@ -194,6 +193,7 @@ css =
             , descendants
                 [ (.) NumberColumn
                     [ textAlign right
+                    , width (em 10)
                     ]
                 , (.) DirectionColumn
                     [ textAlign left
@@ -214,6 +214,10 @@ css =
                             , overflow hidden
                             , width (px 300)
                             , textOverflow ellipsis
+                            ]
+                        , (.) TxDate [ width (em 10) ]
+                        , (.) TxAddress
+                            [ width (em 25)
                             ]
                         ]
                     ]

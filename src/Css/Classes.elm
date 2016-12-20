@@ -48,3 +48,9 @@ type CssClasses
     | Saving
     | Enabled
     | Disabled
+    | TxDate
+    | TxMachine
+    | TxAmount
+    | TxCrypto
+    | TxPhone
+    | TxAddress

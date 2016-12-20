@@ -61,13 +61,13 @@ rowView tx =
     case tx of
         CashInTx cashIn ->
             tr []
-                [ td [ class [ C.NumberColumn, C.DateColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
+                [ td [ class [ C.NumberColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
                 , td [] [ text cashIn.machineName ]
                 , td [ class [ C.NumberColumn ] ] [ text (format "0,0.000000" ((negate <| toFloat cashIn.cryptoAtoms) / 1.0e8)) ]
                 , td [] [ text cashIn.cryptoCode ]
                 , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashIn.fiat) ]
                 , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashIn.phone) ]
-                , td [ class [ C.NumberColumn, C.TruncatedColumn ] ] [ text cashIn.toAddress ]
+                , td [ class [ C.TxAddress ] ] [ text cashIn.toAddress ]
                 ]
 
         CashOutTx cashOut ->
@@ -78,7 +78,7 @@ rowView tx =
                 , td [] [ text cashOut.cryptoCode ]
                 , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" (negate cashOut.fiat)) ]
                 , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashOut.phone) ]
-                , td [ class [ C.NumberColumn, C.TruncatedColumn ] ] [ text cashOut.toAddress ]
+                , td [ class [ C.TxAddress ] ] [ text cashOut.toAddress ]
                 ]
 
 
@@ -90,12 +90,12 @@ tableView txs =
         table [ class [ C.TxTable ] ]
             [ thead []
                 [ tr []
-                    [ td [ class [ C.DateColumn ] ] []
-                    , td [] []
+                    [ td [ class [ C.TxDate ] ] [ text "Time" ]
+                    , td [ class [ C.TxMachine ] ] [ text "Machine" ]
                     , td [ colspan 2 ] [ text "Crypto" ]
-                    , td [] [ text "Fiat" ]
-                    , td [] [ text "Phone" ]
-                    , td [] [ text "To address" ]
+                    , td [ class [ C.TxAmount ] ] [ text "Fiat" ]
+                    , td [ class [ C.TxPhone ] ] [ text "Phone" ]
+                    , td [ class [ C.TxAddress ] ] [ text "To address" ]
                     ]
                 ]
             , tbody [] (List.map rowView txs)
