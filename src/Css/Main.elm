@@ -182,6 +182,7 @@ css =
             , backgroundColor mainBackgroundColor
             , margin3 zero zero (px 10)
             , property "animation" "fadein 0.8s"
+            , overflowX hidden
             ]
         , (.) TxTable
             [ borderRadius (px 7)
