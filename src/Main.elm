@@ -258,15 +258,10 @@ view model =
             Maybe.map .invalidConfigGroups model.status
                 |> Maybe.withDefault []
     in
-        div []
-            [ div [ class "grid" ]
-                [ div [ class "unit one-quarter no-gutters lamassuAdminMainLeft" ]
-                    [ NavBar.view route invalidConfigGroups ]
-                , div [ class "unit three-quarters lamassuAdminMainRight" ]
-                    [ div [ class "lamassuAdminContent" ]
-                        [ content model route ]
-                    ]
-                ]
+        div [ class "lamassuAdminLayout" ]
+            [ NavBar.view route invalidConfigGroups
+            , div [ class "lamassuAdminContent" ]
+                [ content model route ]
             , statusBar model.status
             ]
 

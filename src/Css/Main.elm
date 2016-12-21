@@ -92,6 +92,10 @@ css =
             ]
         , p
             [ margin zero ]
+        , (.) Layout
+            [ displayFlex
+            , height (pct 100)
+            ]
         , (.) StatusBar
             [ position fixed
             , bottom zero
@@ -124,7 +128,7 @@ css =
                     , textAlign left
                     , fontFamilies [ "Fira Code" ]
                     , fontWeight (int 600)
-                    , width (pct 50)
+                    , width (pct 90)
                     , property "outline" "none"
                     ]
                 ]
@@ -151,9 +155,8 @@ css =
             , height (pct 100)
             ]
         , (.) Content
-            [ margin2 (px 20) (px 20)
+            [ margin (px 20)
             , backgroundColor contentBackgroundColor
-            , padding (px 40)
             , borderRadius (px 5)
             ]
         , (.) CryptoTabs
@@ -177,12 +180,14 @@ css =
             , marginBottom (px 10)
             ]
         , (.) ConfigContainer
-            [ padding (px 20)
+            [ padding2 (px 20) (px 60)
             , borderRadius4 (px 0) (px 7) (px 7) (px 7)
             , backgroundColor mainBackgroundColor
             , margin3 zero zero (px 10)
             , property "animation" "fadein 0.8s"
-            , overflowX hidden
+            , overflow hidden
+            , minHeight (em 15)
+            , minWidth (em 20)
             ]
         , (.) TxTable
             [ borderRadius (px 7)
@@ -359,6 +364,9 @@ css =
             , padding4 zero zero (px 60) zero
             , backgroundColor Colors.darkGrey
             , fontSize (px 18)
+            , width (em 15)
+            , maxWidth (em 15)
+            , minWidth (em 15)
             , descendants
                 [ (.) NavBarRoute
                     [ height (px 60)

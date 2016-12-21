@@ -2,7 +2,8 @@ module Css.Classes exposing (..)
 
 
 type CssClasses
-    = NavBar
+    = Layout
+    | NavBar
     | MainLeft
     | MainRight
     | NavBarItemActive

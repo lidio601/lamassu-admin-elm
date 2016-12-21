@@ -917,7 +917,7 @@ rowView model fieldInstances machineDisplay =
             List.filter machineScoped fieldInstances
     in
         tr [ globalRowClass ]
-            ((td [] [ text (machineDisplay.display) ])
+            ((td [ class [ C.ShortCell ] ] [ text (machineDisplay.display) ])
                 :: (List.map (cellView model)
                         filteredFieldInstances
                    )
