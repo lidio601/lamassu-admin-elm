@@ -134,7 +134,7 @@ css =
                 ]
             ]
         , (.) ButtonRow
-            [ textAlign right ]
+            [ textAlign left ]
         , (.) Button
             [ colorize cobaltScheme
             , padding2 (px 10) (px 15)
@@ -155,9 +155,10 @@ css =
             , height (pct 100)
             ]
         , (.) Content
-            [ margin (px 20)
-            , backgroundColor contentBackgroundColor
+            [ padding (px 20)
+            , backgroundColor Colors.lightGrey
             , borderRadius (px 5)
+            , width (pct 100)
             ]
         , (.) CryptoTabs
             [ displayFlex
@@ -178,16 +179,6 @@ css =
             [ fontWeight bold
             , fontSize (px 30)
             , marginBottom (px 10)
-            ]
-        , (.) ConfigContainer
-            [ padding2 (px 20) (px 60)
-            , borderRadius4 (px 0) (px 7) (px 7) (px 7)
-            , backgroundColor mainBackgroundColor
-            , margin3 zero zero (px 10)
-            , property "animation" "fadein 0.8s"
-            , overflow hidden
-            , minHeight (em 15)
-            , minWidth (em 20)
             ]
         , (.) TxTable
             [ borderRadius (px 7)
