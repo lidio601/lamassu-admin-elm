@@ -83,11 +83,16 @@ cobaltActiveColor =
     Colors.amazonite
 
 
+codeFonts : List String
+codeFonts =
+    [ "Inconsolata", "monospace" ]
+
+
 css : Stylesheet
 css =
     (stylesheet << namespace "lamassuAdmin")
         [ body
-            [ fontFamilies [ "Brandon Text" ]
+            [ fontFamilies [ "Nunito", "sans-serif" ]
             , margin zero
             ]
         , p
@@ -126,7 +131,7 @@ css =
                     , borderRadius (px 3)
                     , padding (px 6)
                     , textAlign left
-                    , fontFamilies [ "Fira Code" ]
+                    , fontFamilies codeFonts
                     , fontWeight (int 600)
                     , width (pct 90)
                     , property "outline" "none"
@@ -207,7 +212,7 @@ css =
                     , fontSize (pct 90)
                     ]
                 , tbody
-                    [ fontFamilies [ "Fira Code" ]
+                    [ fontFamilies codeFonts
                     , color Colors.sandstone
                     , descendants
                         [ td
@@ -272,7 +277,7 @@ css =
                     , padding (px 6)
                     , textAlign right
                     , width (pct 100)
-                    , fontFamilies [ "Fira Code" ]
+                    , fontFamilies codeFonts
                     , fontWeight (int 600)
                     , outline none
                     , backgroundColor Colors.white

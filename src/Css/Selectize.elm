@@ -7,6 +7,11 @@ import Css.Admin exposing (..)
 import Css.Elements exposing (input)
 
 
+codeFonts : List String
+codeFonts =
+    [ "Inconsolata", "monospace" ]
+
+
 component : Mixin
 component =
     mixin
@@ -70,7 +75,7 @@ component =
                         , color Colors.white
                         , padding3 (px 4) (px 4) (px 3)
                         , margin2 zero (px 1)
-                        , fontFamilies [ "Fira Code" ]
+                        , fontFamilies codeFonts
                         , fontSize (pct 70)
                         , fontWeight normal
                         , borderRadius (px 3)
@@ -83,7 +88,7 @@ component =
             , (.) SingleItemContainer
                 [ descendants
                     [ (.) SelectedItem
-                        [ fontFamilies [ "Fira Code" ]
+                        [ fontFamilies codeFonts
                         , fontSize (px 11)
                         , padding zero
                         , borderRadius zero
