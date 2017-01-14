@@ -21,7 +21,7 @@ component =
         , descendants
             [ (.) NoOptions
                 [ backgroundColor Colors.lighterLightGrey
-                , fontSize (px 11)
+                , fontSize (px 14)
                 , fontWeight (int 500)
                 , color Colors.sandstone
                 , padding (px 5)
@@ -89,7 +89,7 @@ component =
                 [ descendants
                     [ (.) SelectedItem
                         [ fontFamilies codeFonts
-                        , fontSize (px 11)
+                        , fontSize (px 14)
                         , padding zero
                         , borderRadius zero
                         ]

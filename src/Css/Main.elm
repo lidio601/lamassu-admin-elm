@@ -132,6 +132,7 @@ css =
                     , padding (px 6)
                     , textAlign left
                     , fontFamilies codeFonts
+                    , fontSize (px 14)
                     , fontWeight (int 600)
                     , width (pct 90)
                     , property "outline" "none"
@@ -279,6 +280,7 @@ css =
                     , width (pct 100)
                     , fontFamilies codeFonts
                     , fontWeight (int 600)
+                    , fontSize (px 14)
                     , outline none
                     , backgroundColor Colors.white
                     ]
@@ -286,7 +288,7 @@ css =
                     [ backgroundColor Colors.lighterLightGrey
                     , height (px 25)
                     , lineHeight (px 25)
-                    , fontSize (px 11)
+                    , fontSize (px 14)
                     , fontWeight (int 500)
                     , color Colors.sandstone
                     , textAlign center
