@@ -13,3 +13,15 @@ encodeAction action =
                 , ( "deviceId", string machine.deviceId )
                 , ( "cassettes", list [ int machine.cassette1, int machine.cassette2 ] )
                 ]
+
+        UnpairMachine machine ->
+            object
+                [ ( "action", string "unpair" )
+                , ( "deviceId", string machine.deviceId )
+                ]
+
+        RepairMachine machine ->
+            object
+                [ ( "action", string "repair" )
+                , ( "deviceId", string machine.deviceId )
+                ]

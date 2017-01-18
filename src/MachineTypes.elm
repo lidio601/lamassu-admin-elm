@@ -17,3 +17,5 @@ type alias Machines =
 
 type MachineAction
     = ResetCashOutBills Machine
+    | UnpairMachine Machine
+    | RepairMachine Machine

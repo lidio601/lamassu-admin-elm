@@ -71,7 +71,7 @@ type Msg
     = Action
     | Load Model
     | InputCassette Machine Position String
-    | SubmitResetBills Machine
+    | Submit MachineAction
     | HideSaveIndication
 
 
@@ -113,9 +113,9 @@ updateCassette machine position str subModel =
         { subModel | machines = machines } ! []
 
 
-updateSubmitCassette : Machine -> SubModel -> ( SubModel, Cmd Msg )
-updateSubmitCassette machine subModel =
-    subModel ! [ postForm (ResetCashOutBills machine) ]
+updateAction : MachineAction -> SubModel -> ( SubModel, Cmd Msg )
+updateAction action subModel =
+    subModel ! [ postForm action ]
 
 
 saveUpdate : SubModel -> ( SubModel, Cmd Msg )
@@ -143,8 +143,8 @@ update msg model =
         InputCassette machine position str ->
             RemoteData.update (updateCassette machine position str) model
 
-        SubmitResetBills machine ->
-            RemoteData.update (updateSubmitCassette machine) model
+        Submit action ->
+            RemoteData.update (updateAction action) model
 
         HideSaveIndication ->
             RemoteData.update (\subModel -> { subModel | status = NotSaving } ! []) model
@@ -162,20 +162,29 @@ inputCassetteView machine position count =
 
 rowView : Machine -> Html Msg
 rowView machine =
-    tr []
-        [ td [] [ text machine.name ]
-        , td []
-            [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
-                [ inputCassetteView machine Top machine.cassette1 ]
+    let
+        actions =
+            if machine.paired then
+                [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ]
+                , button [ class [ C.TableButton ], onClick (Submit (UnpairMachine machine)) ] [ text "Unpair" ]
+                ]
+            else
+                [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ]
+                , button [ class [ C.TableButton ], onClick (Submit (RepairMachine machine)) ] [ text "Re-pair" ]
+                ]
+    in
+        tr []
+            [ td [] [ text machine.name ]
+            , td []
+                [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
+                    [ inputCassetteView machine Top machine.cassette1 ]
+                ]
+            , td []
+                [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
+                    [ inputCassetteView machine Bottom machine.cassette2 ]
+                ]
+            , td [] actions
             ]
-        , td []
-            [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
-                [ inputCassetteView machine Bottom machine.cassette2 ]
-            ]
-        , td []
-            [ button [ class [ C.TableButton ], onClick (SubmitResetBills machine) ] [ text "Reset Bills" ]
-            ]
-        ]
 
 
 tableView : Machines -> Html Msg
