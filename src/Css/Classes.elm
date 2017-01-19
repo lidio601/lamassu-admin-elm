@@ -30,6 +30,7 @@ type CssClasses
     | Active
     | BasicInput
     | BasicInputDisabled
+    | NoInput
     | Component
     | FocusedComponent
     | InvalidComponent

@@ -195,6 +195,12 @@ css =
             , minHeight (em 15)
             , minWidth (em 20)
             ]
+        , (.) NoInput
+            [ fontFamilies codeFonts
+            , color Colors.sandstone
+            , fontWeight normal
+            , textAlign left |> important
+            ]
         , (.) TxTable
             [ borderRadius (px 7)
             , margin2 (px 20) zero

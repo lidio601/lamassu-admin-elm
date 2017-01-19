@@ -165,26 +165,31 @@ rowView machine =
     let
         actions =
             if machine.paired then
-                [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ]
-                , button [ class [ C.TableButton ], onClick (Submit (UnpairMachine machine)) ] [ text "Unpair" ]
+                [ td []
+                    [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ]
+                    ]
+                , td []
+                    [ button [ class [ C.TableButton ], onClick (Submit (UnpairMachine machine)) ] [ text "Unpair" ] ]
                 ]
             else
-                [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ]
-                , button [ class [ C.TableButton ], onClick (Submit (RepairMachine machine)) ] [ text "Re-pair" ]
+                [ td []
+                    [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ] ]
+                , td [ class [ C.NoInput ] ] [ text "Unpaired" ]
                 ]
     in
         tr []
-            [ td [] [ text machine.name ]
-            , td []
+            ([ td [] [ text machine.name ]
+             , td []
                 [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
                     [ inputCassetteView machine Top machine.cassette1 ]
                 ]
-            , td []
+             , td []
                 [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
                     [ inputCassetteView machine Bottom machine.cassette2 ]
                 ]
-            , td [] actions
-            ]
+             ]
+                ++ actions
+            )
 
 
 tableView : Machines -> Html Msg

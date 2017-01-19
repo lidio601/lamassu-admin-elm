@@ -19,9 +19,3 @@ encodeAction action =
                 [ ( "action", string "unpair" )
                 , ( "deviceId", string machine.deviceId )
                 ]
-
-        RepairMachine machine ->
-            object
-                [ ( "action", string "repair" )
-                , ( "deviceId", string machine.deviceId )
-                ]
