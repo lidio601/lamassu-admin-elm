@@ -10,7 +10,7 @@ type alias CashInTxRec =
     , cryptoAtoms : Int
     , cryptoCode : String
     , fiat : Float
-    , currencyCode : String
+    , fiatCode : String
     , txHash : Maybe String
     , phone : Maybe String
     , error : Maybe String
@@ -25,7 +25,7 @@ type alias CashOutTxRec =
     , cryptoAtoms : Int
     , cryptoCode : String
     , fiat : Float
-    , currencyCode : String
+    , fiatCode : String
     , txHash : Maybe String
     , status : String
     , dispensed : Bool

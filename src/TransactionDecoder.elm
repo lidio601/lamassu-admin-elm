@@ -50,7 +50,7 @@ cashInTxDecoder =
         |> required "cryptoAtoms" intString
         |> required "cryptoCode" string
         |> required "fiat" floatString
-        |> required "currencyCode" string
+        |> required "fiatCode" string
         |> required "txHash" (nullable string)
         |> required "phone" (nullable string)
         |> required "error" (nullable string)
@@ -72,7 +72,7 @@ cashOutTxDecoder =
         |> required "cryptoAtoms" intString
         |> required "cryptoCode" string
         |> required "fiat" floatString
-        |> required "currencyCode" string
+        |> required "fiatCode" string
         |> required "txHash" (nullable string)
         |> required "status" string
         |> required "dispensed" bool
