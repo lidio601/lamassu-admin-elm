@@ -7,6 +7,7 @@ import Http
 import HttpBuilder exposing (..)
 import String
 import RemoteData exposing (RemoteData(NotAsked, Loading, Failure, Success))
+import QRCode
 
 
 -- MODEL
@@ -68,6 +69,20 @@ update msg model =
             model ! [ getTotem model.name ]
 
 
+qrCode : String -> Html msg
+qrCode s =
+    let
+        resultQRCode =
+            QRCode.toSvg s
+    in
+        case resultQRCode of
+            Result.Ok view ->
+                view
+
+            Result.Err err ->
+                Html.text (toString err)
+
+
 view : Model -> Html Msg
 view model =
     if model.serverStatus then
@@ -107,11 +122,12 @@ view model =
                             [ ( "background-color", "#eee" )
                             , ( "padding", "10px" )
                             , ( "width", "225px" )
+                            , ( "height", "225px" )
                             , ( "margin-bottom", "20px" )
                             , ( "border-radius", "6px" )
                             ]
                         ]
-                        [ node "qr-code" [ attribute "data" totem ] [] ]
+                        [ qrCode "8:.WR8EF*FTN2-A0SR+0D:082HQOZBG$IC 6X/W0WLZJ/GS" ]
                     , div []
                         [ span [] [ text "Scan this QR to pair " ]
                         , strong [] [ text model.name ]
