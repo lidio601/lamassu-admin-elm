@@ -8,6 +8,9 @@ import HttpBuilder exposing (..)
 import String
 import RemoteData exposing (RemoteData(NotAsked, Loading, Failure, Success))
 import QRCode
+import Css.Admin exposing (..)
+import Css.Classes as C
+import QRCode.ECLevel as ECLevel
 
 
 -- MODEL
@@ -73,7 +76,7 @@ qrCode : String -> Html msg
 qrCode s =
     let
         resultQRCode =
-            QRCode.toSvg s
+            QRCode.toSvgWithECLevel s ECLevel.L
     in
         case resultQRCode of
             Result.Ok view ->
@@ -118,18 +121,10 @@ view model =
                 div
                     []
                     [ div
-                        [ style
-                            [ ( "background-color", "#eee" )
-                            , ( "padding", "10px" )
-                            , ( "width", "225px" )
-                            , ( "height", "225px" )
-                            , ( "margin-bottom", "20px" )
-                            , ( "border-radius", "6px" )
-                            ]
-                        ]
-                        [ qrCode "8:.WR8EF*FTN2-A0SR+0D:082HQOZBG$IC 6X/W0WLZJ/GS" ]
+                        [ class [ C.QrCode ] ]
+                        [ qrCode totem ]
                     , div []
-                        [ span [] [ text "Scan this QR to pair " ]
+                        [ span [] [ text "Scan this QR Code to pair " ]
                         , strong [] [ text model.name ]
                         ]
                     ]

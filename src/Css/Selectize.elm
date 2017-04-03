@@ -1,9 +1,9 @@
 module Css.Selectize exposing (..)
 
 import Css exposing (..)
-import Css.Colors as Colors
+import Css.LocalColors as Colors
 import Selectize
-import Css.Admin exposing (..)
+import Css.Admin exposing (className)
 import Css.Elements exposing (input)
 
 
@@ -19,7 +19,7 @@ component =
         , position relative
         , margin zero
         , descendants
-            [ (.) NoOptions
+            [ class NoOptions
                 [ backgroundColor Colors.lighterLightGrey
                 , fontSize (px 14)
                 , fontWeight (int 500)
@@ -29,14 +29,14 @@ component =
                 , cursor default
                 , property "-webkit-user-select" "none"
                 ]
-            , (.) SelectBox
+            , class SelectBox
                 [ displayFlex
                 , alignItems center
                 , padding2 zero (px 5)
                 , property "background-color" "inherit"
                 , width (px 60)
                 ]
-            , (.) BoxContainer
+            , class BoxContainer
                 [ position absolute
                 , property "z-index" "100"
                 , left (px -3)
@@ -53,24 +53,24 @@ component =
                 , cursor pointer
                 , padding (px 5)
                 ]
-            , (.) BoxItems
+            , class BoxItems
                 []
-            , (.) BoxItemActive
+            , class BoxItemActive
                 [ color Colors.cobalt
                 , fontWeight (int 900)
                 ]
-            , (.) BoxItem
+            , class BoxItem
                 [ padding2 (px 3) (px 6)
                 , overflow hidden
                 , textOverflow ellipsis
                 ]
-            , (.) Info
+            , class Info
                 [ padding2 (px 3) (px 6)
                 , color Colors.darkGrey
                 ]
-            , (.) MultiItemContainer
+            , class MultiItemContainer
                 [ descendants
-                    [ (.) SelectedItem
+                    [ class SelectedItem
                         [ backgroundColor Colors.cobalt
                         , color Colors.white
                         , padding3 (px 4) (px 4) (px 3)
@@ -80,20 +80,20 @@ component =
                         , fontWeight normal
                         , borderRadius (px 3)
                         ]
-                    , (.) FallbackItem
+                    , class FallbackItem
                         [ backgroundColor Colors.sandstone
                         ]
                     ]
                 ]
-            , (.) SingleItemContainer
+            , class SingleItemContainer
                 [ descendants
-                    [ (.) SelectedItem
+                    [ class SelectedItem
                         [ fontFamilies codeFonts
                         , fontSize (px 14)
                         , padding zero
                         , borderRadius zero
                         ]
-                    , (.) FallbackItem
+                    , class FallbackItem
                         [ color Colors.sandstone
                         ]
                     ]

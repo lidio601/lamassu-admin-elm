@@ -1,4 +1,4 @@
-module Css.Colors exposing (..)
+module Css.LocalColors exposing (..)
 
 import Css exposing (..)
 

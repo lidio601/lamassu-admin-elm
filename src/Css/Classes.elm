@@ -56,3 +56,4 @@ type CssClasses
     | TxCrypto
     | TxPhone
     | TxAddress
+    | QrCode

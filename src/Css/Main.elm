@@ -1,9 +1,9 @@
 module Css.Main exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, th, tr, thead, tbody, input, button, label, p)
+import Css.Elements exposing (body, li, a, div, td, th, tr, thead, tbody, input, button, label, p, svg)
 import Css.Namespace exposing (namespace)
-import Css.Colors as Colors
+import Css.LocalColors as Colors
 import Css.ColorSchemes exposing (..)
 import Css.Classes exposing (..)
 import Css.Selectize
@@ -97,11 +97,23 @@ css =
             ]
         , p
             [ margin zero ]
-        , (.) Layout
+        , class QrCode
+            [ backgroundColor Colors.lightGrey
+            , padding (px 10)
+            , marginBottom (px 20)
+            , borderRadius (px 6)
+            , descendants
+                [ svg
+                    [ height (px 400)
+                    , width (px 400)
+                    ]
+                ]
+            ]
+        , class Layout
             [ displayFlex
             , height (pct 100)
             ]
-        , (.) StatusBar
+        , class StatusBar
             [ position fixed
             , bottom zero
             , padding2 (px 10) (px 20)
@@ -109,7 +121,7 @@ css =
             , color Colors.white
             , width (pct 100)
             ]
-        , (.) FormRow
+        , class FormRow
             [ margin2 (px 20) zero
             , firstChild
                 [ margin zero
@@ -139,9 +151,9 @@ css =
                     ]
                 ]
             ]
-        , (.) ButtonRow
+        , class ButtonRow
             [ textAlign right ]
-        , (.) Button
+        , class Button
             [ colorize cobaltScheme
             , padding2 (px 10) (px 15)
             , display inlineBlock
@@ -152,20 +164,20 @@ css =
                 , cursor default
                 ]
             ]
-        , (.) MainLeft
+        , class MainLeft
             [ backgroundColor navBackgroundColor
             , height (pct 100)
             ]
-        , (.) MainRight
+        , class MainRight
             [ backgroundColor mainBackgroundColor
             , height (pct 100)
             ]
-        , (.) Content
+        , class Content
             [ margin (px 20)
             , backgroundColor contentBackgroundColor
             , borderRadius (px 5)
             ]
-        , (.) CryptoTabs
+        , class CryptoTabs
             [ displayFlex
             , children
                 [ div
@@ -180,12 +192,12 @@ css =
                     ]
                 ]
             ]
-        , (.) SectionLabel
+        , class SectionLabel
             [ fontWeight bold
             , fontSize (px 30)
             , marginBottom (px 10)
             ]
-        , (.) ConfigContainer
+        , class ConfigContainer
             [ padding2 (px 20) (px 60)
             , borderRadius4 (px 0) (px 7) (px 7) (px 7)
             , backgroundColor mainBackgroundColor
@@ -195,13 +207,13 @@ css =
             , minHeight (em 15)
             , minWidth (em 20)
             ]
-        , (.) NoInput
+        , class NoInput
             [ fontFamilies codeFonts
             , color Colors.sandstone
             , fontWeight normal
             , textAlign left |> important
             ]
-        , (.) TxTable
+        , class TxTable
             [ borderRadius (px 7)
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
@@ -209,11 +221,11 @@ css =
             , width (pct 100)
             , backgroundColor Colors.white
             , descendants
-                [ (.) NumberColumn
+                [ class NumberColumn
                     [ textAlign right
                     , width (em 10)
                     ]
-                , (.) DirectionColumn
+                , class DirectionColumn
                     [ textAlign left
                     , fontWeight bold
                     , fontSize (pct 90)
@@ -227,14 +239,14 @@ css =
                             , borderBottom3 (px 1) solid Colors.lightGrey
                             , whiteSpace noWrap
                             ]
-                        , (.) TruncatedColumn
+                        , class TruncatedColumn
                             [ maxWidth zero
                             , overflow hidden
                             , width (px 300)
                             , textOverflow ellipsis
                             ]
-                        , (.) TxDate [ width (em 10) ]
-                        , (.) TxAddress
+                        , class TxDate [ width (em 10) ]
+                        , class TxAddress
                             [ width (em 25)
                             ]
                         ]
@@ -252,24 +264,24 @@ css =
                     ]
                 ]
             ]
-        , (.) EmptyTable
+        , class EmptyTable
             [ fontSize (px 20)
             , fontWeight normal
             ]
-        , (.) ConfigTable
+        , class ConfigTable
             [ fontSize (px 14)
             , fontWeight bold
             , borderRadius (px 7)
             , margin2 (px 20) zero
             , property "border-collapse" "collapse"
             , descendants
-                [ (.) Css.Selectize.SelectizeContainer
+                [ class Css.Selectize.SelectizeContainer
                     [ Css.Selectize.component ]
-                , (.) InputContainer
+                , class InputContainer
                     [ displayFlex
                     , property "justify-content" "flex-end"
                     ]
-                , (.) UnitDisplay
+                , class UnitDisplay
                     [ borderRadius4 (px 0) (px 3) (px 3) (px 0)
                     , backgroundColor Colors.darkerLightGrey
                     , color Colors.sandstone
@@ -290,7 +302,7 @@ css =
                     , outline none
                     , backgroundColor Colors.white
                     ]
-                , (.) BasicInputDisabled
+                , class BasicInputDisabled
                     [ backgroundColor Colors.lighterLightGrey
                     , height (px 25)
                     , lineHeight (px 25)
@@ -306,12 +318,12 @@ css =
                     , verticalAlign middle
                     , width (em 5)
                     ]
-                , (.) Component
+                , class Component
                     [ borderRadius (px 3)
                     , border3 (px 2) solid Colors.lightGrey
                     , backgroundColor Colors.white
                     ]
-                , (.) InvalidComponent
+                , class InvalidComponent
                     [ borderTopColor Colors.red
                     , descendants
                         [ input
@@ -319,7 +331,7 @@ css =
                             ]
                         ]
                     ]
-                , (.) FocusedComponent
+                , class FocusedComponent
                     [ borderTopColor Colors.amazonite ]
                 , tbody
                     [ descendants
@@ -338,7 +350,7 @@ css =
                     [ fontWeight bold
                     , textAlign left
                     ]
-                , (.) MultiDisplay
+                , class MultiDisplay
                     [ backgroundColor Colors.darkerLightGrey
                     , borderLeft3 (px 3) solid Colors.lightGrey
                     , borderRight3 (px 3) solid Colors.lightGrey
@@ -348,7 +360,7 @@ css =
                     [ padding2 (px 3) (px 4)
                     , textAlign center
                     ]
-                , (.) ConfigTableGlobalRow
+                , class ConfigTableGlobalRow
                     [ descendants
                         [ td
                             [ firstChild
@@ -357,22 +369,22 @@ css =
                             ]
                         ]
                     ]
-                , (.) TextCell
+                , class TextCell
                     [ textAlign left ]
-                , (.) ShortCell
+                , class ShortCell
                     [ minWidth (em 5) ]
-                , (.) MediumCell
+                , class MediumCell
                     [ minWidth (em 10) ]
-                , (.) LongCell
+                , class LongCell
                     [ minWidth (em 20) ]
                 ]
             ]
-        , (.) Saving
+        , class Saving
             [ fontSize (px 18)
             , fontWeight normal
             , textAlign right
             ]
-        , (.) NavBar
+        , class NavBar
             [ margin zero
             , padding4 zero zero (px 60) zero
             , backgroundColor Colors.darkGrey
@@ -381,25 +393,25 @@ css =
             , maxWidth (em 15)
             , minWidth (em 15)
             , descendants
-                [ (.) NavBarRoute
+                [ class NavBarRoute
                     [ height (px 60)
                     , display block
                     , lineHeight (px 60)
                     , padding2 (px 0) (px 20)
                     , colorize darkGreyScheme
                     ]
-                , (.) NavBarCategory
+                , class NavBarCategory
                     [ height (px 60)
                     , display block
                     , lineHeight (px 60)
                     , padding2 (px 0) (px 20)
                     , colorize darkGreyScheme
                     ]
-                , (.) InvalidGroup
+                , class InvalidGroup
                     [ color Colors.red |> important ]
-                , (.) NavBarCategoryContainer
+                , class NavBarCategoryContainer
                     [ descendants
-                        [ (.) NavBarRoute
+                        [ class NavBarRoute
                             [ colorize darkGreyScheme
                             , padding4 zero (px 20) zero (px 30)
                             , fontWeight (int 500)
