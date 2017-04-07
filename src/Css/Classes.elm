@@ -57,3 +57,5 @@ type CssClasses
     | TxPhone
     | TxAddress
     | QrCode
+    | CashOut
+    | CashIn

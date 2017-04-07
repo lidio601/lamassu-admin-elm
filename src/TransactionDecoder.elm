@@ -73,7 +73,6 @@ cashOutTxDecoder =
         |> required "cryptoCode" string
         |> required "fiat" floatString
         |> required "fiatCode" string
-        |> required "txHash" (nullable string)
         |> required "status" string
         |> required "dispensed" bool
         |> required "notified" bool

@@ -121,6 +121,9 @@ css =
             , color Colors.white
             , width (pct 100)
             ]
+        , class CashOut
+            [ backgroundColor Colors.lightGrey
+            ]
         , class FormRow
             [ margin2 (px 20) zero
             , firstChild
