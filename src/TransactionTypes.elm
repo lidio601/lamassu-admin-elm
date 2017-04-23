@@ -27,7 +27,7 @@ type alias CashOutTxRec =
     , fiat : Float
     , fiatCode : String
     , status : String
-    , dispensed : Bool
+    , dispense : Bool
     , notified : Bool
     , redeemed : Bool
     , phone : Maybe String

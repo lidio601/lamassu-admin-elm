@@ -74,7 +74,7 @@ cashOutTxDecoder =
         |> required "fiat" floatString
         |> required "fiatCode" string
         |> required "status" string
-        |> required "dispensed" bool
+        |> required "dispense" bool
         |> required "notified" bool
         |> required "redeem" bool
         |> required "phone" (nullable string)
