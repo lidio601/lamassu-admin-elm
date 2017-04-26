@@ -110,6 +110,8 @@ css =
                 ]
             ]
         , class Layout
+            []
+        , class Main
             [ displayFlex
             , height (pct 100)
             ]
@@ -389,12 +391,13 @@ css =
             ]
         , class NavBar
             [ margin zero
-            , padding4 zero zero (px 60) zero
+            , padding4 zero zero (px 80) zero
             , backgroundColor Colors.darkGrey
             , fontSize (px 18)
             , width (em 15)
             , maxWidth (em 15)
             , minWidth (em 15)
+            , height (pct 100)
             , descendants
                 [ class NavBarRoute
                     [ height (px 60)

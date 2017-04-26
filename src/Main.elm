@@ -259,9 +259,12 @@ view model =
                 |> Maybe.withDefault []
     in
         div [ class "lamassuAdminLayout" ]
-            [ NavBar.view route invalidConfigGroups
-            , div [ class "lamassuAdminContent" ]
-                [ content model route ]
+            [ div
+                [ class "lamassuAdminMain" ]
+                [ NavBar.view route invalidConfigGroups
+                , div [ class "lamassuAdminContent" ]
+                    [ content model route ]
+                ]
             , statusBar model.status
             ]
 

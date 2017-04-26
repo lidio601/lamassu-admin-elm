@@ -3,6 +3,7 @@ module Css.Classes exposing (..)
 
 type CssClasses
     = Layout
+    | Main
     | NavBar
     | MainLeft
     | MainRight

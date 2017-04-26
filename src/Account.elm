@@ -151,7 +151,7 @@ view webModel =
             in
                 div []
                     [ div [ class [ Css.Classes.SectionLabel ] ] [ text model.account.display ]
-                    , div []
+                    , form [ id model.account.code ]
                         [ fieldSetView
                         , div [ class [ Css.Classes.ButtonRow ] ]
                             [ div [ onClick Submit, class [ Css.Classes.Button ] ] [ text "Submit" ]
