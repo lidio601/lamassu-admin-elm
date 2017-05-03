@@ -2,6 +2,7 @@ module Account exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import Html.Keyed
 import RemoteData exposing (..)
 import Http
 import HttpBuilder exposing (..)
@@ -139,7 +140,7 @@ view webModel =
         Success model ->
             let
                 fieldSetView =
-                    Html.map FieldSetMsg (FieldSet.view model.account.fields)
+                    Html.Keyed.node "div" [] [ ( model.account.code, (Html.map FieldSetMsg (FieldSet.view model.account.fields)) ) ]
 
                 statusString =
                     case model.status of
