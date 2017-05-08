@@ -1,4 +1,4 @@
-module Machine exposing (..)
+module Maintenance.State exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (defaultValue)
@@ -6,33 +6,13 @@ import Html.Events exposing (onClick, onInput)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
-import Http
-import HttpBuilder exposing (..)
-import MachinesDecoder exposing (machinesDecoder)
-import MachinesEncoder exposing (encodeAction)
-import MachineTypes exposing (..)
 import String
 import List
 import Process
 import Task
 import Time exposing (second)
-
-
-type SavingStatus
-    = Saving
-    | Saved
-    | Editing
-    | NotSaving
-
-
-type alias SubModel =
-    { status : SavingStatus
-    , machines : Machines
-    }
-
-
-type alias Model =
-    RemoteData.WebData SubModel
+import Maintenance.Types exposing (..)
+import Maintenance.Rest exposing (..)
 
 
 init : Model
@@ -43,41 +23,6 @@ init =
 load : ( Model, Cmd Msg )
 load =
     ( Loading, getForm )
-
-
-toModel : SavingStatus -> Machines -> SubModel
-toModel status machines =
-    { status = status, machines = machines }
-
-
-getForm : Cmd Msg
-getForm =
-    get ("/api/machines")
-        |> withExpect (Http.expectJson machinesDecoder)
-        |> send (Result.map (toModel NotSaving) >> RemoteData.fromResult)
-        |> Cmd.map Load
-
-
-postForm : MachineAction -> Cmd Msg
-postForm action =
-    post "/api/machines"
-        |> withJsonBody (encodeAction action)
-        |> withExpect (Http.expectJson machinesDecoder)
-        |> send (Result.map (toModel Saved) >> RemoteData.fromResult)
-        |> Cmd.map Load
-
-
-type Msg
-    = Action
-    | Load Model
-    | InputCassette Machine Position String
-    | Submit MachineAction
-    | HideSaveIndication
-
-
-type Position
-    = Top
-    | Bottom
 
 
 updateMachine : Machine -> Machine -> Machine

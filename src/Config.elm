@@ -293,7 +293,7 @@ fieldInstanceClasses fieldInstance =
             [ C.MediumCell ]
 
         FieldStringType ->
-            [ C.LongCell, C.TextCell ]
+            [ C.MediumCell, C.TextCell ]
 
         FieldLanguageType ->
             [ C.MediumCell ]

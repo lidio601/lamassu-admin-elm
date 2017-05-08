@@ -6,7 +6,6 @@ import Navigation
 import Pair
 import Account
 import Config
-import Machine
 import Transaction
 import NavBar exposing (..)
 import UrlParser exposing ((</>), s, string, top, parseHash)
@@ -14,7 +13,7 @@ import Http
 import HttpBuilder exposing (..)
 import RemoteData
 import Navigation exposing (newUrl, Location)
-import CoreTypes exposing (Msg(..), Route(..), Category(..), MachineSubRoute(..))
+import CoreTypes exposing (Msg(..), Route(..), Category(..))
 import AccountsDecoder exposing (accountsDecoder)
 import StatusTypes exposing (..)
 import StatusDecoder exposing (..)
@@ -22,6 +21,9 @@ import Time exposing (..)
 import Css.Admin
 import Css.Classes as C
 import Markdown
+import Maintenance.Types
+import Maintenance.State
+import Maintenance.View
 
 
 main : Program Never Model Msg
@@ -45,7 +47,7 @@ parseRoute =
         , UrlParser.map PairRoute (s "pair")
         , UrlParser.map (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
         , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
-        , UrlParser.map (MachineRoute MachineActions) (s "machine" </> s "actions")
+        , UrlParser.map MaintenanceRoute (s "maintenance")
         , UrlParser.map TransactionRoute (s "transaction")
         , UrlParser.map (ConfigRoute "fiat" Nothing) top
         ]
@@ -77,7 +79,7 @@ type alias Model =
     , pair : Pair.Model
     , account : Account.Model
     , config : Config.Model
-    , machine : Machine.Model
+    , maintenance : Maintenance.Types.Model
     , transaction : Transaction.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
@@ -93,7 +95,7 @@ init location =
             , account = Account.init
             , pair = Pair.init
             , config = Config.init
-            , machine = Machine.init
+            , maintenance = Maintenance.State.init
             , transaction = Transaction.init
             , accounts = []
             , status = Nothing
@@ -143,12 +145,12 @@ update msg model =
             in
                 { model | config = configModel } ! ([ Cmd.map ConfigMsg cmd ] ++ extraCmds)
 
-        MachineMsg machineMsg ->
+        MaintenanceMsg maintenanceMsg ->
             let
-                ( machineModel, cmd ) =
-                    Machine.update machineMsg model.machine
+                ( maintenanceModel, cmd ) =
+                    Maintenance.State.update maintenanceMsg model.maintenance
             in
-                { model | machine = machineModel } ! [ Cmd.map MachineMsg cmd ]
+                { model | maintenance = maintenanceModel } ! [ Cmd.map MaintenanceMsg cmd ]
 
         TransactionMsg transactionMsg ->
             let
@@ -216,8 +218,8 @@ content model route =
         ConfigRoute _ _ ->
             map ConfigMsg (Config.view model.config)
 
-        MachineRoute _ ->
-            map MachineMsg (Machine.view model.machine)
+        MaintenanceRoute ->
+            map MaintenanceMsg (Maintenance.View.view model.maintenance)
 
         TransactionRoute ->
             map TransactionMsg (Transaction.view model.transaction)
@@ -293,13 +295,13 @@ urlUpdate location model =
                 in
                     { model | location = location, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-            MachineRoute machineSubRoute ->
+            MaintenanceRoute ->
                 let
-                    ( machineModel, cmd ) =
-                        Machine.load
+                    ( maintenanceModel, cmd ) =
+                        Maintenance.State.load
                 in
-                    { model | location = location, machine = machineModel }
-                        ! [ Cmd.map MachineMsg cmd ]
+                    { model | location = location, maintenance = maintenanceModel }
+                        ! [ Cmd.map MaintenanceMsg cmd ]
 
             TransactionRoute ->
                 let

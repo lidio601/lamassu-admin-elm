@@ -10,8 +10,6 @@ import CoreTypes
         ( Msg(..)
         , Category(..)
         , Route(..)
-        , MachineSubRoute(..)
-        , machineSubRouteToString
         )
 
 
@@ -38,8 +36,8 @@ routeToUrl route =
         ConfigRoute configGroup maybeCrypto ->
             maybeUrl ("/#config/" ++ configGroup) [ maybeCrypto ]
 
-        MachineRoute route ->
-            "/#machine/" ++ (machineSubRouteToString route)
+        MaintenanceRoute ->
+            "/#maintenance/"
 
         TransactionRoute ->
             "/#transaction/"
@@ -130,17 +128,24 @@ linksView maybeCurrentCategory currentRoute ( catDesc, cat, route, isValid ) lin
             ]
 
 
+determineConfigCategory : String -> Maybe Category
+determineConfigCategory configCode =
+    if List.member configCode [ "definition", "setup", "cashOut", "commissions", "compliance" ] then
+        Just MachineSettingsCat
+    else if List.member configCode [ "walletSettings", "notifications" ] then
+        Just GlobalSettingsCat
+    else
+        Nothing
+
+
 determineCategory : Route -> Maybe Category
 determineCategory route =
     case route of
         AccountRoute account ->
             Just AccountCat
 
-        ConfigRoute config maybeCryptoCodeString ->
-            Just ConfigCat
-
-        MachineRoute machineSubRoute ->
-            Just MachineCat
+        ConfigRoute config _ ->
+            determineConfigCategory config
 
         _ ->
             Nothing
@@ -169,23 +174,23 @@ view route invalidGroups =
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Transactions", TransactionRoute, True )
-            , ll ( "Machines", MachineCat, MachineRoute MachineActions, True )
-                [ ( "Actions", MachineRoute MachineActions, True )
-                ]
-            , ll ( "Configuration", ConfigCat, ConfigRoute "fiat" Nothing, allClear )
-                [ configLink "fiat" "Fiat currencies"
+            , l ( "Maintenance", MaintenanceRoute, True )
+            , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClear )
+                [ configLink "definition" "Definition"
+                , configLink "setup" "Setup"
+                , configLink "cashOut" "Cash Out"
                 , configLink "commissions" "Commissions"
-                , configLink "machineSettings" "Machine settings"
-                , configLink "machines" "Machines"
-                , configLink "cryptoServices" "Crypto services"
-                , configLink "notifications" "Notifications"
                 , configLink "compliance" "Compliance"
                 ]
-            , ll ( "Accounts", AccountCat, AccountRoute "bitgo", True )
+            , ll ( "Global Settings", GlobalSettingsCat, ConfigRoute "walletSettings " Nothing, allClear )
+                [ configLink "walletSettings" "Wallet Settings"
+                , configLink "notifications" "Notifications"
+                ]
+            , ll ( "Third Party Services", AccountCat, AccountRoute "bitgo", True )
                 [ ( "BitGo", AccountRoute "bitgo", True )
                 , ( "Bitstamp", AccountRoute "bitstamp", True )
                 , ( "Twilio", AccountRoute "twilio", True )
                 , ( "Mailjet", AccountRoute "mailjet", True )
                 ]
-            , l ( "Pairing", PairRoute, True )
+            , l ( "+ Add Machine", PairRoute, True )
             ]
