@@ -2,6 +2,7 @@ module ConfigDecoder exposing (..)
 
 import Json.Decode exposing (..)
 import ConfigTypes exposing (..)
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, custom)
 
 
 fieldValueTypeDecoder : String -> Decoder FieldValue
@@ -221,15 +222,18 @@ displayTopDecoder =
 
 fieldDescriptorDecoder : Decoder FieldDescriptor
 fieldDescriptorDecoder =
-    map8 FieldDescriptor
-        (field "code" string)
-        displayTopDecoder
-        (field "displayBottom" string)
-        (maybe <| (field "displayCount" int))
-        (field "fieldType" string |> andThen fieldTypeDecoder)
-        (field "fieldValidation" <| list fieldValidatorDecoder)
-        (field "fieldClass" (nullOr string))
-        (oneOf [ (field "enabledIf" <| list string), (succeed []) ])
+    decode FieldDescriptor
+        |> required "code" string
+        |> required "cryptoScope" configScopeDecoder
+        |> required "machineScope" configScopeDecoder
+        |> custom displayTopDecoder
+        |> required "displayBottom" string
+        |> custom (maybe (field "displayCount" int))
+        |> custom (field "fieldType" string |> andThen fieldTypeDecoder)
+        |> custom (field "fieldValidation" <| list fieldValidatorDecoder)
+        |> required "fieldClass" (nullable string)
+        |> custom (oneOf [ (field "enabledIf" <| list string), (succeed []) ])
+        |> optional "readOnly" bool False
 
 
 configSchemaDecoder : Decoder ConfigSchema

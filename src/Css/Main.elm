@@ -314,7 +314,8 @@ css =
                     , fontSize (px 14)
                     , fontWeight (int 500)
                     , color Colors.sandstone
-                    , textAlign center
+                    , textAlign left
+                    , padding2 zero (em 1)
                     , cursor default
                     ]
                 , td

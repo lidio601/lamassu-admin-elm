@@ -71,6 +71,8 @@ type alias FieldInstance =
     , loadedFieldHolder : FieldHolder
     , fieldValidation : List FieldValidator
     , fieldEnabledIf : List String
+    , readOnly : Bool
+    , inScope : Bool
     }
 
 
@@ -124,6 +126,8 @@ type DisplayTop
 
 type alias FieldDescriptor =
     { code : String
+    , cryptoScope : ConfigScope
+    , machineScope : ConfigScope
     , displayTop : DisplayTop
     , displayBottom : String
     , displayCount : Maybe Int
@@ -131,6 +135,7 @@ type alias FieldDescriptor =
     , fieldValidation : List FieldValidator
     , fieldClass : Maybe String
     , fieldEnabledIf : List String
+    , readOnly : Bool
     }
 
 

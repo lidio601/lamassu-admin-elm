@@ -376,7 +376,7 @@ view config selectedIds availableItems fallbackIds state =
             [ div [ class config.htmlOptions.classes.noOptions ] [ text config.htmlOptions.noOptions ] ]
     else if not config.enabled then
         div [ class config.htmlOptions.classes.container ]
-            [ div [ class config.htmlOptions.classes.noOptions ] [ text "N/A" ] ]
+            [ div [ class config.htmlOptions.classes.noOptions ] [ text "\x2008" ] ]
     else
         let
             h =

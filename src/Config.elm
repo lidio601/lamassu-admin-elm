@@ -332,7 +332,9 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
         fieldValid =
             validateFieldInstance
     in
-        if enabled then
+        if fieldInstance.readOnly then
+            div [ class [ C.BasicInputDisabled ] ] [ text defaultString ]
+        else if enabled then
             div [ class [ C.InputContainer ] ]
                 [ input
                     [ onInput (Input fieldLocator)
@@ -347,7 +349,7 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                 , unitDisplay fiat fieldInstance
                 ]
         else
-            div [ class [ C.BasicInputDisabled ] ] [ text "N/A" ]
+            div [ class [ C.BasicInputDisabled ] ] []
 
 
 type alias LocalConfig =
@@ -714,8 +716,7 @@ referenceFieldInstances configGroup fieldScope fieldInstances fieldCodes =
                 && matchesMachine fieldInstance.fieldLocator.fieldScope.machine
                 && checkEnabled fieldInstances
                     configGroup
-                    fieldInstance.fieldEnabledIf
-                    fieldInstance.fieldLocator.fieldScope
+                    fieldInstance
     in
         List.filter filter fieldInstances
             |> List.filterMap (.fieldHolder >> fieldHolderToMaybe)
@@ -725,16 +726,12 @@ referenceFields : FieldScope -> List Field -> List String -> List FieldValue
 referenceFields fieldScope fields fieldCodes =
     let
         matchesCrypto targetCrypto =
-            if fieldScope.crypto == GlobalCrypto then
-                True
-            else
-                fieldScope.crypto == targetCrypto
+            (fieldScope.crypto == GlobalCrypto && targetCrypto == GlobalCrypto)
+                || (fieldScope.crypto /= GlobalCrypto && fieldScope.crypto == targetCrypto)
 
         matchesMachine targetMachine =
-            if fieldScope.machine == GlobalMachine then
-                True
-            else
-                fieldScope.machine == targetMachine
+            (fieldScope.machine == GlobalMachine && targetMachine == GlobalMachine)
+                || (fieldScope.machine /= GlobalMachine && fieldScope.machine == targetMachine)
 
         filter field =
             List.member field.fieldLocator.code fieldCodes
@@ -781,20 +778,40 @@ fieldInstanceToField fieldInstance =
         Maybe.map buildFieldInstance maybeFieldValue
 
 
-checkEnabled : List FieldInstance -> ConfigGroup -> List String -> FieldScope -> Bool
-checkEnabled fieldInstances configGroup enabledIf fieldScope =
-    if List.isEmpty enabledIf then
-        True
-    else
-        let
-            ( inGroup, outGroup ) =
-                List.partition (groupMember configGroup) enabledIf
+checkEnabled : List FieldInstance -> ConfigGroup -> FieldInstance -> Bool
+checkEnabled fieldInstances configGroup fieldInstance =
+    let
+        enabledIf =
+            fieldInstance.fieldEnabledIf
 
-            enabledInstances =
-                (referenceFields fieldScope configGroup.values outGroup)
-                    ++ (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
-        in
-            List.any isField enabledInstances
+        fieldScope =
+            fieldInstance.fieldLocator.fieldScope
+    in
+        if not fieldInstance.inScope then
+            False
+        else if List.isEmpty enabledIf then
+            True
+        else
+            let
+                ( inGroup, outGroup ) =
+                    List.partition (groupMember configGroup) enabledIf
+
+                enabledInstances =
+                    (referenceFields fieldScope configGroup.values outGroup)
+                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
+
+                _ =
+                    if fieldInstance.fieldLocator.code == "cashOutTransactionLimit" then
+                        always ()
+                            (Debug.log "DEBUG100"
+                                ( (referenceFields fieldScope configGroup.values outGroup)
+                                , (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
+                                )
+                            )
+                    else
+                        ()
+            in
+                List.any isField enabledInstances
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -834,7 +851,7 @@ fieldComponent model fieldInstance =
             model.configGroup
 
         enabled =
-            checkEnabled fieldInstances configGroup fieldInstance.fieldEnabledIf fieldScope
+            checkEnabled fieldInstances configGroup fieldInstance
 
         focused =
             (Just fieldLocator) == model.focused
@@ -1051,6 +1068,16 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
             SelectizeComponent Selectize.initialSelectize
 
 
+isInScope : ConfigScope -> ConfigScope -> FieldScope -> Bool
+isInScope cryptoScope machineScope fieldScope =
+    not
+        ((cryptoScope == Specific && fieldScope.crypto == GlobalCrypto)
+            || (machineScope == Specific && fieldScope.machine == GlobalMachine)
+            || (cryptoScope == Global && fieldScope.crypto /= GlobalCrypto)
+            || (machineScope == Global && fieldScope.machine /= GlobalMachine)
+        )
+
+
 initFieldInstance : ConfigGroup -> FieldDescriptor -> FieldScope -> FieldInstance
 initFieldInstance configGroup fieldDescriptor fieldScope =
     let
@@ -1068,10 +1095,16 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
                 && a.code
                 == b.code
 
+        inScope =
+            isInScope fieldDescriptor.cryptoScope fieldDescriptor.machineScope fieldScope
+
         maybeValue =
-            List.filter ((equivalentFieldLocator fieldLocator) << .fieldLocator) configGroup.values
-                |> List.head
-                |> Maybe.map .fieldValue
+            if inScope then
+                List.filter ((equivalentFieldLocator fieldLocator) << .fieldLocator) configGroup.values
+                    |> List.head
+                    |> Maybe.map .fieldValue
+            else
+                Nothing
 
         component =
             buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope maybeValue
@@ -1089,6 +1122,8 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         , loadedFieldHolder = fieldHolder
         , fieldValidation = fieldDescriptor.fieldValidation
         , fieldEnabledIf = fieldDescriptor.fieldEnabledIf
+        , readOnly = fieldDescriptor.readOnly
+        , inScope = inScope
         }
 
 
@@ -1163,7 +1198,7 @@ validateFieldInstance configGroup fieldInstances fieldInstance =
             List.member FieldRequired fieldInstance.fieldValidation
 
         isEnabled =
-            checkEnabled fieldInstances configGroup fieldInstance.fieldEnabledIf fieldScope
+            checkEnabled fieldInstances configGroup fieldInstance
     in
         not isEnabled || List.all (validate fieldInstances fieldInstance) fieldInstance.fieldValidation
 
