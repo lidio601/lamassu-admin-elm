@@ -305,8 +305,8 @@ fieldInstanceClasses fieldInstance =
             [ C.ShortCell ]
 
 
-textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
-textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
+textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
+textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -333,8 +333,8 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             validateFieldInstance
     in
         if fieldInstance.readOnly then
-            div [ class [ C.BasicInputDisabled ] ] [ text defaultString ]
-        else if enabled then
+            div [ class [ C.BasicInputReadOnly ] ] [ text defaultString ]
+        else
             div [ class [ C.InputContainer ] ]
                 [ input
                     [ onInput (Input fieldLocator)
@@ -348,8 +348,6 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
                     []
                 , unitDisplay fiat fieldInstance
                 ]
-        else
-            div [ class [ C.BasicInputDisabled ] ] []
 
 
 type alias LocalConfig =
@@ -580,9 +578,8 @@ selectizeView :
     -> Selectize.State
     -> Maybe FieldValue
     -> Maybe FieldValue
-    -> Bool
     -> Html Msg
-selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled =
+selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -594,7 +591,7 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
             , onFocus = FocusSelectize fieldLocator
             , onBlur = BlurSelectize fieldLocator
             , toId = .code
-            , enabled = enabled
+            , enabled = True
             }
     in
         case fieldLocator.fieldType of
@@ -687,12 +684,15 @@ onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValu
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
-    case fieldInstance.component of
-        InputBoxComponent ->
-            textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
+    if enabled then
+        case fieldInstance.component of
+            InputBoxComponent ->
+                textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue
 
-        SelectizeComponent selectizeState ->
-            selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled
+            SelectizeComponent selectizeState ->
+                selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
+    else
+        div [ class [ C.BasicInputDisabled ] ] []
 
 
 referenceFieldInstances : ConfigGroup -> FieldScope -> List FieldInstance -> List String -> List FieldValue

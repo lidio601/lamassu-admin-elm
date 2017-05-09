@@ -308,8 +308,7 @@ css =
                     , backgroundColor Colors.white
                     ]
                 , class BasicInputDisabled
-                    [ backgroundColor Colors.lighterLightGrey
-                    , height (px 25)
+                    [ height (px 25)
                     , lineHeight (px 25)
                     , fontSize (px 14)
                     , fontWeight (int 500)
@@ -317,6 +316,19 @@ css =
                     , textAlign left
                     , padding2 zero (em 1)
                     , cursor default
+                    , property "background" "repeating-linear-gradient(45deg,#dfdfdc,#dfdfdc 2px,#e6e6e3 5px)"
+                    ]
+                , class BasicInputReadOnly
+                    [ height (px 25)
+                    , lineHeight (px 25)
+                    , fontSize (px 14)
+                    , fontWeight (int 500)
+                    , color Colors.sandstone
+                    , textAlign left
+                    , padding2 zero (em 1)
+                    , cursor default
+                    , backgroundColor Colors.lightGrey
+                    , border3 (px 2) solid Colors.darkerLightGrey
                     ]
                 , td
                     [ padding2 (px 3) (px 4)
