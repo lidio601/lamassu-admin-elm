@@ -902,8 +902,8 @@ cellView model fieldInstance =
             ]
 
 
-rowView : ResolvedModel -> List FieldInstance -> MachineDisplay -> Html Msg
-rowView model fieldInstances machineDisplay =
+rowView : ResolvedModel -> List FieldInstance -> Bool -> MachineDisplay -> Html Msg
+rowView model fieldInstances displayMachineName machineDisplay =
     let
         machine =
             machineDisplay.machine
@@ -933,16 +933,19 @@ rowView model fieldInstances machineDisplay =
         filteredFieldInstances =
             List.filter machineScoped fieldInstances
     in
-        tr [ globalRowClass ]
-            ((td [ class [ C.ShortCell ] ] [ text (machineDisplay.display) ])
-                :: (List.map (cellView model)
-                        filteredFieldInstances
-                   )
-            )
+        if displayMachineName then
+            tr [ globalRowClass ]
+                ((td [ class [ C.ShortCell ] ] [ text (machineDisplay.display) ])
+                    :: (List.map (cellView model)
+                            filteredFieldInstances
+                       )
+                )
+        else
+            tr [ globalRowClass ] (List.map (cellView model) filteredFieldInstances)
 
 
-topHeaderRowView : ConfigGroup -> Crypto -> Html Msg
-topHeaderRowView configGroup crypto =
+topHeaderRowView : ConfigGroup -> Crypto -> Bool -> Html Msg
+topHeaderRowView configGroup crypto displayMachineName =
     let
         headerCellView fieldDescriptor =
             case fieldDescriptor.displayTop of
@@ -954,17 +957,29 @@ topHeaderRowView configGroup crypto =
 
                 DisplayTopNone ->
                     Nothing
+
+        cells =
+            if displayMachineName then
+                ((th [] []) :: List.filterMap headerCellView configGroup.schema.entries)
+            else
+                List.filterMap headerCellView configGroup.schema.entries
     in
-        tr [ class [ C.TopDisplay ] ] ((th [] []) :: List.filterMap headerCellView configGroup.schema.entries)
+        tr [ class [ C.TopDisplay ] ] cells
 
 
-bottomHeaderRowView : ConfigGroup -> Crypto -> Html Msg
-bottomHeaderRowView configGroup crypto =
+bottomHeaderRowView : ConfigGroup -> Crypto -> Bool -> Html Msg
+bottomHeaderRowView configGroup crypto displayMachineName =
     let
         headerCellView fieldDescriptor =
             th [] [ text fieldDescriptor.displayBottom ]
+
+        cells =
+            if displayMachineName then
+                ((th [] []) :: List.map headerCellView configGroup.schema.entries)
+            else
+                List.map headerCellView configGroup.schema.entries
     in
-        tr [] ((th [] []) :: List.map headerCellView configGroup.schema.entries)
+        tr [] cells
 
 
 tableView : ResolvedModel -> Html Msg
@@ -976,11 +991,14 @@ tableView model =
         crypto =
             model.crypto
 
+        displayMachineName =
+            configGroup.schema.code /= "definition"
+
         topHeaderRow =
-            topHeaderRowView configGroup crypto
+            topHeaderRowView configGroup crypto displayMachineName
 
         bottomHeaderRow =
-            bottomHeaderRowView configGroup crypto
+            bottomHeaderRowView configGroup crypto displayMachineName
 
         machines =
             listMachines configGroup
@@ -993,7 +1011,7 @@ tableView model =
             List.filter cryptoScoped model.fieldInstances
 
         rows =
-            List.map (rowView model instances) machines
+            List.map (rowView model instances displayMachineName) machines
     in
         table [ class [ C.ConfigTable ] ]
             [ thead [] [ topHeaderRow, bottomHeaderRow ]
@@ -1256,6 +1274,43 @@ updateFocus fieldLocator focused model =
         model
 
 
+isCashOutEnabled : FieldInstance -> Bool
+isCashOutEnabled fieldInstance =
+    let
+        toBool fieldValue =
+            case fieldValue of
+                FieldOnOffValue v ->
+                    v
+
+                _ ->
+                    False
+    in
+        fieldInstance.fieldLocator.code
+            == "cashOutEnabled"
+            && fieldInstance.fieldLocator.fieldScope.machine
+            /= GlobalMachine
+            && fieldHolderMap False toBool fieldInstance.fieldHolder
+
+
+selectizeEdgeCases : FieldInstance -> List FieldInstance -> FieldInstance
+selectizeEdgeCases fieldInstance fieldInstances =
+    if
+        (fieldInstance.fieldLocator.code
+            == "cashOutEnabled"
+            && fieldInstance.fieldLocator.fieldScope.machine
+            == GlobalMachine
+        )
+    then
+        { fieldInstance
+            | fieldHolder =
+                FieldOk <|
+                    FieldOnOffValue <|
+                        List.any isCashOutEnabled fieldInstances
+        }
+    else
+        fieldInstance
+
+
 updateSelectize : FieldLocator -> Selectize.State -> Model -> Model
 updateSelectize fieldLocator state model =
     let
@@ -1271,7 +1326,7 @@ updateSelectize fieldLocator state model =
                     _ ->
                         Debug.crash "Shouldn't be here"
             else
-                fieldInstance
+                selectizeEdgeCases fieldInstance fieldInstances
     in
         { model | fieldInstances = List.map updateInstance fieldInstances }
 
