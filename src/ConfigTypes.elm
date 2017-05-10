@@ -195,6 +195,19 @@ globalMachineDisplay =
     }
 
 
+fieldValueToDisplay : FieldValue -> String
+fieldValueToDisplay fieldValue =
+    case fieldValue of
+        FieldOnOffValue v ->
+            if v then
+                "On"
+            else
+                "Off"
+
+        _ ->
+            fieldValueToString fieldValue
+
+
 fieldValueToString : FieldValue -> String
 fieldValueToString fieldValue =
     case fieldValue of

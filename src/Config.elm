@@ -684,7 +684,13 @@ onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValu
 
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
-    if enabled then
+    if fieldInstance.readOnly then
+        let
+            valueText =
+                Maybe.withDefault "" <| Maybe.map fieldValueToDisplay maybeFieldValue
+        in
+            div [ class [ C.BasicInputReadOnly ] ] [ text valueText ]
+    else if enabled then
         case fieldInstance.component of
             InputBoxComponent ->
                 textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue
@@ -1133,6 +1139,12 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
 
         fieldHolder =
             maybeToFieldHolder maybeValue
+
+        readOnly =
+            if fieldLocator.code == "cashOutEnabled" && fieldScope.machine == GlobalMachine then
+                True
+            else
+                fieldDescriptor.readOnly
     in
         { fieldLocator = fieldLocator
         , component = component
@@ -1140,7 +1152,7 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         , loadedFieldHolder = fieldHolder
         , fieldValidation = fieldDescriptor.fieldValidation
         , fieldEnabledIf = fieldDescriptor.fieldEnabledIf
-        , readOnly = fieldDescriptor.readOnly
+        , readOnly = readOnly
         , inScope = inScope
         }
 
