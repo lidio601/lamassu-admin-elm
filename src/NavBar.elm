@@ -138,6 +138,11 @@ determineConfigCategory configCode =
         Nothing
 
 
+allClear : List String -> Category -> Bool
+allClear invalidGroups cat =
+    not <| List.any (\groupCode -> determineConfigCategory groupCode == Just cat) invalidGroups
+
+
 determineCategory : Route -> Maybe Category
 determineCategory route =
     case route of
@@ -166,8 +171,11 @@ view route invalidGroups =
         isValid group =
             not (List.member group invalidGroups)
 
-        allClear =
-            List.isEmpty invalidGroups
+        allClearMachine =
+            allClear invalidGroups MachineSettingsCat
+
+        allClearGlobal =
+            allClear invalidGroups GlobalSettingsCat
 
         configLink code display =
             ( display, ConfigRoute code Nothing, isValid code )
@@ -175,14 +183,14 @@ view route invalidGroups =
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Transactions", TransactionRoute, True )
             , l ( "Maintenance", MaintenanceRoute, True )
-            , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClear )
+            , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClearMachine )
                 [ configLink "definition" "Definition"
                 , configLink "setup" "Setup"
                 , configLink "cashOut" "Cash Out"
                 , configLink "commissions" "Commissions"
                 , configLink "compliance" "Compliance"
                 ]
-            , ll ( "Global Settings", GlobalSettingsCat, ConfigRoute "walletSettings " Nothing, allClear )
+            , ll ( "Global Settings", GlobalSettingsCat, ConfigRoute "walletSettings " Nothing, allClearGlobal )
                 [ configLink "walletSettings" "Wallet Settings"
                 , configLink "notifications" "Notifications"
                 ]
