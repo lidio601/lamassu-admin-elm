@@ -93,7 +93,7 @@ init location =
         model =
             { location = location
             , account = Account.init
-            , pair = Pair.init
+            , pair = Pair.init False
             , config = Config.init
             , maintenance = Maintenance.State.init
             , transaction = Transaction.init
@@ -279,7 +279,12 @@ urlUpdate location model =
     in
         case route of
             PairRoute ->
-                { model | location = location, pair = Pair.init } ! []
+                case model.status of
+                    Just status ->
+                        { model | location = location, pair = Pair.init status.server.up } ! []
+
+                    Nothing ->
+                        { model | location = location, pair = Pair.init False } ! []
 
             AccountRoute account ->
                 let

@@ -32,11 +32,11 @@ getTotem name =
         |> Cmd.map Load
 
 
-init : Model
-init =
+init : Bool -> Model
+init serverStatus =
     { totem = RemoteData.NotAsked
     , name = ""
-    , serverStatus = False
+    , serverStatus = serverStatus
     }
 
 
