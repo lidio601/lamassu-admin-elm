@@ -49,7 +49,7 @@ parseRoute =
         , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
         , UrlParser.map MaintenanceRoute (s "maintenance")
         , UrlParser.map TransactionRoute (s "transaction")
-        , UrlParser.map (ConfigRoute "fiat" Nothing) top
+        , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
 
 
