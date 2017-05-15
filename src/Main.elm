@@ -325,4 +325,4 @@ urlUpdate location model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    every (10 * second) (\_ -> Interval)
+    every (5 * second) (\_ -> Interval)

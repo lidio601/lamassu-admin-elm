@@ -248,12 +248,7 @@ updateInput fieldLocator maybeValueString model =
 
 fieldTypeToInputType : FieldType -> String
 fieldTypeToInputType fieldType =
-    case fieldType of
-        FieldPercentageType ->
-            "number"
-
-        _ ->
-            "string"
+    "string"
 
 
 unitDisplay : String -> FieldInstance -> Html Msg
