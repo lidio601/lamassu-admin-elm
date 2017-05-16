@@ -33,13 +33,14 @@ postForm action =
 
 machineDecoder : D.Decoder Machine
 machineDecoder =
-    D.map6 Machine
+    D.map7 Machine
         (D.field "deviceId" D.string)
         (D.field "name" D.string)
         (D.field "cashbox" D.int)
         (D.field "cassette1" D.int)
         (D.field "cassette2" D.int)
         (D.field "paired" D.bool)
+        (D.field "cashOut" D.bool)
 
 
 machinesDecoder : D.Decoder Machines

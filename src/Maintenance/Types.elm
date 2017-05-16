@@ -27,6 +27,7 @@ type alias Machine =
     , cassette1 : Int
     , cassette2 : Int
     , paired : Bool
+    , cashOut : Bool
     }
 
 

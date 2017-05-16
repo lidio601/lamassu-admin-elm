@@ -23,31 +23,37 @@ inputCassetteView machine position count =
 rowView : Machine -> Html Msg
 rowView machine =
     let
+        resetBills =
+            if machine.cashOut then
+                td []
+                    [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Update Counts" ]
+                    ]
+            else
+                td [] []
+
         actions =
-            if machine.paired then
+            [ td []
+                [ button [ class [ C.TableButton ], onClick (Submit (UnpairMachine machine)) ] [ text "Unpair" ] ]
+            , resetBills
+            ]
+
+        cassetteCounts =
+            if machine.cashOut then
                 [ td []
-                    [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ]
+                    [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
+                        [ inputCassetteView machine Top machine.cassette1 ]
                     ]
                 , td []
-                    [ button [ class [ C.TableButton ], onClick (Submit (UnpairMachine machine)) ] [ text "Unpair" ] ]
+                    [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
+                        [ inputCassetteView machine Bottom machine.cassette2 ]
+                    ]
                 ]
             else
-                [ td []
-                    [ button [ class [ C.TableButton ], onClick (Submit (ResetCashOutBills machine)) ] [ text "Reset Bills" ] ]
-                , td [ class [ C.NoInput ] ] [ text "Unpaired" ]
-                ]
+                [ td [ class [ C.CellDisabled ] ] [], td [ class [ C.CellDisabled ] ] [] ]
     in
         tr []
-            ([ td [] [ text machine.name ]
-             , td []
-                [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
-                    [ inputCassetteView machine Top machine.cassette1 ]
-                ]
-             , td []
-                [ div [ classList [ ( C.Component, True ), ( C.FocusedComponent, False ) ] ]
-                    [ inputCassetteView machine Bottom machine.cassette2 ]
-                ]
-             ]
+            ([ td [] [ text machine.name ] ]
+                ++ cassetteCounts
                 ++ actions
             )
 

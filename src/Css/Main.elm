@@ -307,6 +307,9 @@ css =
                     , outline none
                     , backgroundColor Colors.white
                     ]
+                , class CellDisabled
+                    [ property "background" "repeating-linear-gradient(45deg,#dfdfdc,#dfdfdc 2px,#e6e6e3 5px)"
+                    ]
                 , class BasicInputDisabled
                     [ height (px 25)
                     , lineHeight (px 25)

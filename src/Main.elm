@@ -24,6 +24,7 @@ import Markdown
 import Maintenance.Types
 import Maintenance.State
 import Maintenance.View
+import WebSocket
 
 
 main : Program Never Model Msg
@@ -205,6 +206,13 @@ update msg model =
             in
                 model ! ([ getStatus ] ++ extraCmds)
 
+        WebSocketMsg msg ->
+            let
+                _ =
+                    Debug.log "DEBUG100" msg
+            in
+                model ! []
+
 
 content : Model -> Route -> Html Msg
 content model route =
@@ -325,4 +333,7 @@ urlUpdate location model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    every (5 * second) (\_ -> Interval)
+    Sub.batch
+        [ every (5 * second) (\_ -> Interval)
+        , WebSocket.listen "wss://localhost:8070" WebSocketMsg
+        ]

@@ -40,3 +40,4 @@ type Msg
     | NewUrl String
     | UrlChange Navigation.Location
     | Interval
+    | WebSocketMsg String

@@ -32,6 +32,7 @@ type CssClasses
     | BasicInput
     | BasicInputDisabled
     | BasicInputReadOnly
+    | CellDisabled
     | NoInput
     | Component
     | FocusedComponent
