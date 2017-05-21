@@ -798,14 +798,15 @@ checkEnabled fieldInstances configGroup fieldInstance =
                     List.partition (groupMember configGroup) enabledIf
 
                 enabledInstances =
-                    (referenceFields fieldScope configGroup.values outGroup)
-                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
+                    (referenceFields fieldScope (Debug.log "DEBUG104" configGroup.values) (Debug.log "DEBUG101" outGroup))
+                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances (Debug.log "DEBUG102" outGroup))
 
                 _ =
-                    if fieldInstance.fieldLocator.code == "cashOutTransactionLimit" then
+                    if fieldInstance.fieldLocator.code == "cashOutCommission" then
                         always ()
                             (Debug.log "DEBUG100"
-                                ( (referenceFields fieldScope configGroup.values outGroup)
+                                ( fieldInstance.fieldLocator
+                                , (referenceFields fieldScope configGroup.values outGroup)
                                 , (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
                                 )
                             )

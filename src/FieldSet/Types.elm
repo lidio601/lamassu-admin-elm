@@ -1,4 +1,12 @@
-module FieldSetTypes exposing (..)
+module FieldSet.Types exposing (..)
+
+
+type alias Model =
+    List Field
+
+
+type Msg
+    = Input String String
 
 
 type alias Field =
@@ -19,6 +27,7 @@ type FieldPasswordType
 type FieldValue
     = FieldString String
     | FieldPassword FieldPasswordType
+    | FieldInteger Int
 
 
 updateFieldValue : String -> FieldValue -> FieldValue
@@ -29,3 +38,6 @@ updateFieldValue stringValue oldFieldValue =
 
         FieldPassword _ ->
             FieldPassword (Password stringValue)
+
+        FieldInteger oldValue ->
+            FieldInteger <| Result.withDefault oldValue <| String.toInt stringValue

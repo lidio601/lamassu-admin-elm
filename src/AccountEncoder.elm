@@ -3,7 +3,7 @@ module AccountEncoder exposing (..)
 import Json.Encode exposing (..)
 import AccountTypes exposing (..)
 import List
-import FieldSetEncoder exposing (..)
+import FieldSet.Rest exposing (..)
 
 
 encodeAccount : Account -> Value

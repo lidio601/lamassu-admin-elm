@@ -1,6 +1,6 @@
 module AccountTypes exposing (..)
 
-import FieldSetTypes exposing (..)
+import FieldSet.Types exposing (..)
 
 
 type alias Account =

@@ -9,7 +9,9 @@ import HttpBuilder exposing (..)
 import AccountTypes exposing (..)
 import AccountDecoder exposing (..)
 import AccountEncoder exposing (..)
-import FieldSet
+import FieldSet.Types
+import FieldSet.State
+import FieldSet.View
 import Css.Admin exposing (..)
 import Css.Classes
 import Process
@@ -73,7 +75,7 @@ load code =
 type Msg
     = Load Model
     | Submit
-    | FieldSetMsg FieldSet.Msg
+    | FieldSetMsg FieldSet.Types.Msg
     | HideSaveIndication
 
 
@@ -105,7 +107,7 @@ update msg webModel =
         FieldSetMsg fieldSetMsg ->
             let
                 updateFields model =
-                    FieldSet.update fieldSetMsg model.account.fields
+                    FieldSet.State.update fieldSetMsg model.account.fields
 
                 newAccount account fields =
                     { account | fields = fields }
@@ -140,7 +142,7 @@ view webModel =
         Success model ->
             let
                 fieldSetView =
-                    Html.Keyed.node "div" [] [ ( model.account.code, (Html.map FieldSetMsg (FieldSet.view model.account.fields)) ) ]
+                    Html.Keyed.node "div" [] [ ( model.account.code, (Html.map FieldSetMsg (FieldSet.View.view model.account.fields)) ) ]
 
                 statusString =
                     case model.status of

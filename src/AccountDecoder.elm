@@ -1,7 +1,7 @@
 module AccountDecoder exposing (..)
 
 import Json.Decode exposing (..)
-import FieldSetDecoder exposing (..)
+import FieldSet.Rest exposing (..)
 import AccountTypes exposing (..)
 
 
