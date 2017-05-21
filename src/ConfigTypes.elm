@@ -85,6 +85,7 @@ type alias ResolvedFieldInstance =
 type alias Field =
     { fieldLocator : FieldLocator
     , fieldValue : FieldValue
+    , fieldEnabledIf : List String
     }
 
 
@@ -178,6 +179,19 @@ type alias ConfigData =
     , countries : List DisplayRec
     , accounts : List AccountRec
     , machines : List MachineDisplay
+    }
+
+
+type alias FieldCollection =
+    { fields : List Field
+    , fieldInstances : List FieldInstance
+    }
+
+
+initFieldCollection : FieldCollection
+initFieldCollection =
+    { fields = []
+    , fieldInstances = []
     }
 
 

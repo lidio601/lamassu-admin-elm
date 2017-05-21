@@ -91,4 +91,4 @@ encodeField field =
 
 isDirty : Field -> Bool
 isDirty field =
-    Debug.log "DEBUG110" (field.value /= field.loadedValue)
+    field.value /= field.loadedValue

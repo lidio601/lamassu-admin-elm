@@ -163,6 +163,6 @@ encodeResults configGroupCode fieldInstances =
         else
             Json.Encode.object
                 [ ( "groupCode", string configGroupCode )
-                , ( "values", Debug.log "DEBUG22" (list (List.filterMap encodeFieldResult fieldInstances)) )
+                , ( "values", list (List.filterMap encodeFieldResult fieldInstances) )
                 ]
                 |> Just

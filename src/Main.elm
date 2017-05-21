@@ -207,11 +207,7 @@ update msg model =
                 model ! ([ getStatus ] ++ extraCmds)
 
         WebSocketMsg msg ->
-            let
-                _ =
-                    Debug.log "DEBUG100" msg
-            in
-                model ! []
+            model ! []
 
 
 content : Model -> Route -> Html Msg

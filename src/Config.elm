@@ -36,7 +36,7 @@ type SavingStatus
 
 type alias Model =
     { webConfigGroup : WebConfigGroup
-    , fieldInstances : List FieldInstance
+    , fieldCollection : FieldCollection
     , crypto : Maybe Crypto
     , fiat : Maybe String
     , status : SavingStatus
@@ -47,7 +47,7 @@ type alias Model =
 
 type alias ResolvedModel =
     { configGroup : ConfigGroup
-    , fieldInstances : List FieldInstance
+    , fieldCollection : FieldCollection
     , crypto : Crypto
     , fiat : String
     , status : SavingStatus
@@ -58,7 +58,7 @@ type alias ResolvedModel =
 toResolvedModel : Model -> ConfigGroup -> ResolvedModel
 toResolvedModel model configGroup =
     { configGroup = configGroup
-    , fieldInstances = model.fieldInstances
+    , fieldCollection = model.fieldCollection
     , crypto = Maybe.withDefault GlobalCrypto model.crypto
     , fiat = Maybe.withDefault "Fiat" model.fiat
     , status = model.status
@@ -101,7 +101,7 @@ postFormNoLoad configGroupCode fieldInstances =
 init : Model
 init =
     { webConfigGroup = RemoteData.NotAsked
-    , fieldInstances = []
+    , fieldCollection = initFieldCollection
     , crypto = Nothing
     , fiat = Nothing
     , status = NotSaving
@@ -233,13 +233,19 @@ updateInput : FieldLocator -> Maybe String -> Model -> Model
 updateInput fieldLocator maybeValueString model =
     let
         oldFieldInstances =
-            model.fieldInstances
+            model.fieldCollection.fieldInstances
 
         fieldInstances =
             List.map (updateStringFieldInstance oldFieldInstances fieldLocator maybeValueString)
                 oldFieldInstances
+
+        fieldCollection =
+            model.fieldCollection
+
+        newFieldCollection =
+            { fieldCollection | fieldInstances = fieldInstances }
     in
-        { model | fieldInstances = fieldInstances }
+        { model | fieldCollection = newFieldCollection }
 
 
 
@@ -696,58 +702,20 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
         div [ class [ C.BasicInputDisabled ] ] []
 
 
-referenceFieldInstances : ConfigGroup -> FieldScope -> List FieldInstance -> List String -> List FieldValue
-referenceFieldInstances configGroup fieldScope fieldInstances fieldCodes =
-    let
-        matchesCrypto targetCrypto =
-            if fieldScope.crypto == GlobalCrypto then
-                True
-            else
-                fieldScope.crypto == targetCrypto
-
-        matchesMachine targetMachine =
-            if fieldScope.machine == GlobalMachine then
-                True
-            else
-                fieldScope.machine == targetMachine
-
-        filter fieldInstance =
-            List.member fieldInstance.fieldLocator.code fieldCodes
-                && matchesCrypto fieldInstance.fieldLocator.fieldScope.crypto
-                && matchesMachine fieldInstance.fieldLocator.fieldScope.machine
-                && checkEnabled fieldInstances
-                    configGroup
-                    fieldInstance
-    in
-        List.filter filter fieldInstances
-            |> List.filterMap (.fieldHolder >> fieldHolderToMaybe)
-
-
 referenceFields : FieldScope -> List Field -> List String -> List FieldValue
 referenceFields fieldScope fields fieldCodes =
     let
-        matchesCrypto targetCrypto =
-            (fieldScope.crypto == GlobalCrypto && targetCrypto == GlobalCrypto)
-                || (fieldScope.crypto /= GlobalCrypto && fieldScope.crypto == targetCrypto)
-
-        matchesMachine targetMachine =
-            (fieldScope.machine == GlobalMachine && targetMachine == GlobalMachine)
-                || (fieldScope.machine /= GlobalMachine && fieldScope.machine == targetMachine)
-
-        filter field =
-            List.member field.fieldLocator.code fieldCodes
-                && matchesCrypto field.fieldLocator.fieldScope.crypto
-                && matchesMachine field.fieldLocator.fieldScope.machine
+        fallback fieldCode =
+            fallbackValue fieldScope fields fieldCode
     in
-        List.filter filter fields
-            |> List.map .fieldValue
+        List.filterMap fallback fieldCodes
 
 
-fallbackValue : FieldScope -> List FieldInstance -> String -> Maybe FieldValue
-fallbackValue fieldScope fieldInstances fieldCode =
+fallbackValue : FieldScope -> List Field -> String -> Maybe FieldValue
+fallbackValue fieldScope fields fieldCode =
     let
         pick =
-            pickFieldInstanceValue fieldCode fieldInstances
+            pickFieldValue fieldCode fields
 
         maybeGlobal =
             pick GlobalCrypto GlobalMachine
@@ -774,46 +742,22 @@ fieldInstanceToField fieldInstance =
         buildFieldInstance fieldValue =
             { fieldLocator = fieldInstance.fieldLocator
             , fieldValue = fieldValue
+            , fieldEnabledIf = fieldInstance.fieldEnabledIf
             }
     in
         Maybe.map buildFieldInstance maybeFieldValue
 
 
-checkEnabled : List FieldInstance -> ConfigGroup -> FieldInstance -> Bool
-checkEnabled fieldInstances configGroup fieldInstance =
-    let
-        enabledIf =
-            fieldInstance.fieldEnabledIf
-
-        fieldScope =
-            fieldInstance.fieldLocator.fieldScope
-    in
-        if not fieldInstance.inScope then
-            False
-        else if List.isEmpty enabledIf then
-            True
-        else
-            let
-                ( inGroup, outGroup ) =
-                    List.partition (groupMember configGroup) enabledIf
-
-                enabledInstances =
-                    (referenceFields fieldScope (Debug.log "DEBUG104" configGroup.values) (Debug.log "DEBUG101" outGroup))
-                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances (Debug.log "DEBUG102" outGroup))
-
-                _ =
-                    if fieldInstance.fieldLocator.code == "cashOutCommission" then
-                        always ()
-                            (Debug.log "DEBUG100"
-                                ( fieldInstance.fieldLocator
-                                , (referenceFields fieldScope configGroup.values outGroup)
-                                , (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
-                                )
-                            )
-                    else
-                        ()
-            in
-                List.any isField enabledInstances
+checkEnabled : List Field -> FieldScope -> List String -> Bool
+checkEnabled fields fieldScope enabledIf =
+    if List.isEmpty enabledIf then
+        True
+    else
+        let
+            enabledInstances =
+                referenceFields fieldScope fields enabledIf
+        in
+            List.any isField enabledInstances
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -833,7 +777,7 @@ fieldComponent model fieldInstance =
 
         fieldInstances : List FieldInstance
         fieldInstances =
-            model.fieldInstances
+            model.fieldCollection.fieldInstances
 
         fieldType =
             fieldLocator.fieldType
@@ -846,20 +790,22 @@ fieldComponent model fieldInstance =
                 _ ->
                     Nothing
 
-        maybeFallbackFieldValue =
-            fallbackValue fieldScope fieldInstances fieldCode
+        allFields =
+            buildAllFields model.fieldCollection
 
-        configGroup =
-            model.configGroup
+        maybeFallbackFieldValue =
+            fallbackValue fieldScope allFields fieldCode
 
         enabled =
-            checkEnabled fieldInstances configGroup fieldInstance
+            checkEnabled allFields
+                fieldInstance.fieldLocator.fieldScope
+                fieldInstance.fieldEnabledIf
 
         focused =
             (Just fieldLocator) == model.focused
 
         fieldValid =
-            validateFieldInstance configGroup fieldInstances fieldInstance
+            validateFieldInstance model.fieldCollection fieldInstance
 
         fieldLengthClasses =
             List.map (\class -> ( class, True )) (fieldInstanceClasses fieldInstance)
@@ -1010,7 +956,7 @@ tableView model =
 
         instances : List FieldInstance
         instances =
-            List.filter cryptoScoped model.fieldInstances
+            List.filter cryptoScoped model.fieldCollection.fieldInstances
 
         rows =
             List.map (rowView model instances displayMachineName) machines
@@ -1153,8 +1099,8 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         }
 
 
-validateRequired : List FieldInstance -> FieldInstance -> Bool
-validateRequired fieldInstances fieldInstance =
+validateRequired : List Field -> FieldInstance -> Bool
+validateRequired fields fieldInstance =
     let
         fieldScope =
             fieldInstance.fieldLocator.fieldScope
@@ -1163,7 +1109,7 @@ validateRequired fieldInstances fieldInstance =
             fieldInstance.fieldLocator.code
 
         maybeFallbackFieldValue =
-            fallbackValue fieldScope fieldInstances fieldCode
+            fallbackValue fieldScope fields fieldCode
 
         maybeFallbackString =
             Maybe.map fieldValueToString maybeFallbackFieldValue
@@ -1201,11 +1147,11 @@ validateMax max fieldValue =
             True
 
 
-validate : List FieldInstance -> FieldInstance -> FieldValidator -> Bool
-validate fieldInstances fieldInstance fieldValidator =
+validate : List Field -> FieldInstance -> FieldValidator -> Bool
+validate fields fieldInstance fieldValidator =
     case fieldValidator of
         FieldRequired ->
-            validateRequired fieldInstances fieldInstance
+            validateRequired fields fieldInstance
 
         FieldMin min ->
             fieldHolderMap True (validateMin min) fieldInstance.fieldHolder
@@ -1214,19 +1160,24 @@ validate fieldInstances fieldInstance fieldValidator =
             fieldHolderMap True (validateMax max) fieldInstance.fieldHolder
 
 
-validateFieldInstance : ConfigGroup -> List FieldInstance -> FieldInstance -> Bool
-validateFieldInstance configGroup fieldInstances fieldInstance =
+buildAllFields : FieldCollection -> List Field
+buildAllFields fieldCollection =
+    List.filterMap fieldInstanceToField fieldCollection.fieldInstances
+        ++ fieldCollection.fields
+
+
+validateFieldInstance : FieldCollection -> FieldInstance -> Bool
+validateFieldInstance fieldCollection fieldInstance =
     let
-        fieldScope =
-            fieldInstance.fieldLocator.fieldScope
+        allFields =
+            buildAllFields fieldCollection
 
-        isRequired =
-            List.member FieldRequired fieldInstance.fieldValidation
-
-        isEnabled =
-            checkEnabled fieldInstances configGroup fieldInstance
+        enabled =
+            checkEnabled allFields
+                fieldInstance.fieldLocator.fieldScope
+                fieldInstance.fieldEnabledIf
     in
-        not isEnabled || List.all (validate fieldInstances fieldInstance) fieldInstance.fieldValidation
+        not enabled || List.all (validate allFields fieldInstance) fieldInstance.fieldValidation
 
 
 initFieldInstancesPerEntry : ConfigGroup -> FieldDescriptor -> List FieldInstance
@@ -1237,6 +1188,13 @@ initFieldInstancesPerEntry configGroup fieldDescriptor =
 initFieldInstances : ConfigGroup -> List FieldInstance
 initFieldInstances configGroup =
     List.concatMap (initFieldInstancesPerEntry configGroup) configGroup.schema.entries
+
+
+buildFieldCollection : ConfigGroup -> FieldCollection
+buildFieldCollection configGroup =
+    { fields = configGroup.values
+    , fieldInstances = initFieldInstances configGroup
+    }
 
 
 pickFieldInstance : String -> FieldScope -> List FieldInstance -> Maybe FieldInstance
@@ -1262,14 +1220,23 @@ fieldInstanceToMaybeFieldValue fieldInstance =
             Nothing
 
 
-pickFieldInstanceValue : String -> List FieldInstance -> Crypto -> Machine -> Maybe FieldValue
-pickFieldInstanceValue fieldCode fieldInstances crypto machine =
+pickFieldValue : String -> List Field -> Crypto -> Machine -> Maybe FieldValue
+pickFieldValue fieldCode fields crypto machine =
     let
         fieldScope =
             { crypto = crypto, machine = machine }
+
+        checkEnabledField field =
+            checkEnabled fields field.fieldLocator.fieldScope field.fieldEnabledIf
+
+        sameScope field =
+            field.fieldLocator.code
+                == fieldCode
+                && field.fieldLocator.fieldScope
+                == fieldScope
+                && (checkEnabledField field)
     in
-        (pickFieldInstance fieldCode fieldScope fieldInstances)
-            |> Maybe.andThen fieldInstanceToMaybeFieldValue
+        List.filter sameScope fields |> List.head |> Maybe.map .fieldValue
 
 
 updateFocus : FieldLocator -> Bool -> Model -> Model
@@ -1323,7 +1290,7 @@ updateSelectize : FieldLocator -> Selectize.State -> Model -> Model
 updateSelectize fieldLocator state model =
     let
         fieldInstances =
-            model.fieldInstances
+            model.fieldCollection.fieldInstances
 
         updateInstance fieldInstance =
             if (fieldInstance.fieldLocator == fieldLocator) then
@@ -1335,8 +1302,14 @@ updateSelectize fieldLocator state model =
                         Debug.crash "Shouldn't be here"
             else
                 selectizeEdgeCases fieldInstance fieldInstances
+
+        fieldCollection =
+            model.fieldCollection
+
+        newFieldCollection =
+            { fieldCollection | fieldInstances = List.map updateInstance fieldInstances }
     in
-        { model | fieldInstances = List.map updateInstance fieldInstances }
+        { model | fieldCollection = newFieldCollection }
 
 
 pickFiat : List Field -> Maybe String
@@ -1356,7 +1329,7 @@ submit model =
     case model.webConfigGroup of
         Success configGroup ->
             { model | status = Saving }
-                ! [ postForm configGroup.schema.code model.fieldInstances ]
+                ! [ postForm configGroup.schema.code model.fieldCollection.fieldInstances ]
 
         _ ->
             model ! []
@@ -1367,7 +1340,7 @@ submitNoLoad model =
     case model.webConfigGroup of
         Success configGroup ->
             model
-                ! [ postFormNoLoad configGroup.schema.code model.fieldInstances ]
+                ! [ postFormNoLoad configGroup.schema.code model.fieldCollection.fieldInstances ]
 
         _ ->
             model ! []
@@ -1384,14 +1357,14 @@ update msg model =
                     else
                         model.status
 
-                fieldInstances : List FieldInstance
-                fieldInstances =
+                fieldCollection : FieldCollection
+                fieldCollection =
                     case webConfigGroup of
                         Success configGroup ->
-                            initFieldInstances configGroup
+                            buildFieldCollection configGroup
 
                         _ ->
-                            []
+                            initFieldCollection
 
                 fiat =
                     case webConfigGroup of
@@ -1431,7 +1404,7 @@ update msg model =
             in
                 ( { model
                     | webConfigGroup = webConfigGroup
-                    , fieldInstances = fieldInstances
+                    , fieldCollection = fieldCollection
                     , status = status
                     , crypto = crypto
                     , fiat = fiat
@@ -1563,14 +1536,14 @@ view model =
                     listMachines resolvedModel.configGroup
 
                 fieldInstances =
-                    resolvedModel.fieldInstances
+                    resolvedModel.fieldCollection.fieldInstances
 
                 cryptoFieldInstances =
                     List.filter (\fi -> fi.fieldLocator.fieldScope.crypto == resolvedModel.crypto)
                         fieldInstances
 
                 submitButton =
-                    if List.all (validateFieldInstance configGroup fieldInstances) cryptoFieldInstances then
+                    if List.all (validateFieldInstance model.fieldCollection) cryptoFieldInstances then
                         div [ onClick Submit, class [ C.Button ] ] [ text "Submit" ]
                     else
                         div [ class [ C.Button, C.Disabled ] ] [ text "Submit" ]
