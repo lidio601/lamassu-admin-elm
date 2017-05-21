@@ -699,55 +699,26 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
 referenceFieldInstances : ConfigGroup -> FieldScope -> List FieldInstance -> List String -> List FieldValue
 referenceFieldInstances configGroup fieldScope fieldInstances fieldCodes =
     let
-        matchesCrypto targetCrypto =
-            if fieldScope.crypto == GlobalCrypto then
-                True
-            else
-                fieldScope.crypto == targetCrypto
-
-        matchesMachine targetMachine =
-            if fieldScope.machine == GlobalMachine then
-                True
-            else
-                fieldScope.machine == targetMachine
-
-        filter fieldInstance =
-            List.member fieldInstance.fieldLocator.code fieldCodes
-                && matchesCrypto fieldInstance.fieldLocator.fieldScope.crypto
-                && matchesMachine fieldInstance.fieldLocator.fieldScope.machine
-                && checkEnabled fieldInstances
-                    configGroup
-                    fieldInstance
+        fields =
+            List.filterMap fieldInstanceToField fieldInstances
     in
-        List.filter filter fieldInstances
-            |> List.filterMap (.fieldHolder >> fieldHolderToMaybe)
+        referenceFields fieldScope fields fieldCodes
 
 
 referenceFields : FieldScope -> List Field -> List String -> List FieldValue
 referenceFields fieldScope fields fieldCodes =
     let
-        matchesCrypto targetCrypto =
-            (fieldScope.crypto == GlobalCrypto && targetCrypto == GlobalCrypto)
-                || (fieldScope.crypto /= GlobalCrypto && fieldScope.crypto == targetCrypto)
-
-        matchesMachine targetMachine =
-            (fieldScope.machine == GlobalMachine && targetMachine == GlobalMachine)
-                || (fieldScope.machine /= GlobalMachine && fieldScope.machine == targetMachine)
-
-        filter field =
-            List.member field.fieldLocator.code fieldCodes
-                && matchesCrypto field.fieldLocator.fieldScope.crypto
-                && matchesMachine field.fieldLocator.fieldScope.machine
+        fallback fieldCode =
+            fallbackValue fieldScope fields fieldCode
     in
-        List.filter filter fields
-            |> List.map .fieldValue
+        List.filterMap fallback fieldCodes
 
 
-fallbackValue : FieldScope -> List FieldInstance -> String -> Maybe FieldValue
-fallbackValue fieldScope fieldInstances fieldCode =
+fallbackValue : FieldScope -> List Field -> String -> Maybe FieldValue
+fallbackValue fieldScope fields fieldCode =
     let
         pick =
-            pickFieldInstanceValue fieldCode fieldInstances
+            pickFieldValue fieldCode fields
 
         maybeGlobal =
             pick GlobalCrypto GlobalMachine
@@ -799,7 +770,7 @@ checkEnabled fieldInstances configGroup fieldInstance =
 
                 enabledInstances =
                     (referenceFields fieldScope (Debug.log "DEBUG104" configGroup.values) (Debug.log "DEBUG101" outGroup))
-                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances (Debug.log "DEBUG102" outGroup))
+                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances (Debug.log "DEBUG102" inGroup))
 
                 _ =
                     if fieldInstance.fieldLocator.code == "cashOutCommission" then
@@ -846,8 +817,11 @@ fieldComponent model fieldInstance =
                 _ ->
                     Nothing
 
+        fields =
+            List.filterMap fieldInstanceToField fieldInstances
+
         maybeFallbackFieldValue =
-            fallbackValue fieldScope fieldInstances fieldCode
+            fallbackValue fieldScope fields fieldCode
 
         configGroup =
             model.configGroup
@@ -1162,8 +1136,11 @@ validateRequired fieldInstances fieldInstance =
         fieldCode =
             fieldInstance.fieldLocator.code
 
+        fields =
+            List.filterMap fieldInstanceToField fieldInstances
+
         maybeFallbackFieldValue =
-            fallbackValue fieldScope fieldInstances fieldCode
+            fallbackValue fieldScope fields fieldCode
 
         maybeFallbackString =
             Maybe.map fieldValueToString maybeFallbackFieldValue
@@ -1262,14 +1239,19 @@ fieldInstanceToMaybeFieldValue fieldInstance =
             Nothing
 
 
-pickFieldInstanceValue : String -> List FieldInstance -> Crypto -> Machine -> Maybe FieldValue
-pickFieldInstanceValue fieldCode fieldInstances crypto machine =
+pickFieldValue : String -> List Field -> Crypto -> Machine -> Maybe FieldValue
+pickFieldValue fieldCode fields crypto machine =
     let
         fieldScope =
             { crypto = crypto, machine = machine }
+
+        sameScope field =
+            field.fieldLocator.code
+                == fieldCode
+                && field.fieldLocator.fieldScope
+                == fieldScope
     in
-        (pickFieldInstance fieldCode fieldScope fieldInstances)
-            |> Maybe.andThen fieldInstanceToMaybeFieldValue
+        List.filter sameScope fields |> List.head |> Maybe.map .fieldValue
 
 
 updateFocus : FieldLocator -> Bool -> Model -> Model
