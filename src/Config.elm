@@ -128,24 +128,6 @@ similar mapper a b =
     (==) (mapper a) (mapper b)
 
 
-placeField : List Field -> Field -> List Field
-placeField fieldList field =
-    let
-        maybeOldField =
-            List.filter (similar .fieldLocator field) fieldList
-                |> List.head
-
-        newField =
-            case maybeOldField of
-                Nothing ->
-                    field
-
-                Just oldField ->
-                    { oldField | fieldValue = field.fieldValue }
-    in
-        newField :: (List.filter (not << (similar .fieldLocator field)) fieldList)
-
-
 fieldHolderToList : FieldHolder -> List String
 fieldHolderToList fieldHolder =
     case fieldHolder of
@@ -696,29 +678,20 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
         div [ class [ C.BasicInputDisabled ] ] []
 
 
-referenceFieldInstances : ConfigGroup -> FieldScope -> List FieldInstance -> List String -> List FieldValue
-referenceFieldInstances configGroup fieldScope fieldInstances fieldCodes =
-    let
-        fields =
-            List.filterMap fieldInstanceToField fieldInstances
-    in
-        referenceFields fieldScope fields fieldCodes
-
-
-referenceFields : FieldScope -> List Field -> List String -> List FieldValue
-referenceFields fieldScope fields fieldCodes =
+referenceFieldInstances : FieldScope -> List FieldInstance -> List String -> List FieldValue
+referenceFieldInstances fieldScope fieldInstances fieldCodes =
     let
         fallback fieldCode =
-            fallbackValue fieldScope fields fieldCode
+            fallbackValue fieldScope (Debug.log "DEBUG300" fieldInstances) fieldCode
     in
         List.filterMap fallback fieldCodes
 
 
-fallbackValue : FieldScope -> List Field -> String -> Maybe FieldValue
-fallbackValue fieldScope fields fieldCode =
+fallbackValue : FieldScope -> List FieldInstance -> String -> Maybe FieldValue
+fallbackValue fieldScope fieldInstances fieldCode =
     let
         pick =
-            pickFieldValue fieldCode fields
+            pickFieldInstanceValue fieldCode fieldInstances
 
         maybeGlobal =
             pick GlobalCrypto GlobalMachine
@@ -750,8 +723,8 @@ fieldInstanceToField fieldInstance =
         Maybe.map buildFieldInstance maybeFieldValue
 
 
-checkEnabled : List FieldInstance -> ConfigGroup -> FieldInstance -> Bool
-checkEnabled fieldInstances configGroup fieldInstance =
+checkEnabled : List FieldInstance -> FieldInstance -> Bool
+checkEnabled fieldInstances fieldInstance =
     let
         enabledIf =
             fieldInstance.fieldEnabledIf
@@ -759,32 +732,14 @@ checkEnabled fieldInstances configGroup fieldInstance =
         fieldScope =
             fieldInstance.fieldLocator.fieldScope
     in
-        if not fieldInstance.inScope then
-            False
-        else if List.isEmpty enabledIf then
+        if List.isEmpty enabledIf then
             True
         else
             let
-                ( inGroup, outGroup ) =
-                    List.partition (groupMember configGroup) enabledIf
-
                 enabledInstances =
-                    (referenceFields fieldScope (Debug.log "DEBUG104" configGroup.values) (Debug.log "DEBUG101" outGroup))
-                        ++ (referenceFieldInstances configGroup fieldScope fieldInstances (Debug.log "DEBUG102" inGroup))
-
-                _ =
-                    if fieldInstance.fieldLocator.code == "cashOutCommission" then
-                        always ()
-                            (Debug.log "DEBUG100"
-                                ( fieldInstance.fieldLocator
-                                , (referenceFields fieldScope configGroup.values outGroup)
-                                , (referenceFieldInstances configGroup fieldScope fieldInstances inGroup)
-                                )
-                            )
-                    else
-                        ()
+                    referenceFieldInstances fieldScope fieldInstances enabledIf
             in
-                List.any isField enabledInstances
+                List.any isField (Debug.log "DEBUG200" enabledInstances)
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -817,17 +772,14 @@ fieldComponent model fieldInstance =
                 _ ->
                     Nothing
 
-        fields =
-            List.filterMap fieldInstanceToField fieldInstances
-
         maybeFallbackFieldValue =
-            fallbackValue fieldScope fields fieldCode
+            fallbackValue fieldScope fieldInstances fieldCode
 
         configGroup =
             model.configGroup
 
         enabled =
-            checkEnabled fieldInstances configGroup fieldInstance
+            checkEnabled fieldInstances fieldInstance
 
         focused =
             (Just fieldLocator) == model.focused
@@ -1136,11 +1088,8 @@ validateRequired fieldInstances fieldInstance =
         fieldCode =
             fieldInstance.fieldLocator.code
 
-        fields =
-            List.filterMap fieldInstanceToField fieldInstances
-
         maybeFallbackFieldValue =
-            fallbackValue fieldScope fields fieldCode
+            fallbackValue fieldScope fieldInstances fieldCode
 
         maybeFallbackString =
             Maybe.map fieldValueToString maybeFallbackFieldValue
@@ -1201,7 +1150,7 @@ validateFieldInstance configGroup fieldInstances fieldInstance =
             List.member FieldRequired fieldInstance.fieldValidation
 
         isEnabled =
-            checkEnabled fieldInstances configGroup fieldInstance
+            checkEnabled fieldInstances fieldInstance
     in
         not isEnabled || List.all (validate fieldInstances fieldInstance) fieldInstance.fieldValidation
 
@@ -1229,29 +1178,31 @@ pickFieldInstance fieldCode fieldScope fieldInstances =
             |> List.head
 
 
-fieldInstanceToMaybeFieldValue : FieldInstance -> Maybe FieldValue
-fieldInstanceToMaybeFieldValue fieldInstance =
-    case fieldInstance.fieldHolder of
-        FieldOk fieldValue ->
-            Just fieldValue
+fieldInstanceToMaybeFieldValue : List FieldInstance -> FieldInstance -> Maybe FieldValue
+fieldInstanceToMaybeFieldValue fieldInstances fieldInstance =
+    let
+        isEnabled =
+            checkEnabled fieldInstances fieldInstance
+    in
+        if isEnabled then
+            case fieldInstance.fieldHolder of
+                FieldOk fieldValue ->
+                    Just fieldValue
 
-        _ ->
+                _ ->
+                    Nothing
+        else
             Nothing
 
 
-pickFieldValue : String -> List Field -> Crypto -> Machine -> Maybe FieldValue
-pickFieldValue fieldCode fields crypto machine =
+pickFieldInstanceValue : String -> List FieldInstance -> Crypto -> Machine -> Maybe FieldValue
+pickFieldInstanceValue fieldCode fieldInstances crypto machine =
     let
         fieldScope =
             { crypto = crypto, machine = machine }
-
-        sameScope field =
-            field.fieldLocator.code
-                == fieldCode
-                && field.fieldLocator.fieldScope
-                == fieldScope
     in
-        List.filter sameScope fields |> List.head |> Maybe.map .fieldValue
+        (pickFieldInstance fieldCode fieldScope fieldInstances)
+            |> Maybe.andThen (fieldInstanceToMaybeFieldValue fieldInstances)
 
 
 updateFocus : FieldLocator -> Bool -> Model -> Model
