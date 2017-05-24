@@ -24,7 +24,6 @@ import Markdown
 import Maintenance.Types
 import Maintenance.State
 import Maintenance.View
-import WebSocket
 
 
 main : Program Never Model Msg
@@ -331,5 +330,4 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ every (5 * second) (\_ -> Interval)
-        , WebSocket.listen "wss://localhost:8070" WebSocketMsg
         ]

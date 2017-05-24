@@ -12,6 +12,7 @@ type Msg
 type alias Field =
     { code : String
     , display : String
+    , placeholder : String
     , required : Bool
     , value : FieldValue
     , loadedValue : FieldValue

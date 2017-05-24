@@ -39,9 +39,10 @@ fieldDecoder =
     (D.field "fieldType" D.string)
         |> D.andThen
             (\fieldType ->
-                D.map5 Field
+                D.map6 Field
                     (D.field "code" D.string)
                     (D.field "display" D.string)
+                    (D.oneOf [ D.field "placeholder" D.string, D.succeed "" ])
                     (D.field "required" D.bool)
                     (D.field "value" (fieldValueDecoder fieldType))
                     (D.field "value" (fieldValueDecoder fieldType))
