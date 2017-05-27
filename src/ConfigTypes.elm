@@ -86,6 +86,14 @@ type alias Field =
     { fieldLocator : FieldLocator
     , fieldValue : FieldValue
     , fieldEnabledIf : List String
+    , inScope : Bool
+    }
+
+
+type alias FieldMeta =
+    { fieldLocator : FieldLocator
+    , fieldEnabledIf : List String
+    , inScope : Bool
     }
 
 

@@ -70,10 +70,11 @@ fieldLocatorDecoder =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    map3 Field
+    map4 Field
         (field "fieldLocator" fieldLocatorDecoder)
         (field "fieldValue" fieldValueDecoder)
         (field "fieldEnabledIf" (list string))
+        (succeed True)
 
 
 string2machine : String -> Machine

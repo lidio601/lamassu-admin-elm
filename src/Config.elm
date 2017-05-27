@@ -733,6 +733,22 @@ fallbackValue fieldScope fields fieldCode =
             |> List.head
 
 
+fieldToFieldMeta : Field -> FieldMeta
+fieldToFieldMeta field =
+    { fieldLocator = field.fieldLocator
+    , fieldEnabledIf = field.fieldEnabledIf
+    , inScope = field.inScope
+    }
+
+
+fieldInstanceToFieldMeta : FieldInstance -> FieldMeta
+fieldInstanceToFieldMeta fieldInstance =
+    { fieldLocator = fieldInstance.fieldLocator
+    , fieldEnabledIf = fieldInstance.fieldEnabledIf
+    , inScope = fieldInstance.inScope
+    }
+
+
 fieldInstanceToField : FieldInstance -> Maybe Field
 fieldInstanceToField fieldInstance =
     let
@@ -743,19 +759,22 @@ fieldInstanceToField fieldInstance =
             { fieldLocator = fieldInstance.fieldLocator
             , fieldValue = fieldValue
             , fieldEnabledIf = fieldInstance.fieldEnabledIf
+            , inScope = fieldInstance.inScope
             }
     in
         Maybe.map buildFieldInstance maybeFieldValue
 
 
-checkEnabled : List Field -> FieldScope -> List String -> Bool
-checkEnabled fields fieldScope enabledIf =
-    if List.isEmpty enabledIf then
+checkEnabled : List Field -> FieldMeta -> Bool
+checkEnabled fields fieldMeta =
+    if not fieldMeta.inScope then
+        False
+    else if List.isEmpty fieldMeta.fieldEnabledIf then
         True
     else
         let
             enabledInstances =
-                referenceFields fieldScope fields enabledIf
+                referenceFields fieldMeta.fieldLocator.fieldScope fields fieldMeta.fieldEnabledIf
         in
             List.any isField enabledInstances
 
@@ -797,9 +816,7 @@ fieldComponent model fieldInstance =
             fallbackValue fieldScope allFields fieldCode
 
         enabled =
-            checkEnabled allFields
-                fieldInstance.fieldLocator.fieldScope
-                fieldInstance.fieldEnabledIf
+            checkEnabled allFields (fieldInstanceToFieldMeta fieldInstance)
 
         focused =
             (Just fieldLocator) == model.focused
@@ -1173,9 +1190,7 @@ validateFieldInstance fieldCollection fieldInstance =
             buildAllFields fieldCollection
 
         enabled =
-            checkEnabled allFields
-                fieldInstance.fieldLocator.fieldScope
-                fieldInstance.fieldEnabledIf
+            checkEnabled allFields (fieldInstanceToFieldMeta fieldInstance)
     in
         not enabled || List.all (validate allFields fieldInstance) fieldInstance.fieldValidation
 
@@ -1227,7 +1242,7 @@ pickFieldValue fieldCode fields crypto machine =
             { crypto = crypto, machine = machine }
 
         checkEnabledField field =
-            checkEnabled fields field.fieldLocator.fieldScope field.fieldEnabledIf
+            checkEnabled fields (fieldToFieldMeta field)
 
         sameScope field =
             field.fieldLocator.code
