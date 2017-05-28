@@ -62,3 +62,4 @@ type CssClasses
     | QrCode
     | CashOut
     | CashIn
+    | ReadOnly

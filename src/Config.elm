@@ -306,8 +306,8 @@ fieldInstanceClasses fieldInstance =
             [ C.ShortCell ]
 
 
-textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Html Msg
-textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue =
+textInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
+textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -332,12 +332,21 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue =
 
         fieldValid =
             validateFieldInstance
-    in
-        if fieldInstance.readOnly then
-            div [ class [ C.BasicInputReadOnly ] ] [ text defaultString ]
-        else
-            div [ class [ C.InputContainer ] ]
-                [ input
+
+        isReadOnly =
+            fieldInstance.readOnly || (not enabled)
+
+        parentClasses =
+            if isReadOnly then
+                [ C.InputContainer, C.ReadOnly ]
+            else
+                [ C.InputContainer ]
+
+        inputComponent =
+            if isReadOnly then
+                div [ class [ C.BasicInputReadOnly ] ] [ text fallbackString ]
+            else
+                input
                     [ onInput (Input fieldLocator)
                     , onFocus (Focus fieldLocator)
                     , onBlur (Blur fieldLocator)
@@ -347,8 +356,11 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue =
                     , type_ inputType
                     ]
                     []
-                , unitDisplay fiat fieldInstance
-                ]
+    in
+        div [ class parentClasses ]
+            [ inputComponent
+            , unitDisplay fiat fieldInstance
+            ]
 
 
 type alias LocalConfig =
@@ -579,8 +591,9 @@ selectizeView :
     -> Selectize.State
     -> Maybe FieldValue
     -> Maybe FieldValue
+    -> Bool
     -> Html Msg
-selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
+selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -594,58 +607,64 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
             , toId = .code
             , enabled = True
             }
+
+        fallbackFieldValue =
+            Maybe.withDefault "" (Maybe.map fieldValueToString maybeFallbackFieldValue)
     in
-        case fieldLocator.fieldType of
-            FieldAccountType ->
-                accountSelectizeView model
-                    localConfig
-                    fieldInstance
-                    selectizeState
-                    maybeFieldValue
-                    maybeFallbackFieldValue
+        if fieldInstance.readOnly || (not enabled) then
+            div [ class [ C.BasicInputReadOnly ] ] [ text fallbackFieldValue ]
+        else
+            case fieldLocator.fieldType of
+                FieldAccountType ->
+                    accountSelectizeView model
+                        localConfig
+                        fieldInstance
+                        selectizeState
+                        maybeFieldValue
+                        maybeFallbackFieldValue
 
-            FieldFiatCurrencyType ->
-                fiatCurrencySelectizeView model
-                    localConfig
-                    fieldInstance
-                    selectizeState
-                    maybeFieldValue
-                    maybeFallbackFieldValue
+                FieldFiatCurrencyType ->
+                    fiatCurrencySelectizeView model
+                        localConfig
+                        fieldInstance
+                        selectizeState
+                        maybeFieldValue
+                        maybeFallbackFieldValue
 
-            FieldCryptoCurrencyType ->
-                cryptoCurrencySelectizeView model
-                    localConfig
-                    fieldInstance
-                    selectizeState
-                    maybeFieldValue
-                    maybeFallbackFieldValue
+                FieldCryptoCurrencyType ->
+                    cryptoCurrencySelectizeView model
+                        localConfig
+                        fieldInstance
+                        selectizeState
+                        maybeFieldValue
+                        maybeFallbackFieldValue
 
-            FieldLanguageType ->
-                languageSelectizeView model
-                    localConfig
-                    fieldInstance
-                    selectizeState
-                    maybeFieldValue
-                    maybeFallbackFieldValue
+                FieldLanguageType ->
+                    languageSelectizeView model
+                        localConfig
+                        fieldInstance
+                        selectizeState
+                        maybeFieldValue
+                        maybeFallbackFieldValue
 
-            FieldCountryType ->
-                countrySelectizeView model
-                    localConfig
-                    fieldInstance
-                    selectizeState
-                    maybeFieldValue
-                    maybeFallbackFieldValue
+                FieldCountryType ->
+                    countrySelectizeView model
+                        localConfig
+                        fieldInstance
+                        selectizeState
+                        maybeFieldValue
+                        maybeFallbackFieldValue
 
-            FieldOnOffType ->
-                onOffSelectizeView model
-                    localConfig
-                    fieldInstance
-                    selectizeState
-                    maybeFieldValue
-                    maybeFallbackFieldValue
+                FieldOnOffType ->
+                    onOffSelectizeView model
+                        localConfig
+                        fieldInstance
+                        selectizeState
+                        maybeFieldValue
+                        maybeFallbackFieldValue
 
-            _ ->
-                Debug.crash "Not a Selectize field"
+                _ ->
+                    Debug.crash "Not a Selectize field"
 
 
 onOffSelectizeView :
@@ -683,23 +702,27 @@ onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValu
             selectizeState
 
 
+isJust : Maybe a -> Bool
+isJust maybe =
+    case maybe of
+        Just a ->
+            True
+
+        Nothing ->
+            False
+
+
 fieldInput : ResolvedModel -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
 fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
-    if fieldInstance.readOnly then
-        let
-            valueText =
-                Maybe.withDefault "" <| Maybe.map fieldValueToDisplay maybeFieldValue
-        in
-            div [ class [ C.BasicInputReadOnly ] ] [ text valueText ]
-    else if enabled then
+    if not enabled && (not <| isJust maybeFallbackFieldValue) then
+        div [ class [ C.BasicInputDisabled ] ] []
+    else
         case fieldInstance.component of
             InputBoxComponent ->
-                textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue
+                textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
 
             SelectizeComponent selectizeState ->
-                selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue
-    else
-        div [ class [ C.BasicInputDisabled ] ] []
+                selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled
 
 
 referenceFields : FieldScope -> List Field -> List String -> List FieldValue
@@ -1082,12 +1105,9 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
             isInScope fieldDescriptor.cryptoScope fieldDescriptor.machineScope fieldScope
 
         maybeValue =
-            if inScope then
-                List.filter ((equivalentFieldLocator fieldLocator) << .fieldLocator) configGroup.values
-                    |> List.head
-                    |> Maybe.map .fieldValue
-            else
-                Nothing
+            List.filter ((equivalentFieldLocator fieldLocator) << .fieldLocator) configGroup.values
+                |> List.head
+                |> Maybe.map .fieldValue
 
         component =
             buildFieldComponent configGroup fieldDescriptor.fieldType fieldScope maybeValue
@@ -1241,15 +1261,11 @@ pickFieldValue fieldCode fields crypto machine =
         fieldScope =
             { crypto = crypto, machine = machine }
 
-        checkEnabledField field =
-            checkEnabled fields (fieldToFieldMeta field)
-
         sameScope field =
             field.fieldLocator.code
                 == fieldCode
                 && field.fieldLocator.fieldScope
                 == fieldScope
-                && (checkEnabledField field)
     in
         List.filter sameScope fields |> List.head |> Maybe.map .fieldValue
 

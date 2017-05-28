@@ -1,7 +1,23 @@
 module Css.Main exposing (..)
 
 import Css exposing (..)
-import Css.Elements exposing (body, li, a, div, td, th, tr, thead, tbody, input, button, label, p, svg)
+import Css.Elements
+    exposing
+        ( body
+        , li
+        , a
+        , div
+        , td
+        , th
+        , tr
+        , thead
+        , tbody
+        , input
+        , button
+        , label
+        , p
+        , svg
+        )
 import Css.Namespace exposing (namespace)
 import Css.LocalColors as Colors
 import Css.ColorSchemes exposing (..)
@@ -285,6 +301,8 @@ css =
                 , class InputContainer
                     [ displayFlex
                     , property "justify-content" "flex-end"
+                    , border3 (px 2) solid Colors.darkerLightGrey
+                    , borderRadius (px 3)
                     ]
                 , class UnitDisplay
                     [ borderRadius4 (px 0) (px 3) (px 3) (px 0)
@@ -294,6 +312,8 @@ css =
                     , fontWeight (int 700)
                     , fontSize (pct 80)
                     , lineHeight (px 25)
+                    , cursor default
+                    , fontFamilies [ "Nunito", "sans-serif" ]
                     ]
                 , input
                     [ border zero
@@ -310,28 +330,36 @@ css =
                 , class CellDisabled
                     [ property "background" "repeating-linear-gradient(45deg,#dfdfdc,#dfdfdc 2px,#e6e6e3 5px)"
                     ]
+                , class BasicInput
+                    [ pseudoElement "placeholder"
+                        [ color Colors.amazonite
+                        , opacity (num 0.7)
+                        ]
+                    ]
                 , class BasicInputDisabled
                     [ height (px 25)
                     , lineHeight (px 25)
                     , fontSize (px 14)
                     , fontWeight (int 500)
                     , color Colors.sandstone
+                    , opacity (num 0.7)
                     , textAlign left
                     , padding2 zero (em 1)
-                    , cursor default
                     , property "background" "repeating-linear-gradient(45deg,#dfdfdc,#dfdfdc 2px,#e6e6e3 5px)"
                     ]
-                , class BasicInputReadOnly
-                    [ height (px 25)
-                    , lineHeight (px 25)
-                    , fontSize (px 14)
-                    , fontWeight (int 500)
-                    , color Colors.sandstone
-                    , textAlign left
-                    , padding2 zero (em 1)
-                    , cursor default
+                , class ReadOnly
+                    [ lineHeight (px 25)
                     , backgroundColor Colors.lightGrey
-                    , border3 (px 2) solid Colors.darkerLightGrey
+                    , fontFamilies codeFonts
+                    , fontSize (px 14)
+                    , fontWeight (int 600)
+                    , color Colors.sandstone
+                    , cursor default
+                    , children
+                        [ class BasicInputReadOnly
+                            [ padding2 zero (px 5)
+                            ]
+                        ]
                     ]
                 , td
                     [ padding2 (px 3) (px 4)
