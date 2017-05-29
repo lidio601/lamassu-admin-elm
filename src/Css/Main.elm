@@ -305,8 +305,7 @@ css =
                     , borderRadius (px 3)
                     ]
                 , class UnitDisplay
-                    [ borderRadius4 (px 0) (px 3) (px 3) (px 0)
-                    , backgroundColor Colors.darkerLightGrey
+                    [ backgroundColor Colors.darkerLightGrey
                     , color Colors.sandstone
                     , padding2 zero (px 5)
                     , fontWeight (int 700)
@@ -333,7 +332,7 @@ css =
                 , class BasicInput
                     [ pseudoElement "placeholder"
                         [ color Colors.amazonite
-                        , opacity (num 0.7)
+                        , opacity (num 1)
                         ]
                     ]
                 , class BasicInputDisabled
@@ -373,7 +372,9 @@ css =
                     , backgroundColor Colors.white
                     ]
                 , class InvalidComponent
-                    [ borderTopColor Colors.red
+                    [ children
+                        [ class InputContainer [ borderColor Colors.red ]
+                        ]
                     , descendants
                         [ input
                             [ color Colors.red
@@ -381,7 +382,11 @@ css =
                         ]
                     ]
                 , class FocusedComponent
-                    [ borderTopColor Colors.amazonite ]
+                    [ children
+                        [ class InputContainer
+                            [ borderColor Colors.amazonite ]
+                        ]
+                    ]
                 , tbody
                     [ descendants
                         [ td
