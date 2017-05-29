@@ -612,7 +612,9 @@ selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFi
             Maybe.withDefault "" (Maybe.map fieldValueToString maybeFallbackFieldValue)
     in
         if fieldInstance.readOnly || (not enabled) then
-            div [ class [ C.BasicInputReadOnly ] ] [ text fallbackFieldValue ]
+            div [ class [ C.InputContainer, C.ReadOnly ] ]
+                [ div [ class [ C.BasicInputReadOnly ] ] [ text fallbackFieldValue ]
+                ]
         else
             case fieldLocator.fieldType of
                 FieldAccountType ->

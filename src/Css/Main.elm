@@ -297,7 +297,10 @@ css =
             , property "border-collapse" "collapse"
             , descendants
                 [ class Css.Selectize.SelectizeContainer
-                    [ Css.Selectize.component ]
+                    [ Css.Selectize.component
+                    , border3 (px 2) solid Colors.darkerLightGrey
+                    , borderRadius (px 3)
+                    ]
                 , class InputContainer
                     [ displayFlex
                     , property "justify-content" "flex-end"
@@ -371,6 +374,12 @@ css =
                     , border3 (px 2) solid Colors.lightGrey
                     , backgroundColor Colors.white
                     ]
+                , class FocusedComponent
+                    [ children
+                        [ class InputContainer
+                            [ borderColor Colors.amazonite ]
+                        ]
+                    ]
                 , class InvalidComponent
                     [ children
                         [ class InputContainer [ borderColor Colors.red ]
@@ -379,12 +388,6 @@ css =
                         [ input
                             [ color Colors.red
                             ]
-                        ]
-                    ]
-                , class FocusedComponent
-                    [ children
-                        [ class InputContainer
-                            [ borderColor Colors.amazonite ]
                         ]
                     ]
                 , tbody
