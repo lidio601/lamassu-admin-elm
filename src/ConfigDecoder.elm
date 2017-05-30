@@ -17,6 +17,9 @@ fieldValueTypeDecoder fieldType =
         "integer" ->
             map FieldIntegerValue (field "value" int)
 
+        "decimal" ->
+            map FieldDecimalValue (field "value" float)
+
         "onOff" ->
             map FieldOnOffValue (field "value" bool)
 
@@ -143,6 +146,9 @@ basicFieldTypeDecoder s =
 
         "integer" ->
             succeed FieldIntegerType
+
+        "decimal" ->
+            succeed FieldDecimalType
 
         "onOff" ->
             succeed FieldOnOffType

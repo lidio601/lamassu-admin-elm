@@ -22,6 +22,9 @@ encodeFieldValue fieldValue =
         FieldIntegerValue value ->
             encodeFieldValueObject "integer" (int value)
 
+        FieldDecimalValue value ->
+            encodeFieldValueObject "decimal" (float value)
+
         FieldOnOffValue value ->
             encodeFieldValueObject "onOff" (bool value)
 
@@ -80,6 +83,9 @@ fieldTypeEncoder fieldType =
 
         FieldIntegerType ->
             string "integer"
+
+        FieldDecimalType ->
+            string "decimal"
 
         FieldOnOffType ->
             string "onOff"

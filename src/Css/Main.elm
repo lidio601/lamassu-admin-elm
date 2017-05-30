@@ -443,7 +443,7 @@ css =
             ]
         , class NavBar
             [ margin zero
-            , padding4 zero zero (px 80) zero
+            , padding4 zero zero (px 110) zero
             , backgroundColor Colors.darkGrey
             , fontSize (px 18)
             , width (em 15)

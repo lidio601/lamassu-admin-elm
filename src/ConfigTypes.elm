@@ -101,6 +101,7 @@ type FieldType
     = FieldStringType
     | FieldPercentageType
     | FieldIntegerType
+    | FieldDecimalType
     | FieldOnOffType
     | FieldAccountType
     | FieldFiatCurrencyType
@@ -113,6 +114,7 @@ type FieldValue
     = FieldStringValue String
     | FieldPercentageValue Float
     | FieldIntegerValue Int
+    | FieldDecimalValue Float
     | FieldOnOffValue Bool
     | FieldAccountValue String
     | FieldFiatCurrencyValue String
@@ -240,6 +242,9 @@ fieldValueToString fieldValue =
             toString v
 
         FieldIntegerValue v ->
+            toString v
+
+        FieldDecimalValue v ->
             toString v
 
         FieldOnOffValue v ->
@@ -420,6 +425,11 @@ stringToFieldHolder fieldType s =
             FieldIntegerType ->
                 String.toInt s
                     |> Result.map FieldIntegerValue
+                    |> resultToFieldHolder
+
+            FieldDecimalType ->
+                String.toFloat s
+                    |> Result.map FieldDecimalValue
                     |> resultToFieldHolder
 
             FieldOnOffType ->

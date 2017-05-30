@@ -1057,6 +1057,9 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
         FieldIntegerType ->
             InputBoxComponent
 
+        FieldDecimalType ->
+            InputBoxComponent
+
         FieldOnOffType ->
             SelectizeComponent Selectize.initialSelectize
 
