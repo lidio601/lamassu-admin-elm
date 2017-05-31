@@ -240,12 +240,14 @@ statusBar maybeStatus =
         Just status ->
             let
                 serverStatus =
-                    if status.server.up then
+                    if not status.server.wasConfigured then
+                        [ Markdown.toHtml [] "**lamassu-server** not configured yet" ]
+                    else if status.server.up then
                         [ Markdown.toHtml [] ("**lamassu-server** is up **/** " ++ status.server.machineStatus) ]
                     else
                         case status.server.lastPing of
                             Nothing ->
-                                [ Markdown.toHtml [] ("**lamassu-server** not up yet") ]
+                                [ Markdown.toHtml [] "**lamassu-server** not up yet" ]
 
                             Just lastPing ->
                                 [ Markdown.toHtml [] ("**lamassu-server** has been down for " ++ lastPing) ]
