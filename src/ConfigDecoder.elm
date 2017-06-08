@@ -73,10 +73,11 @@ fieldLocatorDecoder =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    map4 Field
+    map5 Field
         (field "fieldLocator" fieldLocatorDecoder)
         (field "fieldValue" fieldValueDecoder)
-        (field "fieldEnabledIf" (list string))
+        (field "fieldEnabledIfAny" (list string))
+        (field "fieldEnabledIfAll" (list string))
         (succeed True)
 
 
@@ -240,7 +241,8 @@ fieldDescriptorDecoder =
         |> custom (field "fieldType" string |> andThen fieldTypeDecoder)
         |> custom (field "fieldValidation" <| list fieldValidatorDecoder)
         |> required "fieldClass" (nullable string)
-        |> custom (oneOf [ (field "enabledIf" <| list string), (succeed []) ])
+        |> required "fieldEnabledIfAny" (list string)
+        |> required "fieldEnabledIfAll" (list string)
         |> optional "readOnly" bool False
 
 

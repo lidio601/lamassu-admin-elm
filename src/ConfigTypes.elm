@@ -70,7 +70,8 @@ type alias FieldInstance =
     , fieldHolder : FieldHolder
     , loadedFieldHolder : FieldHolder
     , fieldValidation : List FieldValidator
-    , fieldEnabledIf : List String
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
     , readOnly : Bool
     , inScope : Bool
     }
@@ -85,14 +86,16 @@ type alias ResolvedFieldInstance =
 type alias Field =
     { fieldLocator : FieldLocator
     , fieldValue : FieldValue
-    , fieldEnabledIf : List String
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
     , inScope : Bool
     }
 
 
 type alias FieldMeta =
     { fieldLocator : FieldLocator
-    , fieldEnabledIf : List String
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
     , inScope : Bool
     }
 
@@ -145,7 +148,8 @@ type alias FieldDescriptor =
     , fieldType : FieldType
     , fieldValidation : List FieldValidator
     , fieldClass : Maybe String
-    , fieldEnabledIf : List String
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
     , readOnly : Bool
     }
 

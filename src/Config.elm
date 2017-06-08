@@ -761,7 +761,8 @@ fallbackValue fieldScope fields fieldCode =
 fieldToFieldMeta : Field -> FieldMeta
 fieldToFieldMeta field =
     { fieldLocator = field.fieldLocator
-    , fieldEnabledIf = field.fieldEnabledIf
+    , fieldEnabledIfAny = field.fieldEnabledIfAny
+    , fieldEnabledIfAll = field.fieldEnabledIfAll
     , inScope = field.inScope
     }
 
@@ -769,7 +770,8 @@ fieldToFieldMeta field =
 fieldInstanceToFieldMeta : FieldInstance -> FieldMeta
 fieldInstanceToFieldMeta fieldInstance =
     { fieldLocator = fieldInstance.fieldLocator
-    , fieldEnabledIf = fieldInstance.fieldEnabledIf
+    , fieldEnabledIfAny = fieldInstance.fieldEnabledIfAny
+    , fieldEnabledIfAll = fieldInstance.fieldEnabledIfAll
     , inScope = fieldInstance.inScope
     }
 
@@ -783,7 +785,8 @@ fieldInstanceToField fieldInstance =
         buildFieldInstance fieldValue =
             { fieldLocator = fieldInstance.fieldLocator
             , fieldValue = fieldValue
-            , fieldEnabledIf = fieldInstance.fieldEnabledIf
+            , fieldEnabledIfAny = fieldInstance.fieldEnabledIfAny
+            , fieldEnabledIfAll = fieldInstance.fieldEnabledIfAll
             , inScope = fieldInstance.inScope
             }
     in
@@ -794,14 +797,21 @@ checkEnabled : List Field -> FieldMeta -> Bool
 checkEnabled fields fieldMeta =
     if not fieldMeta.inScope then
         False
-    else if List.isEmpty fieldMeta.fieldEnabledIf then
-        True
     else
         let
-            enabledInstances =
-                referenceFields fieldMeta.fieldLocator.fieldScope fields fieldMeta.fieldEnabledIf
+            enabledIfAnyInstances =
+                referenceFields fieldMeta.fieldLocator.fieldScope fields fieldMeta.fieldEnabledIfAny
+
+            enabledIfAllInstances =
+                referenceFields fieldMeta.fieldLocator.fieldScope fields fieldMeta.fieldEnabledIfAll
+
+            enabledIfAny =
+                (List.isEmpty fieldMeta.fieldEnabledIfAny) || (List.any isField enabledIfAnyInstances)
+
+            enabledIfAll =
+                (List.isEmpty fieldMeta.fieldEnabledIfAll) || (List.all isField enabledIfAllInstances)
         in
-            List.any isField enabledInstances
+            (Debug.log "DEBUG101" enabledIfAny) && (Debug.log "DEBUG102" enabledIfAll)
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
@@ -1135,7 +1145,8 @@ initFieldInstance configGroup fieldDescriptor fieldScope =
         , fieldHolder = fieldHolder
         , loadedFieldHolder = fieldHolder
         , fieldValidation = fieldDescriptor.fieldValidation
-        , fieldEnabledIf = fieldDescriptor.fieldEnabledIf
+        , fieldEnabledIfAny = fieldDescriptor.fieldEnabledIfAny
+        , fieldEnabledIfAll = fieldDescriptor.fieldEnabledIfAll
         , readOnly = readOnly
         , inScope = inScope
         }
