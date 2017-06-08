@@ -383,6 +383,7 @@ css =
                 , class InvalidComponent
                     [ children
                         [ class InputContainer [ borderColor Colors.red ]
+                        , class Css.Selectize.SelectizeContainer [ borderColor Colors.red ]
                         ]
                     , descendants
                         [ input
