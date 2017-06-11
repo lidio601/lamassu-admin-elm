@@ -38,6 +38,7 @@ type alias Machines =
 type MachineAction
     = ResetCashOutBills Machine
     | UnpairMachine Machine
+    | RebootMachine Machine
 
 
 type Msg
