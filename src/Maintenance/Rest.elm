@@ -51,7 +51,7 @@ machinesDecoder =
 
 encodeAction : MachineAction -> E.Value
 encodeAction action =
-    case action of
+    case (Debug.log "DEBUG101" action) of
         ResetCashOutBills machine ->
             E.object
                 [ ( "action", E.string "resetCashOutBills" )
@@ -62,5 +62,11 @@ encodeAction action =
         UnpairMachine machine ->
             E.object
                 [ ( "action", E.string "unpair" )
+                , ( "deviceId", E.string machine.deviceId )
+                ]
+
+        RebootMachine machine ->
+            E.object
+                [ ( "action", E.string "reboot" )
                 , ( "deviceId", E.string machine.deviceId )
                 ]

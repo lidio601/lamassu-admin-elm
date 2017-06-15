@@ -70,7 +70,8 @@ type alias FieldInstance =
     , fieldHolder : FieldHolder
     , loadedFieldHolder : FieldHolder
     , fieldValidation : List FieldValidator
-    , fieldEnabledIf : List String
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
     , readOnly : Bool
     , inScope : Bool
     }
@@ -85,6 +86,17 @@ type alias ResolvedFieldInstance =
 type alias Field =
     { fieldLocator : FieldLocator
     , fieldValue : FieldValue
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
+    , inScope : Bool
+    }
+
+
+type alias FieldMeta =
+    { fieldLocator : FieldLocator
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
+    , inScope : Bool
     }
 
 
@@ -92,6 +104,7 @@ type FieldType
     = FieldStringType
     | FieldPercentageType
     | FieldIntegerType
+    | FieldDecimalType
     | FieldOnOffType
     | FieldAccountType
     | FieldFiatCurrencyType
@@ -104,6 +117,7 @@ type FieldValue
     = FieldStringValue String
     | FieldPercentageValue Float
     | FieldIntegerValue Int
+    | FieldDecimalValue Float
     | FieldOnOffValue Bool
     | FieldAccountValue String
     | FieldFiatCurrencyValue String
@@ -134,7 +148,8 @@ type alias FieldDescriptor =
     , fieldType : FieldType
     , fieldValidation : List FieldValidator
     , fieldClass : Maybe String
-    , fieldEnabledIf : List String
+    , fieldEnabledIfAny : List String
+    , fieldEnabledIfAll : List String
     , readOnly : Bool
     }
 
@@ -181,6 +196,19 @@ type alias ConfigData =
     }
 
 
+type alias FieldCollection =
+    { fields : List Field
+    , fieldInstances : List FieldInstance
+    }
+
+
+initFieldCollection : FieldCollection
+initFieldCollection =
+    { fields = []
+    , fieldInstances = []
+    }
+
+
 globalCryptoDisplay : CryptoDisplay
 globalCryptoDisplay =
     { crypto = GlobalCrypto
@@ -218,6 +246,9 @@ fieldValueToString fieldValue =
             toString v
 
         FieldIntegerValue v ->
+            toString v
+
+        FieldDecimalValue v ->
             toString v
 
         FieldOnOffValue v ->
@@ -398,6 +429,11 @@ stringToFieldHolder fieldType s =
             FieldIntegerType ->
                 String.toInt s
                     |> Result.map FieldIntegerValue
+                    |> resultToFieldHolder
+
+            FieldDecimalType ->
+                String.toFloat s
+                    |> Result.map FieldDecimalValue
                     |> resultToFieldHolder
 
             FieldOnOffType ->

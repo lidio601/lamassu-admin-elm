@@ -15,6 +15,7 @@ type alias ServerRec =
     , lastPing : Maybe String
     , rates : List Rate
     , machineStatus : String
+    , wasConfigured : Bool
     }
 
 

@@ -22,6 +22,9 @@ encodeFieldValue fieldValue =
         FieldIntegerValue value ->
             encodeFieldValueObject "integer" (int value)
 
+        FieldDecimalValue value ->
+            encodeFieldValueObject "decimal" (float value)
+
         FieldOnOffValue value ->
             encodeFieldValueObject "onOff" (bool value)
 
@@ -80,6 +83,9 @@ fieldTypeEncoder fieldType =
 
         FieldIntegerType ->
             string "integer"
+
+        FieldDecimalType ->
+            string "decimal"
 
         FieldOnOffType ->
             string "onOff"
@@ -163,6 +169,6 @@ encodeResults configGroupCode fieldInstances =
         else
             Json.Encode.object
                 [ ( "groupCode", string configGroupCode )
-                , ( "values", Debug.log "DEBUG22" (list (List.filterMap encodeFieldResult fieldInstances)) )
+                , ( "values", list (List.filterMap encodeFieldResult fieldInstances) )
                 ]
                 |> Just

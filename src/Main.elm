@@ -24,7 +24,6 @@ import Markdown
 import Maintenance.Types
 import Maintenance.State
 import Maintenance.View
-import WebSocket
 
 
 main : Program Never Model Msg
@@ -207,11 +206,7 @@ update msg model =
                 model ! ([ getStatus ] ++ extraCmds)
 
         WebSocketMsg msg ->
-            let
-                _ =
-                    Debug.log "DEBUG100" msg
-            in
-                model ! []
+            model ! []
 
 
 content : Model -> Route -> Html Msg
@@ -245,12 +240,14 @@ statusBar maybeStatus =
         Just status ->
             let
                 serverStatus =
-                    if status.server.up then
+                    if not status.server.wasConfigured then
+                        [ Markdown.toHtml [] "**lamassu-server** not configured yet" ]
+                    else if status.server.up then
                         [ Markdown.toHtml [] ("**lamassu-server** is up **/** " ++ status.server.machineStatus) ]
                     else
                         case status.server.lastPing of
                             Nothing ->
-                                [ Markdown.toHtml [] ("**lamassu-server** not up yet") ]
+                                [ Markdown.toHtml [] "**lamassu-server** not up yet" ]
 
                             Just lastPing ->
                                 [ Markdown.toHtml [] ("**lamassu-server** has been down for " ++ lastPing) ]
@@ -335,5 +332,4 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ every (5 * second) (\_ -> Interval)
-        , WebSocket.listen "wss://localhost:8070" WebSocketMsg
         ]

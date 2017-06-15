@@ -17,6 +17,9 @@ fieldValueTypeDecoder fieldType =
         "integer" ->
             map FieldIntegerValue (field "value" int)
 
+        "decimal" ->
+            map FieldDecimalValue (field "value" float)
+
         "onOff" ->
             map FieldOnOffValue (field "value" bool)
 
@@ -70,9 +73,12 @@ fieldLocatorDecoder =
 
 fieldDecoder : Decoder Field
 fieldDecoder =
-    map2 Field
+    map5 Field
         (field "fieldLocator" fieldLocatorDecoder)
         (field "fieldValue" fieldValueDecoder)
+        (field "fieldEnabledIfAny" (list string))
+        (field "fieldEnabledIfAll" (list string))
+        (succeed True)
 
 
 string2machine : String -> Machine
@@ -141,6 +147,9 @@ basicFieldTypeDecoder s =
 
         "integer" ->
             succeed FieldIntegerType
+
+        "decimal" ->
+            succeed FieldDecimalType
 
         "onOff" ->
             succeed FieldOnOffType
@@ -232,7 +241,8 @@ fieldDescriptorDecoder =
         |> custom (field "fieldType" string |> andThen fieldTypeDecoder)
         |> custom (field "fieldValidation" <| list fieldValidatorDecoder)
         |> required "fieldClass" (nullable string)
-        |> custom (oneOf [ (field "enabledIf" <| list string), (succeed []) ])
+        |> required "fieldEnabledIfAny" (list string)
+        |> required "fieldEnabledIfAll" (list string)
         |> optional "readOnly" bool False
 
 

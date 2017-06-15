@@ -56,3 +56,8 @@ darkerGrey =
 red : Color
 red =
     hex "eb6b6e"
+
+
+disabledGrey : Color
+disabledGrey =
+    hex "757575"

@@ -16,7 +16,7 @@ fieldComponent field =
             case field.value of
                 FieldString string ->
                     input
-                        [ onInput (Input field.code), defaultValue string ]
+                        [ onInput (Input field.code), placeholder field.placeholder, defaultValue string ]
                         []
 
                 FieldPassword pass ->

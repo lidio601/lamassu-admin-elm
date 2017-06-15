@@ -46,7 +46,7 @@ component =
                 , fontSize (pct 80)
                 , borderRadius (px 3)
                 , backgroundColor Colors.white
-                , border3 (px 3) solid Colors.lightGrey
+                , border3 (px 2) solid Colors.darkerLightGrey
                 , borderTop zero
                 , color Colors.sandstone
                 , width (em 15)
@@ -73,7 +73,7 @@ component =
                     [ class SelectedItem
                         [ backgroundColor Colors.cobalt
                         , color Colors.white
-                        , padding3 (px 4) (px 4) (px 3)
+                        , padding (px 2)
                         , margin2 zero (px 1)
                         , fontFamilies codeFonts
                         , fontSize (pct 70)
@@ -81,7 +81,7 @@ component =
                         , borderRadius (px 3)
                         ]
                     , class FallbackItem
-                        [ backgroundColor Colors.sandstone
+                        [ backgroundColor Colors.amazonite
                         ]
                     ]
                 ]
