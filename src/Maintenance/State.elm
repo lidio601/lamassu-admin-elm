@@ -15,9 +15,9 @@ init =
     NotAsked
 
 
-load : ( Model, Cmd Msg )
-load =
-    ( Loading, getForm )
+load : String -> ( Model, Cmd Msg )
+load route =
+    ( Loading, getForm route )
 
 
 updateMachine : Machine -> Machine -> Machine

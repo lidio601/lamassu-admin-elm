@@ -36,8 +36,8 @@ routeToUrl route =
         ConfigRoute configGroup maybeCrypto ->
             maybeUrl ("/#config/" ++ configGroup) [ maybeCrypto ]
 
-        MaintenanceRoute ->
-            "/#maintenance/"
+        MaintenanceRoute route ->
+            "/#maintenance/" ++ route
 
         TransactionRoute ->
             "/#transaction/"
@@ -182,7 +182,10 @@ view route invalidGroups =
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Transactions", TransactionRoute, True )
-            , l ( "Maintenance", MaintenanceRoute, True )
+            , ll ( "Maintenance", MaintenanceCat, MaintenanceRoute "machines", True )
+                [ ( "Machines", MaintenanceRoute "machines", True )
+                , ( "Funding", MaintenanceRoute "funding", True )
+                ]
             , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClearMachine )
                 [ configLink "definition" "Definition"
                 , configLink "setup" "Setup"

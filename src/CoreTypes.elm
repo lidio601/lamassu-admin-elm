@@ -16,6 +16,7 @@ import StatusTypes
 
 type Category
     = AccountCat
+    | MaintenanceCat
     | MachineSettingsCat
     | GlobalSettingsCat
 
@@ -25,7 +26,7 @@ type Route
     | PairRoute
     | ConfigRoute String (Maybe String)
     | TransactionRoute
-    | MaintenanceRoute
+    | MaintenanceRoute String
     | NotFoundRoute
 
 

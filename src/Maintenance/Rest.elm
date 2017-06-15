@@ -14,8 +14,8 @@ toModel status machines =
     { status = status, machines = machines }
 
 
-getForm : Cmd Msg
-getForm =
+getForm : String -> Cmd Msg
+getForm route =
     get ("/api/machines")
         |> withExpect (Http.expectJson machinesDecoder)
         |> send (Result.map (toModel NotSaving) >> RemoteData.fromResult)

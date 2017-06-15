@@ -47,7 +47,7 @@ parseRoute =
         , UrlParser.map PairRoute (s "pair")
         , UrlParser.map (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
         , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
-        , UrlParser.map MaintenanceRoute (s "maintenance")
+        , UrlParser.map MaintenanceRoute (s "maintenance" </> string)
         , UrlParser.map TransactionRoute (s "transaction")
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
@@ -221,7 +221,7 @@ content model route =
         ConfigRoute _ _ ->
             map ConfigMsg (Config.view model.config)
 
-        MaintenanceRoute ->
+        MaintenanceRoute _ ->
             map MaintenanceMsg (Maintenance.View.view model.maintenance)
 
         TransactionRoute ->
@@ -305,10 +305,10 @@ urlUpdate location model =
                 in
                     { model | location = location, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-            MaintenanceRoute ->
+            MaintenanceRoute route ->
                 let
                     ( maintenanceModel, cmd ) =
-                        Maintenance.State.load
+                        Maintenance.State.load route
                 in
                     { model | location = location, maintenance = maintenanceModel }
                         ! [ Cmd.map MaintenanceMsg cmd ]
