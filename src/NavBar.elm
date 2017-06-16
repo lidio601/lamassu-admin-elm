@@ -36,8 +36,11 @@ routeToUrl route =
         ConfigRoute configGroup maybeCrypto ->
             maybeUrl ("/#config/" ++ configGroup) [ maybeCrypto ]
 
-        MaintenanceRoute ->
-            "/#maintenance/"
+        MaintenanceMachinesRoute ->
+            "/#machines/"
+
+        MaintenanceFundingRoute maybeCrypto ->
+            maybeUrl ("/#funding") [ maybeCrypto ]
 
         TransactionRoute ->
             "/#transaction/"
@@ -59,6 +62,9 @@ linkClasses linkRoute route isValid =
             case route of
                 ConfigRoute config _ ->
                     linkRoute == ConfigRoute config Nothing
+
+                MaintenanceFundingRoute _ ->
+                    linkRoute == MaintenanceFundingRoute Nothing
 
                 _ ->
                     linkRoute == route
@@ -152,7 +158,19 @@ determineCategory route =
         ConfigRoute config _ ->
             determineConfigCategory config
 
-        _ ->
+        MaintenanceMachinesRoute ->
+            Just MaintenanceCat
+
+        MaintenanceFundingRoute _ ->
+            Just MaintenanceCat
+
+        PairRoute ->
+            Nothing
+
+        TransactionRoute ->
+            Nothing
+
+        NotFoundRoute ->
             Nothing
 
 
@@ -182,7 +200,10 @@ view route invalidGroups =
     in
         nav [ class [ Css.Classes.NavBar ] ]
             [ l ( "Transactions", TransactionRoute, True )
-            , l ( "Maintenance", MaintenanceRoute, True )
+            , ll ( "Maintenance", MaintenanceCat, MaintenanceMachinesRoute, True )
+                [ ( "Machines", MaintenanceMachinesRoute, True )
+                , ( "Funding", MaintenanceFundingRoute Nothing, True )
+                ]
             , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClearMachine )
                 [ configLink "definition" "Definition"
                 , configLink "setup" "Setup"

@@ -3,6 +3,7 @@ module ConfigEncoder exposing (..)
 import Json.Encode exposing (..)
 import List
 import ConfigTypes exposing (..)
+import BasicTypes exposing (..)
 
 
 encodeFieldValueObject : String -> Value -> Value

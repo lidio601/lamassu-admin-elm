@@ -21,9 +21,12 @@ import Time exposing (..)
 import Css.Admin
 import Css.Classes as C
 import Markdown
-import Maintenance.Types
-import Maintenance.State
-import Maintenance.View
+import MaintenanceMachines.Types
+import MaintenanceMachines.State
+import MaintenanceMachines.View
+import MaintenanceFunding.Types
+import MaintenanceFunding.State
+import MaintenanceFunding.View
 
 
 main : Program Never Model Msg
@@ -47,7 +50,9 @@ parseRoute =
         , UrlParser.map PairRoute (s "pair")
         , UrlParser.map (\config crypto -> ConfigRoute config (Just crypto)) (s "config" </> string </> string)
         , UrlParser.map (\config -> ConfigRoute config Nothing) (s "config" </> string)
-        , UrlParser.map MaintenanceRoute (s "maintenance")
+        , UrlParser.map MaintenanceMachinesRoute (s "machines")
+        , UrlParser.map (\crypto -> MaintenanceFundingRoute (Just crypto)) (s "funding" </> string)
+        , UrlParser.map (MaintenanceFundingRoute Nothing) (s "funding")
         , UrlParser.map TransactionRoute (s "transaction")
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
@@ -79,7 +84,8 @@ type alias Model =
     , pair : Pair.Model
     , account : Account.Model
     , config : Config.Model
-    , maintenance : Maintenance.Types.Model
+    , maintenanceMachines : MaintenanceMachines.Types.Model
+    , maintenanceFunding : MaintenanceFunding.Types.Model
     , transaction : Transaction.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
@@ -95,7 +101,8 @@ init location =
             , account = Account.init
             , pair = Pair.init False
             , config = Config.init
-            , maintenance = Maintenance.State.init
+            , maintenanceMachines = MaintenanceMachines.State.init
+            , maintenanceFunding = MaintenanceFunding.State.init
             , transaction = Transaction.init
             , accounts = []
             , status = Nothing
@@ -145,12 +152,19 @@ update msg model =
             in
                 { model | config = configModel } ! ([ Cmd.map ConfigMsg cmd ] ++ extraCmds)
 
-        MaintenanceMsg maintenanceMsg ->
+        MaintenanceMachinesMsg maintenanceMachinesMsg ->
             let
-                ( maintenanceModel, cmd ) =
-                    Maintenance.State.update maintenanceMsg model.maintenance
+                ( maintenanceMachines, cmd ) =
+                    MaintenanceMachines.State.update maintenanceMachinesMsg model.maintenanceMachines
             in
-                { model | maintenance = maintenanceModel } ! [ Cmd.map MaintenanceMsg cmd ]
+                { model | maintenanceMachines = maintenanceMachines } ! [ Cmd.map MaintenanceMachinesMsg cmd ]
+
+        MaintenanceFundingMsg maintenanceFundingMsg ->
+            let
+                ( maintenanceFunding, cmd ) =
+                    MaintenanceFunding.State.update maintenanceFundingMsg model.maintenanceFunding
+            in
+                { model | maintenanceFunding = maintenanceFunding } ! [ Cmd.map MaintenanceFundingMsg cmd ]
 
         TransactionMsg transactionMsg ->
             let
@@ -221,8 +235,11 @@ content model route =
         ConfigRoute _ _ ->
             map ConfigMsg (Config.view model.config)
 
-        MaintenanceRoute ->
-            map MaintenanceMsg (Maintenance.View.view model.maintenance)
+        MaintenanceMachinesRoute ->
+            map MaintenanceMachinesMsg (MaintenanceMachines.View.view model.maintenanceMachines)
+
+        MaintenanceFundingRoute _ ->
+            map MaintenanceFundingMsg (MaintenanceFunding.View.view model.maintenanceFunding)
 
         TransactionRoute ->
             map TransactionMsg (Transaction.view model.transaction)
@@ -305,13 +322,21 @@ urlUpdate location model =
                 in
                     { model | location = location, config = configModel } ! [ Cmd.map ConfigMsg cmd ]
 
-            MaintenanceRoute ->
+            MaintenanceMachinesRoute ->
                 let
-                    ( maintenanceModel, cmd ) =
-                        Maintenance.State.load
+                    ( maintenanceMachines, cmd ) =
+                        MaintenanceMachines.State.load
                 in
-                    { model | location = location, maintenance = maintenanceModel }
-                        ! [ Cmd.map MaintenanceMsg cmd ]
+                    { model | location = location, maintenanceMachines = maintenanceMachines }
+                        ! [ Cmd.map MaintenanceMachinesMsg cmd ]
+
+            MaintenanceFundingRoute maybeCrypto ->
+                let
+                    ( maintenanceFunding, cmd ) =
+                        MaintenanceFunding.State.load maybeCrypto
+                in
+                    { model | location = location, maintenanceFunding = maintenanceFunding }
+                        ! [ Cmd.map MaintenanceFundingMsg cmd ]
 
             TransactionRoute ->
                 let

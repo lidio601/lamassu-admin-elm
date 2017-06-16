@@ -1,13 +1,7 @@
-module Maintenance.Types exposing (..)
+module MaintenanceMachines.Types exposing (..)
 
 import RemoteData exposing (..)
-
-
-type SavingStatus
-    = Saving
-    | Saved
-    | Editing
-    | NotSaving
+import BasicTypes exposing (..)
 
 
 type alias SubModel =

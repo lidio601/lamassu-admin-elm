@@ -17,6 +17,7 @@ import Css.Elements
         , label
         , p
         , svg
+        , h2
         )
 import Css.Namespace exposing (namespace)
 import Css.LocalColors as Colors
@@ -198,12 +199,30 @@ css =
             , backgroundColor contentBackgroundColor
             , borderRadius (px 5)
             ]
+        , class Container
+            [ padding (px 30)
+            , backgroundColor Colors.lightGrey
+            , borderRadius4 (px 0) (px 5) (px 5) (px 5)
+            , width (em 30)
+            ]
+        , class CryptoAddress
+            [ fontFamilies codeFonts ]
+        , class BalanceSection
+            [ marginTop (em 2)
+            , descendants
+                [ h2
+                    [ fontSize (em 1.2)
+                    , marginBottom (em 0.2)
+                    ]
+                ]
+            ]
         , class CryptoTabs
             [ displayFlex
             , children
-                [ div
+                [ class CryptoTab
                     [ padding2 (px 10) (px 15)
                     , colorize lightGreyScheme
+                    , textDecoration none
                     , firstChild
                         [ borderRadius4 (px 5) (px 0) (px 0) (px 0)
                         ]

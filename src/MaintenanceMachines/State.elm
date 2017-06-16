@@ -1,4 +1,4 @@
-module Maintenance.State exposing (..)
+module MaintenanceMachines.State exposing (..)
 
 import RemoteData exposing (..)
 import String
@@ -6,8 +6,9 @@ import List
 import Process
 import Task
 import Time exposing (second)
-import Maintenance.Types exposing (..)
-import Maintenance.Rest exposing (..)
+import MaintenanceMachines.Types exposing (..)
+import MaintenanceMachines.Rest exposing (..)
+import BasicTypes exposing (..)
 
 
 init : Model

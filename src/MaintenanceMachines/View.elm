@@ -1,4 +1,4 @@
-module Maintenance.View exposing (..)
+module MaintenanceMachines.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (defaultValue)
@@ -7,7 +7,8 @@ import Css.Admin exposing (..)
 import Css.Classes as C
 import List
 import RemoteData exposing (..)
-import Maintenance.Types exposing (..)
+import MaintenanceMachines.Types exposing (..)
+import BasicTypes exposing (..)
 
 
 inputCassetteView : Machine -> Position -> Int -> Html Msg

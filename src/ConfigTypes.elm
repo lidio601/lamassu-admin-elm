@@ -10,11 +10,6 @@ type alias DisplayRec =
     }
 
 
-type Crypto
-    = CryptoCode String
-    | GlobalCrypto
-
-
 type Machine
     = MachineId String
     | GlobalMachine
@@ -22,12 +17,6 @@ type Machine
 
 type alias MachineDisplay =
     { machine : Machine
-    , display : String
-    }
-
-
-type alias CryptoDisplay =
-    { crypto : Crypto
     , display : String
     }
 
@@ -283,16 +272,6 @@ machineToString machine =
             machineId
 
 
-cryptoToString : Crypto -> String
-cryptoToString crypto =
-    case crypto of
-        GlobalCrypto ->
-            "global"
-
-        CryptoCode code ->
-            code
-
-
 listMachines : ConfigGroup -> List MachineDisplay
 listMachines configGroup =
     case configGroup.schema.machineScope of
@@ -476,3 +455,24 @@ fieldHolderMap default mapper fieldHolder =
 
         _ ->
             default
+
+
+type Crypto
+    = CryptoCode String
+    | GlobalCrypto
+
+
+type alias CryptoDisplay =
+    { crypto : Crypto
+    , display : String
+    }
+
+
+cryptoToString : Crypto -> String
+cryptoToString crypto =
+    case crypto of
+        GlobalCrypto ->
+            "global"
+
+        CryptoCode code ->
+            code

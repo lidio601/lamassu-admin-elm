@@ -3,6 +3,7 @@ module ConfigDecoder exposing (..)
 import Json.Decode exposing (..)
 import ConfigTypes exposing (..)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, custom)
+import BasicTypes exposing (..)
 
 
 fieldValueTypeDecoder : String -> Decoder FieldValue

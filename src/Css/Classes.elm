@@ -11,8 +11,10 @@ type CssClasses
     | NavBarCategoryContainer
     | NavBarCategory
     | NavBarRoute
+    | Container
     | Content
     | CryptoTabs
+    | CryptoTab
     | CryptoTabsActive
     | SectionLabel
     | ConfigTable
@@ -63,3 +65,5 @@ type CssClasses
     | CashOut
     | CashIn
     | ReadOnly
+    | CryptoAddress
+    | BalanceSection

@@ -1,4 +1,4 @@
-module Maintenance.Rest exposing (..)
+module MaintenanceMachines.Rest exposing (..)
 
 import RemoteData exposing (..)
 import HttpBuilder exposing (..)
@@ -6,7 +6,8 @@ import Json.Decode as D
 import Json.Encode as E
 import Http
 import HttpBuilder exposing (..)
-import Maintenance.Types exposing (..)
+import MaintenanceMachines.Types exposing (..)
+import BasicTypes exposing (..)
 
 
 toModel : SavingStatus -> Machines -> SubModel

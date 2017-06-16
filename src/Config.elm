@@ -1537,7 +1537,8 @@ cryptoView maybeActiveCrypto cryptoDisplay =
                     else
                         class []
     in
-        div [ activeClass, onClick (CryptoSwitch cryptoDisplay.crypto) ] [ text cryptoDisplay.display ]
+        div [ activeClass, class [ C.CryptoTab ], onClick (CryptoSwitch cryptoDisplay.crypto) ]
+            [ text cryptoDisplay.display ]
 
 
 cryptosView : List CryptoDisplay -> Maybe Crypto -> Html Msg
