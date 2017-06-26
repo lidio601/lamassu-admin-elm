@@ -65,6 +65,15 @@ multiplier code =
         "ETH" ->
             1.0e18
 
+        "ZEC" ->
+            1.0e8
+
+        "DASH" ->
+            1.0e8
+
+        "LTC" ->
+            1.0e8
+
         default ->
             1.0
 

@@ -220,8 +220,9 @@ view route invalidGroups =
                 [ ( "BitGo", AccountRoute "bitgo", True )
                 , ( "Bitstamp", AccountRoute "bitstamp", True )
                 , ( "Blockcypher", AccountRoute "blockcypher", True )
-                , ( "Twilio", AccountRoute "twilio", True )
+                , ( "Kraken", AccountRoute "kraken", True )
                 , ( "Mailjet", AccountRoute "mailjet", True )
+                , ( "Twilio", AccountRoute "twilio", True )
                 ]
             , l ( "+ Add Machine", PairRoute, True )
             ]
