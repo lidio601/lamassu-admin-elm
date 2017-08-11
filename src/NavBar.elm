@@ -136,9 +136,9 @@ linksView maybeCurrentCategory currentRoute ( catDesc, cat, route, isValid ) lin
 
 determineConfigCategory : String -> Maybe Category
 determineConfigCategory configCode =
-    if List.member configCode [ "definition", "setup", "cashOut", "commissions", "balanceAlerts", "compliance" ] then
+    if List.member configCode [ "definition", "setup", "cashOut", "commissions", "balanceAlerts" ] then
         Just MachineSettingsCat
-    else if List.member configCode [ "walletSettings", "notifications" ] then
+    else if List.member configCode [ "walletSettings", "notifications", "compliance" ] then
         Just GlobalSettingsCat
     else
         Nothing
@@ -210,11 +210,11 @@ view route invalidGroups =
                 , configLink "cashOut" "Cash Out"
                 , configLink "commissions" "Commissions"
                 , configLink "balanceAlerts" "Balance Alerts"
-                , configLink "compliance" "Compliance"
                 ]
             , ll ( "Global Settings", GlobalSettingsCat, ConfigRoute "walletSettings " Nothing, allClearGlobal )
                 [ configLink "walletSettings" "Wallet Settings"
                 , configLink "notifications" "Notifications"
+                , configLink "compliance" "Compliance"
                 ]
             , ll ( "Third Party Services", AccountCat, AccountRoute "bitgo", True )
                 [ ( "BitGo", AccountRoute "bitgo", True )

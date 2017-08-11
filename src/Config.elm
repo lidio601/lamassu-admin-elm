@@ -982,6 +982,48 @@ bottomHeaderRowView configGroup crypto displayMachineName =
         tr [] cells
 
 
+complianceTableView : ResolvedModel -> Html Msg
+complianceTableView model =
+    let
+        cryptoScoped fieldInstance =
+            fieldInstance.fieldLocator.fieldScope.crypto == model.crypto
+
+        instances : List FieldInstance
+        instances =
+            List.filter cryptoScoped model.fieldCollection.fieldInstances
+
+        filterByCode codeA codeB =
+            List.filter (\n -> (n.fieldLocator.code == codeA || n.fieldLocator.code == codeB)) instances
+
+        cHead =
+            tr []
+                [ th [] []
+                , th [] [ text "Active" ]
+                , th [] [ text "Threshold" ]
+                ]
+
+        cRow label codeA codeB =
+            tr []
+                ((td [ class [ C.ShortCell ] ] [ text (label) ])
+                    :: (List.map (cellView model)
+                            (filterByCode codeA codeB)
+                       )
+                )
+    in
+        table [ class [ C.ConfigTable ] ]
+            [ tbody []
+                [ cHead
+                , cRow "SMS" "smsVerificationActive" "smsVerificationThreshold"
+                , cRow "ID Card Data" "idCardDataVerificationActive" "idCardDataVerificationThreshold"
+                , cRow "ID Card Photo" "idCardPhotoVerificationActive" "idCardPhotoVerificationThreshold"
+                , cRow "Front Facing Camera" "frontCameraVerificationActive" "frontCameraVerificationThreshold"
+                , cRow "Sanctions" "sanctionsVerificationActive" "sanctionsVerificationThreshold"
+                , cRow "Cross Reference" "crossRefVerificationActive" "crossRefVerificationThreshold"
+                , cRow "Hard Limit" "hardLimitVerificationActive" "hardLimitVerificationThreshold"
+                ]
+            ]
+
+
 tableView : ResolvedModel -> Html Msg
 tableView model =
     let
@@ -1563,9 +1605,15 @@ view model =
                 resolvedModel =
                     toResolvedModel model configGroup
 
+                getView =
+                    if configGroup.schema.code == "compliance" then
+                        complianceTableView
+                    else
+                        tableView
+
                 configGroupView =
                     div [ class [ C.ConfigContainer ] ]
-                        [ tableView resolvedModel ]
+                        [ getView resolvedModel ]
 
                 cryptos =
                     allCryptos configGroup.data.cryptoCurrencies
