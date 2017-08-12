@@ -21,6 +21,7 @@ import Process
 import Time exposing (second)
 import Task
 import StatusTypes
+import Maybe.Extra
 
 
 type alias WebConfigGroup =
@@ -992,34 +993,41 @@ complianceTableView model =
         instances =
             List.filter cryptoScoped model.fieldCollection.fieldInstances
 
-        filterByCode codeA codeB =
-            List.filter (\n -> (n.fieldLocator.code == codeA || n.fieldLocator.code == codeB)) instances
+        pickField code =
+            pickFieldInstance code { crypto = GlobalCrypto, machine = GlobalMachine } instances
 
-        cHead =
+        emptyCell =
+            td [] [ text "--" ]
+
+        fieldCodeCellView code =
+            Maybe.Extra.unwrap emptyCell (cellView model) (pickField code)
+
+        header =
             tr []
                 [ th [] []
                 , th [] [ text "Active" ]
                 , th [] [ text "Threshold" ]
                 ]
 
-        cRow label codeA codeB =
+        row label activeFieldCode thresholdFieldCode =
             tr []
                 ((td [ class [ C.ShortCell ] ] [ text (label) ])
-                    :: (List.map (cellView model)
-                            (filterByCode codeA codeB)
+                    :: ([ fieldCodeCellView activeFieldCode
+                        , fieldCodeCellView thresholdFieldCode
+                        ]
                        )
                 )
     in
         table [ class [ C.ConfigTable ] ]
             [ tbody []
-                [ cHead
-                , cRow "SMS" "smsVerificationActive" "smsVerificationThreshold"
-                , cRow "ID Card Data" "idCardDataVerificationActive" "idCardDataVerificationThreshold"
-                , cRow "ID Card Photo" "idCardPhotoVerificationActive" "idCardPhotoVerificationThreshold"
-                , cRow "Front Facing Camera" "frontCameraVerificationActive" "frontCameraVerificationThreshold"
-                , cRow "Sanctions" "sanctionsVerificationActive" "sanctionsVerificationThreshold"
-                , cRow "Cross Reference" "crossRefVerificationActive" "crossRefVerificationThreshold"
-                , cRow "Hard Limit" "hardLimitVerificationActive" "hardLimitVerificationThreshold"
+                [ header
+                , row "SMS" "smsVerificationActive" "smsVerificationThreshold"
+                , row "ID Card Data" "idCardDataVerificationActive" "idCardDataVerificationThreshold"
+                , row "ID Card Photo" "idCardPhotoVerificationActive" "idCardPhotoVerificationThreshold"
+                , row "Front Facing Camera" "frontCameraVerificationActive" "frontCameraVerificationThreshold"
+                , row "Sanctions" "sanctionsVerificationActive" "sanctionsVerificationThreshold"
+                , row "Cross Reference" "crossRefVerificationActive" "crossRefVerificationThreshold"
+                , row "Hard Limit" "hardLimitVerificationActive" "hardLimitVerificationThreshold"
                 ]
             ]
 
