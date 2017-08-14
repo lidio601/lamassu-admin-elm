@@ -21,6 +21,7 @@ import Process
 import Time exposing (second)
 import Task
 import StatusTypes
+import Maybe.Extra
 
 
 type alias WebConfigGroup =
@@ -982,6 +983,54 @@ bottomHeaderRowView configGroup crypto displayMachineName =
         tr [] cells
 
 
+complianceTableView : ResolvedModel -> Html Msg
+complianceTableView model =
+    let
+        cryptoScoped fieldInstance =
+            fieldInstance.fieldLocator.fieldScope.crypto == model.crypto
+
+        instances : List FieldInstance
+        instances =
+            List.filter cryptoScoped model.fieldCollection.fieldInstances
+
+        pickField code =
+            pickFieldInstance code { crypto = GlobalCrypto, machine = GlobalMachine } instances
+
+        emptyCell =
+            td [] [ text "--" ]
+
+        fieldCodeCellView code =
+            Maybe.Extra.unwrap emptyCell (cellView model) (pickField code)
+
+        header =
+            tr []
+                [ th [] []
+                , th [] [ text "Active" ]
+                , th [] [ text "Threshold" ]
+                ]
+
+        row label activeFieldCode thresholdFieldCode =
+            tr []
+                ((td [ class [ C.ShortCell ] ] [ text label ])
+                    :: [ fieldCodeCellView activeFieldCode
+                       , fieldCodeCellView thresholdFieldCode
+                       ]
+                )
+    in
+        table [ class [ C.ConfigTable ] ]
+            [ tbody []
+                [ header
+                , row "SMS" "smsVerificationActive" "smsVerificationThreshold"
+                , row "ID Card Data" "idCardDataVerificationActive" "idCardDataVerificationThreshold"
+                , row "ID Card Photo" "idCardPhotoVerificationActive" "idCardPhotoVerificationThreshold"
+                , row "Front Facing Camera" "frontCameraVerificationActive" "frontCameraVerificationThreshold"
+                , row "Sanctions" "sanctionsVerificationActive" "sanctionsVerificationThreshold"
+                , row "Cross Reference" "crossRefVerificationActive" "crossRefVerificationThreshold"
+                , row "Hard Limit" "hardLimitVerificationActive" "hardLimitVerificationThreshold"
+                ]
+            ]
+
+
 tableView : ResolvedModel -> Html Msg
 tableView model =
     let
@@ -1563,9 +1612,15 @@ view model =
                 resolvedModel =
                     toResolvedModel model configGroup
 
+                getView =
+                    if configGroup.schema.code == "compliance" then
+                        complianceTableView
+                    else
+                        tableView
+
                 configGroupView =
                     div [ class [ C.ConfigContainer ] ]
-                        [ tableView resolvedModel ]
+                        [ getView resolvedModel ]
 
                 cryptos =
                     allCryptos configGroup.data.cryptoCurrencies
