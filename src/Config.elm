@@ -1011,11 +1011,10 @@ complianceTableView model =
 
         row label activeFieldCode thresholdFieldCode =
             tr []
-                ((td [ class [ C.ShortCell ] ] [ text (label) ])
-                    :: ([ fieldCodeCellView activeFieldCode
-                        , fieldCodeCellView thresholdFieldCode
-                        ]
-                       )
+                ((td [ class [ C.ShortCell ] ] [ text label ])
+                    :: [ fieldCodeCellView activeFieldCode
+                       , fieldCodeCellView thresholdFieldCode
+                       ]
                 )
     in
         table [ class [ C.ConfigTable ] ]
