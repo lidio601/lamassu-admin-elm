@@ -42,8 +42,11 @@ routeToUrl route =
         MaintenanceFundingRoute maybeCrypto ->
             maybeUrl ("/#funding") [ maybeCrypto ]
 
-        TransactionRoute ->
-            "/#transaction/"
+        TransactionsRoute ->
+            "/#transactions/"
+
+        TransactionRoute txId ->
+            "/#transaction/" ++ txId
 
         NotFoundRoute ->
             Debug.crash "Need unknown route"
@@ -167,7 +170,10 @@ determineCategory route =
         PairRoute ->
             Nothing
 
-        TransactionRoute ->
+        TransactionsRoute ->
+            Nothing
+
+        TransactionRoute _ ->
             Nothing
 
         NotFoundRoute ->
@@ -199,7 +205,7 @@ view route invalidGroups =
             ( display, ConfigRoute code Nothing, isValid code )
     in
         nav [ class [ Css.Classes.NavBar ] ]
-            [ l ( "Transactions", TransactionRoute, True )
+            [ l ( "Transactions", TransactionsRoute, True )
             , ll ( "Maintenance", MaintenanceCat, MaintenanceMachinesRoute, True )
                 [ ( "Machines", MaintenanceMachinesRoute, True )
                 , ( "Funding", MaintenanceFundingRoute Nothing, True )

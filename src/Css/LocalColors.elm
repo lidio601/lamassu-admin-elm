@@ -58,6 +58,11 @@ red =
     hex "eb6b6e"
 
 
+lightRed : Color
+lightRed =
+    hex "efd1d2"
+
+
 disabledGrey : Color
 disabledGrey =
     hex "757575"

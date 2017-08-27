@@ -1,14 +1,14 @@
-module Transaction exposing (..)
+module Transactions exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (colspan)
+import Html.Attributes exposing (colspan, href)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
 import Http
 import HttpBuilder exposing (..)
-import TransactionDecoder exposing (txsDecoder)
-import TransactionTypes exposing (..)
+import Transaction.Decoder exposing (txsDecoder)
+import Common.TransactionTypes exposing (..)
 import List
 import Numeral exposing (format)
 import Date.Extra exposing (toFormattedString)
@@ -78,28 +78,52 @@ multiplier code =
             1.0
 
 
+txLink : String -> Html Msg
+txLink txId =
+    a [ href ("/#transaction/" ++ txId) ] [ text (String.left 8 txId) ]
+
+
 rowView : Tx -> Html Msg
 rowView tx =
     case tx of
         CashInTx cashIn ->
-            tr [ class [ C.CashIn ] ]
-                [ td [] [ text "Cash in" ]
-                , td
-                    [ class [ C.NumberColumn ] ]
-                    [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
-                , td [] [ text cashIn.machineName ]
-                , td [ class [ C.NumberColumn ] ]
-                    [ text (format "0,0.000000" ((toFloat cashIn.cryptoAtoms) / multiplier cashIn.cryptoCode))
+            let
+                rowClasses =
+                    if cashIn.operatorCompleted then
+                        [ C.CashIn, C.TxCancelled ]
+                    else
+                        [ C.CashIn ]
+
+                status =
+                    if cashIn.operatorCompleted then
+                        "Cancelled"
+                    else if cashIn.sendConfirmed then
+                        "Sent"
+                    else if cashIn.expired then
+                        "Expired"
+                    else
+                        "Pending"
+            in
+                tr [ class rowClasses ]
+                    [ td [] [ txLink cashIn.id ]
+                    , td [] [ text status ]
+                    , td
+                        [ class [ C.NumberColumn ] ]
+                        [ text (toFormattedString "yyyy-MM-dd HH:mm" cashIn.created) ]
+                    , td [] [ text cashIn.machineName ]
+                    , td [ class [ C.NumberColumn ] ]
+                        [ text (format "0,0.000000" ((toFloat cashIn.cryptoAtoms) / multiplier cashIn.cryptoCode))
+                        ]
+                    , td [] [ text cashIn.cryptoCode ]
+                    , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashIn.fiat) ]
+                    , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashIn.phone) ]
+                    , td [ class [ C.TxAddress ] ] [ text cashIn.toAddress ]
                     ]
-                , td [] [ text cashIn.cryptoCode ]
-                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashIn.fiat) ]
-                , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashIn.phone) ]
-                , td [ class [ C.TxAddress ] ] [ text cashIn.toAddress ]
-                ]
 
         CashOutTx cashOut ->
             tr [ class [ C.CashOut ] ]
-                [ td [] [ text "Cash out" ]
+                [ td [] [ txLink cashOut.id ]
+                , td [] [ text "Cash out" ]
                 , td [ class [ C.NumberColumn, C.DateColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
                 , td [] [ text cashOut.machineName ]
                 , td [ class [ C.NumberColumn ] ]
@@ -120,7 +144,8 @@ tableView txs =
         table [ class [ C.TxTable ] ]
             [ thead []
                 [ tr []
-                    [ td [] []
+                    [ td [ class [ C.TxId ] ] [ text "Id" ]
+                    , td [] [ text "Status" ]
                     , td [ class [ C.TxDate ] ] [ text "Time" ]
                     , td [ class [ C.TxMachine ] ] [ text "Machine" ]
                     , td [ colspan 2 ] [ text "Crypto" ]

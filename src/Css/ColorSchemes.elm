@@ -54,9 +54,9 @@ cobaltScheme =
     }
 
 
-colorize : ColorScheme -> Mixin
+colorize : ColorScheme -> Style
 colorize scheme =
-    mixin
+    batch
         [ color scheme.fg
         , fontWeight bold
         , cursor pointer

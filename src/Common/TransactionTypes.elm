@@ -1,4 +1,4 @@
-module TransactionTypes exposing (..)
+module Common.TransactionTypes exposing (..)
 
 import Date exposing (Date)
 
@@ -14,6 +14,10 @@ type alias CashInTxRec =
     , txHash : Maybe String
     , phone : Maybe String
     , error : Maybe String
+    , operatorCompleted : Bool
+    , send : Bool
+    , sendConfirmed : Bool
+    , expired : Bool
     , created : Date
     }
 
