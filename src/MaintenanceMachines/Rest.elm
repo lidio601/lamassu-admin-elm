@@ -52,7 +52,7 @@ machinesDecoder =
 
 encodeAction : MachineAction -> E.Value
 encodeAction action =
-    case (Debug.log "DEBUG101" action) of
+    case action of
         ResetCashOutBills machine ->
             E.object
                 [ ( "action", E.string "resetCashOutBills" )

@@ -85,7 +85,7 @@ update msg model =
             RemoteData.update (updateCassette machine position str) model
 
         Submit action ->
-            RemoteData.update (updateAction (Debug.log "DEBUG102" action)) model
+            RemoteData.update (updateAction action) model
 
         HideSaveIndication ->
             RemoteData.update (\subModel -> { subModel | status = NotSaving } ! []) model

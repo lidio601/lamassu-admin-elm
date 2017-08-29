@@ -182,7 +182,7 @@ update msg model =
         TransactionMsg transactionMsg ->
             let
                 ( transaction, cmd ) =
-                    Transaction.State.update (Debug.log "DEBUG100" transactionMsg) model.transaction
+                    Transaction.State.update transactionMsg model.transaction
             in
                 { model | transaction = transaction } ! [ Cmd.map TransactionMsg cmd ]
 
@@ -314,9 +314,6 @@ urlUpdate location model =
     let
         route =
             Maybe.withDefault NotFoundRoute (parseHash parseRoute location)
-
-        _ =
-            Debug.log "DEBUG101" route
     in
         case route of
             PairRoute ->
