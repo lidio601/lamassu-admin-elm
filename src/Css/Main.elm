@@ -261,7 +261,12 @@ css =
             , width (pct 100)
             , backgroundColor Colors.white
             , descendants
-                [ class NumberColumn
+                [ a
+                    [ textDecoration none
+                    , color Colors.sandstone
+                    , borderBottom3 (px 1) solid Colors.amazonite
+                    ]
+                , class NumberColumn
                     [ textAlign right
                     , width (em 10)
                     ]
@@ -270,6 +275,8 @@ css =
                     , fontWeight bold
                     , fontSize (pct 90)
                     ]
+                , class TxCancelled
+                    [ backgroundColor Colors.lightRed ]
                 , tbody
                     [ fontFamilies codeFonts
                     , color Colors.sandstone

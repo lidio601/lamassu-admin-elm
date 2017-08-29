@@ -55,12 +55,15 @@ type CssClasses
     | Saving
     | Enabled
     | Disabled
+    | TxId
     | TxDate
     | TxMachine
     | TxAmount
+    | TxFiat
     | TxCrypto
     | TxPhone
     | TxAddress
+    | TxCancelled
     | QrCode
     | CashOut
     | CashIn

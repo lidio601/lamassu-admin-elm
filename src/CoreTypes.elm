@@ -11,7 +11,8 @@ import Account
 import Config
 import MaintenanceMachines.Types
 import MaintenanceFunding.Types
-import Transaction
+import Transaction.Types
+import Transactions
 import StatusTypes
 
 
@@ -26,7 +27,8 @@ type Route
     = AccountRoute String
     | PairRoute
     | ConfigRoute String (Maybe String)
-    | TransactionRoute
+    | TransactionsRoute
+    | TransactionRoute String
     | MaintenanceMachinesRoute
     | MaintenanceFundingRoute (Maybe String)
     | NotFoundRoute
@@ -38,7 +40,8 @@ type Msg
     | ConfigMsg Config.Msg
     | MaintenanceMachinesMsg MaintenanceMachines.Types.Msg
     | MaintenanceFundingMsg MaintenanceFunding.Types.Msg
-    | TransactionMsg Transaction.Msg
+    | TransactionsMsg Transactions.Msg
+    | TransactionMsg Transaction.Types.Msg
     | LoadAccounts (List ( String, String ))
     | LoadStatus StatusTypes.WebStatus
     | NewUrl String

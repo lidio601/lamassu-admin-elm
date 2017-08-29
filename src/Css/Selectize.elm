@@ -12,9 +12,9 @@ codeFonts =
     [ "Inconsolata", "monospace" ]
 
 
-component : Mixin
+component : Style
 component =
-    mixin
+    batch
         [ borderRadius (px 3)
         , position relative
         , margin zero

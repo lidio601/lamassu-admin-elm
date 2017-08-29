@@ -1,9 +1,9 @@
-module TransactionDecoder exposing (..)
+module Transaction.Decoder exposing (..)
 
 import Json.Decode exposing (..)
 import Json.Decode.Extra exposing (date, fromResult)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import TransactionTypes exposing (..)
+import Common.TransactionTypes exposing (..)
 import String
 
 
@@ -54,6 +54,10 @@ cashInTxDecoder =
         |> required "txHash" (nullable string)
         |> required "phone" (nullable string)
         |> required "error" (nullable string)
+        |> required "operatorCompleted" bool
+        |> required "send" bool
+        |> required "sendConfirmed" bool
+        |> required "expired" bool
         |> required "created" date
 
 

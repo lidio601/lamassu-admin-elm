@@ -6,7 +6,7 @@ import Navigation
 import Pair
 import Account
 import Config
-import Transaction
+import Transactions
 import NavBar exposing (..)
 import UrlParser exposing ((</>), s, string, top, parseHash)
 import Http
@@ -27,6 +27,9 @@ import MaintenanceMachines.View
 import MaintenanceFunding.Types
 import MaintenanceFunding.State
 import MaintenanceFunding.View
+import Transaction.Types
+import Transaction.State
+import Transaction.View
 
 
 main : Program Never Model Msg
@@ -53,7 +56,8 @@ parseRoute =
         , UrlParser.map MaintenanceMachinesRoute (s "machines")
         , UrlParser.map (\crypto -> MaintenanceFundingRoute (Just crypto)) (s "funding" </> string)
         , UrlParser.map (MaintenanceFundingRoute Nothing) (s "funding")
-        , UrlParser.map TransactionRoute (s "transaction")
+        , UrlParser.map TransactionsRoute (s "transactions")
+        , UrlParser.map TransactionRoute (s "transaction" </> string)
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
 
@@ -86,7 +90,8 @@ type alias Model =
     , config : Config.Model
     , maintenanceMachines : MaintenanceMachines.Types.Model
     , maintenanceFunding : MaintenanceFunding.Types.Model
-    , transaction : Transaction.Model
+    , transactions : Transactions.Model
+    , transaction : Transaction.Types.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
     , err : Maybe String
@@ -103,7 +108,8 @@ init location =
             , config = Config.init
             , maintenanceMachines = MaintenanceMachines.State.init
             , maintenanceFunding = MaintenanceFunding.State.init
-            , transaction = Transaction.init
+            , transactions = Transactions.init
+            , transaction = Transaction.State.init
             , accounts = []
             , status = Nothing
             , err = Nothing
@@ -166,12 +172,19 @@ update msg model =
             in
                 { model | maintenanceFunding = maintenanceFunding } ! [ Cmd.map MaintenanceFundingMsg cmd ]
 
+        TransactionsMsg transactionsMsg ->
+            let
+                ( transactionsModel, cmd ) =
+                    Transactions.update transactionsMsg model.transactions
+            in
+                { model | transactions = transactionsModel } ! [ Cmd.map TransactionsMsg cmd ]
+
         TransactionMsg transactionMsg ->
             let
-                ( transactionModel, cmd ) =
-                    Transaction.update transactionMsg model.transaction
+                ( transaction, cmd ) =
+                    Transaction.State.update transactionMsg model.transaction
             in
-                { model | transaction = transactionModel } ! [ Cmd.map TransactionMsg cmd ]
+                { model | transaction = transaction } ! [ Cmd.map TransactionMsg cmd ]
 
         LoadAccounts accounts ->
             { model | accounts = accounts } ! []
@@ -212,8 +225,8 @@ update msg model =
                     Maybe.withDefault NotFoundRoute (parseHash parseRoute model.location)
 
                 extraCmds =
-                    if route == TransactionRoute then
-                        [ Cmd.map TransactionMsg Transaction.loadCmd ]
+                    if route == TransactionsRoute then
+                        [ Cmd.map TransactionsMsg Transactions.loadCmd ]
                     else
                         []
             in
@@ -241,8 +254,11 @@ content model route =
         MaintenanceFundingRoute _ ->
             map MaintenanceFundingMsg (MaintenanceFunding.View.view model.maintenanceFunding)
 
-        TransactionRoute ->
-            map TransactionMsg (Transaction.view model.transaction)
+        TransactionsRoute ->
+            map TransactionsMsg (Transactions.view model.transactions)
+
+        TransactionRoute _ ->
+            map TransactionMsg (Transaction.View.view model.transaction)
 
         NotFoundRoute ->
             div [] [ text ("No such route") ]
@@ -338,12 +354,20 @@ urlUpdate location model =
                     { model | location = location, maintenanceFunding = maintenanceFunding }
                         ! [ Cmd.map MaintenanceFundingMsg cmd ]
 
-            TransactionRoute ->
+            TransactionsRoute ->
                 let
-                    ( transactionModel, cmd ) =
-                        Transaction.load
+                    ( transactionsModel, cmd ) =
+                        Transactions.load
                 in
-                    { model | location = location, transaction = transactionModel } ! [ Cmd.map TransactionMsg cmd ]
+                    { model | location = location, transactions = transactionsModel } ! [ Cmd.map TransactionsMsg cmd ]
+
+            TransactionRoute txId ->
+                let
+                    ( transaction, cmd ) =
+                        Transaction.State.load txId
+                in
+                    { model | location = location, transaction = transaction }
+                        ! [ Cmd.map TransactionMsg cmd ]
 
             NotFoundRoute ->
                 { model | location = location } ! []

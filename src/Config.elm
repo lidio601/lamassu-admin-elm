@@ -812,7 +812,7 @@ checkEnabled fields fieldMeta =
             enabledIfAll =
                 (List.isEmpty fieldMeta.fieldEnabledIfAll) || (List.all isField enabledIfAllInstances)
         in
-            (Debug.log "DEBUG101" enabledIfAny) && (Debug.log "DEBUG102" enabledIfAll)
+            enabledIfAny && enabledIfAll
 
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
