@@ -48,6 +48,12 @@ routeToUrl route =
         TransactionRoute txId ->
             "/#transaction/" ++ txId
 
+        CustomersRoute ->
+            "/#customers/"
+
+        CustomerRoute id ->
+            "/#customer/" ++ id
+
         NotFoundRoute ->
             Debug.crash "Need unknown route"
 
@@ -176,6 +182,12 @@ determineCategory route =
         TransactionRoute _ ->
             Nothing
 
+        CustomersRoute ->
+            Nothing
+
+        CustomerRoute _ ->
+            Nothing
+
         NotFoundRoute ->
             Nothing
 
@@ -208,6 +220,7 @@ view route invalidGroups =
             [ l ( "Transactions", TransactionsRoute, True )
             , ll ( "Maintenance", MaintenanceCat, MaintenanceMachinesRoute, True )
                 [ ( "Machines", MaintenanceMachinesRoute, True )
+                , ( "Customers", CustomersRoute, True )
                 , ( "Funding", MaintenanceFundingRoute Nothing, True )
                 ]
             , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClearMachine )
