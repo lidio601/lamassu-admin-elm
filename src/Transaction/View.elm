@@ -25,13 +25,16 @@ cashInTxView tx =
             else
                 "Pending"
 
+        cancellable =
+            not (tx.operatorCompleted || tx.sendConfirmed || tx.expired)
+
         cancelButtonDiv =
-            if tx.operatorCompleted || tx.sendConfirmed then
-                div [] []
-            else
+            if cancellable then
                 div []
                     [ button [ onClick (Cancel tx.id) ] [ text "Cancel transaction" ]
                     ]
+            else
+                div [] []
     in
         div []
             [ div [] [ text tx.id ]
