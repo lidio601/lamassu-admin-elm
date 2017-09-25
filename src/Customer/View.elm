@@ -11,14 +11,17 @@ import Date exposing (..)
 import Date.Extra exposing (toFormattedString)
 
 
-customerActions : String -> Maybe String -> Html Msg
+customerActions : String -> Maybe Authorized -> Html Msg
 customerActions id authorizedOverride =
     case authorizedOverride of
-        Just authorizedOverride ->
-            if authorizedOverride == "blocked" then
-                button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
-            else
-                button [ onClick (BlockCustomer id) ] [ text "Block" ]
+        Just Blocked ->
+            button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
+
+        Just Verified ->
+            button [ onClick (BlockCustomer id) ] [ text "Block" ]
+
+        Just Automatic ->
+            button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
 
         Nothing ->
             button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
@@ -29,16 +32,6 @@ formatDate date =
     case date of
         Just date ->
             toFormattedString "yyyy-MM-dd HH:mm" date
-
-        Nothing ->
-            ""
-
-
-formatString : Maybe String -> String
-formatString string =
-    case string of
-        Just string ->
-            string
 
         Nothing ->
             ""
@@ -56,11 +49,11 @@ customerView customer =
                     ]
                 , tr []
                     [ td [] [ text "Name" ]
-                    , td [] [ text (formatString customer.name) ]
+                    , td [] [ text (Maybe.withDefault "" customer.name) ]
                     ]
                 , tr []
                     [ td [] [ text "Phone" ]
-                    , td [] [ text (formatString customer.phone) ]
+                    , td [] [ text (Maybe.withDefault "" customer.phone) ]
                     ]
                 , tr []
                     [ td [] [ text "Completed phone at" ]
@@ -74,6 +67,10 @@ customerView customer =
                     [ td [] [ text "Block Customer" ]
                     , td []
                         [ customerActions customer.id customer.authorizedOverride ]
+                    ]
+                , tr []
+                    [ td [] [ text "Authorized at " ]
+                    , td [] [ text (formatDate customer.authorizedAt) ]
                     ]
                 ]
             ]

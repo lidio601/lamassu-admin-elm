@@ -3,6 +3,12 @@ module Common.Customer.Types exposing (..)
 import Date exposing (Date)
 
 
+type Authorized
+    = Automatic
+    | Blocked
+    | Verified
+
+
 type alias Customers =
     List Customer
 
@@ -14,5 +20,6 @@ type alias Customer =
     , phoneAt : Maybe Date
     , created : Date
     , status : Maybe String
-    , authorizedOverride : Maybe String
+    , authorizedOverride : Maybe Authorized
+    , authorizedAt : Maybe Date
     }
