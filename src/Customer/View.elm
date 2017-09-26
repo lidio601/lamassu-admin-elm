@@ -11,19 +11,16 @@ import Date exposing (..)
 import Date.Extra exposing (toFormattedString)
 
 
-customerActions : String -> Maybe Authorized -> Html Msg
+customerActions : String -> Authorized -> Html Msg
 customerActions id authorizedOverride =
     case authorizedOverride of
-        Just Blocked ->
+        Blocked ->
             button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
 
-        Just Verified ->
+        Verified ->
             button [ onClick (BlockCustomer id) ] [ text "Block" ]
 
-        Just Automatic ->
-            button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
-
-        Nothing ->
+        Automatic ->
             button [ onClick (UnBlockCustomer id) ] [ text "Unblock" ]
 
 
@@ -35,6 +32,11 @@ formatDate date =
 
         Nothing ->
             ""
+
+
+maybeText : Maybe String -> String
+maybeText maybeString =
+    Maybe.withDefault "" maybeString
 
 
 customerView : Customer -> Html Msg
@@ -49,11 +51,11 @@ customerView customer =
                     ]
                 , tr []
                     [ td [] [ text "Name" ]
-                    , td [] [ text (Maybe.withDefault "" customer.name) ]
+                    , td [] [ text (maybeText customer.name) ]
                     ]
                 , tr []
                     [ td [] [ text "Phone" ]
-                    , td [] [ text (Maybe.withDefault "" customer.phone) ]
+                    , td [] [ text (maybeText customer.phone) ]
                     ]
                 , tr []
                     [ td [] [ text "Completed phone at" ]

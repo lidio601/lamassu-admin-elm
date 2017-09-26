@@ -11,8 +11,8 @@ customersDecoder =
     field "customers" (list customerDecoder)
 
 
-stringToConfigScope : String -> Decoder Authorized
-stringToConfigScope s =
+mapAuthorizedTypes : String -> Decoder Authorized
+mapAuthorizedTypes s =
     case s of
         "blocked" ->
             succeed Blocked
@@ -30,7 +30,7 @@ stringToConfigScope s =
 authorizedDecoder : Decoder Authorized
 authorizedDecoder =
     string
-        |> andThen stringToConfigScope
+        |> andThen mapAuthorizedTypes
 
 
 customerDecoder : Decoder Customer
@@ -42,5 +42,5 @@ customerDecoder =
         |> required "phoneAt" (nullable date)
         |> required "created" date
         |> required "status" (nullable string)
-        |> required "authorizedOverride" (nullable authorizedDecoder)
+        |> required "authorizedOverride" authorizedDecoder
         |> required "authorizedAt" (nullable date)

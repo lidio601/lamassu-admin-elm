@@ -20,6 +20,6 @@ type alias Customer =
     , phoneAt : Maybe Date
     , created : Date
     , status : Maybe String
-    , authorizedOverride : Maybe Authorized
+    , authorizedOverride : Authorized
     , authorizedAt : Maybe Date
     }

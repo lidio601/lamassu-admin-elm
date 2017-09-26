@@ -16,14 +16,19 @@ customerLink id =
     a [ href ("/#customer/" ++ id) ] [ text (String.left 8 id) ]
 
 
+maybeText : Maybe String -> String
+maybeText maybeString =
+    Maybe.withDefault "" maybeString
+
+
 rowView : Customer -> Html Msg
 rowView customer =
     tr [ class [] ]
         [ td [] [ customerLink customer.id ]
         , td [] [ text (toFormattedString "yyyy-MM-dd HH:mm" customer.created) ]
-        , td [] [ text (Maybe.withDefault "" customer.phone) ]
-        , td [] [ text (Maybe.withDefault "" customer.name) ]
-        , td [] [ text (Maybe.withDefault "" customer.status) ]
+        , td [] [ text (maybeText customer.phone) ]
+        , td [] [ text (maybeText customer.name) ]
+        , td [] [ text (maybeText customer.status) ]
         ]
 
 
