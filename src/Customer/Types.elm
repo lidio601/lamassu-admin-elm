@@ -10,5 +10,4 @@ type alias Model =
 
 type Msg
     = Load Model
-    | BlockCustomer String
-    | UnBlockCustomer String
+    | PatchCustomer String String String

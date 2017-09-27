@@ -40,7 +40,20 @@ customerDecoder =
         |> required "name" (nullable string)
         |> required "phone" (nullable string)
         |> required "phoneAt" (nullable date)
+        |> required "smsOverride" authorizedDecoder
         |> required "created" date
         |> required "status" (nullable string)
         |> required "authorizedOverride" authorizedDecoder
         |> required "authorizedAt" (nullable date)
+        |> required "idCardData" (nullable string)
+        |> required "idCardDataOverride" authorizedDecoder
+        |> required "idCardAt" (nullable date)
+        |> required "idCardImagePath" (nullable string)
+        |> required "idCardPhotoOverride" authorizedDecoder
+        |> required "idCardImageAt" (nullable date)
+        |> required "sanctionsCheck" (nullable string)
+        |> required "sanctionsCheckOverride" authorizedDecoder
+        |> required "sanctionsCheckAt" (nullable date)
+        |> required "frontFacingCamPath" (nullable string)
+        |> required "frontFacingCamOverride" authorizedDecoder
+        |> required "frontFacingCamAt" (nullable date)

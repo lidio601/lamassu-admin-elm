@@ -7,9 +7,9 @@ import Common.Customer.Decoder exposing (customerDecoder)
 import Customer.Types exposing (..)
 
 
-updateCustomer : String -> String -> Cmd Msg
-updateCustomer id action =
-    patch ("/api/customer/" ++ id ++ "?authorizedOverride=" ++ action)
+patchCustomer : String -> String -> String -> Cmd Msg
+patchCustomer id field value =
+    patch ("/api/customer/" ++ id ++ "?" ++ field ++ "=" ++ value)
         |> withExpect (Http.expectJson customerDecoder)
         |> send RemoteData.fromResult
         |> Cmd.map Load

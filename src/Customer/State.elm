@@ -21,8 +21,5 @@ update msg model =
         Load loadedModel ->
             loadedModel ! []
 
-        UnBlockCustomer id ->
-            model ! [ updateCustomer id "verified" ]
-
-        BlockCustomer id ->
-            model ! [ updateCustomer id "blocked" ]
+        PatchCustomer id fieldName value ->
+            model ! [ patchCustomer id fieldName value ]
