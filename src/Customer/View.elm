@@ -16,13 +16,13 @@ customerActions : String -> Authorized -> Html Msg
 customerActions id authorizedOverride =
     case authorizedOverride of
         Blocked ->
-            button [ onClick (PatchCustomer id "authorizedOverride" "verified") ] [ text "Unblock" ]
+            button [ onClick (PatchCustomer id "authorizedOverride" Verified) ] [ text "Unblock" ]
 
         Verified ->
-            button [ onClick (PatchCustomer id "authorizedOverride" "blocked") ] [ text "Block" ]
+            button [ onClick (PatchCustomer id "authorizedOverride" Blocked) ] [ text "Block" ]
 
         Automatic ->
-            button [ onClick (PatchCustomer id "authorizedOverride" "automatic") ] [ text "Unblock" ]
+            button [ onClick (PatchCustomer id "authorizedOverride" Blocked) ] [ text "Block" ]
 
 
 formatDate : Maybe Date -> String
@@ -35,29 +35,29 @@ formatDate date =
             ""
 
 
-maybeText : Maybe String -> String
+maybeText : Maybe String -> Html Msg
 maybeText maybeString =
-    Maybe.withDefault "" maybeString
+    text (Maybe.withDefault "" maybeString)
 
 
 actions : String -> String -> Authorized -> Html Msg
 actions id fieldKey checkedValue =
     (div []
         [ div []
-            [ radio fieldKey checkedValue "automatic" (PatchCustomer id fieldKey (authorizedToString Automatic))
-            , radio fieldKey checkedValue "blocked" (PatchCustomer id fieldKey (authorizedToString Blocked))
-            , radio fieldKey checkedValue "verified" (PatchCustomer id fieldKey (authorizedToString Verified))
+            [ radio fieldKey checkedValue Automatic (PatchCustomer id fieldKey Automatic)
+            , radio fieldKey checkedValue Blocked (PatchCustomer id fieldKey Blocked)
+            , radio fieldKey checkedValue Verified (PatchCustomer id fieldKey Verified)
             ]
         ]
     )
 
 
-radio : String -> Authorized -> String -> msg -> Html msg
+radio : String -> Authorized -> Authorized -> msg -> Html msg
 radio inputName checkedValue value msg =
     label
         [ style [ ( "padding", "5px" ) ] ]
-        [ input [ checked (authorizedToString checkedValue == value), type_ "radio", name inputName, onClick msg ] []
-        , text value
+        [ input [ checked (checkedValue == value), type_ "radio", name inputName, onClick msg ] []
+        , text (authorizedToString value)
         ]
 
 
@@ -81,11 +81,11 @@ customerView customer =
                     ]
                 , tr []
                     [ td [] [ text "Name" ]
-                    , td [] [ text (maybeText customer.name) ]
+                    , td [] [ maybeText customer.name ]
                     ]
                 , tr []
                     [ td [] [ text "Phone" ]
-                    , td [] [ text (maybeText customer.phone) ]
+                    , td [] [ maybeText customer.phone ]
                     ]
                 , tr []
                     [ td [] [ text "Completed phone at" ]
@@ -114,6 +114,7 @@ customerView customer =
                     , td [] [ text "Date" ]
                     , td [] [ text "Verify Status" ]
                     , td [] [ text "Override Status" ]
+                    , td [] [ text "User who overrode" ]
                     , td [] [ text "Actions" ]
                     ]
                 ]
@@ -123,52 +124,44 @@ customerView customer =
                     , td [] [ text (formatDate customer.phoneAt) ]
                     , td [] [ verifyStatus customer.phone customer.smsOverride ]
                     , td [] [ text (authorizedToString customer.smsOverride) ]
+                    , td [] [ maybeText customer.smsOverrideByName ]
                     , td [] [ actions customer.id "smsOverride" customer.smsOverride ]
                     ]
                 , tr []
                     [ td [] [ text "ID Card Data" ]
-                    , td [] [ text (formatDate customer.idCardAt) ]
+                    , td [] [ text (formatDate customer.idCardDataAt) ]
                     , td [] [ verifyStatus customer.idCardData customer.idCardDataOverride ]
                     , td [] [ text (authorizedToString customer.idCardDataOverride) ]
+                    , td [] [ maybeText customer.idCardDataOverrideByName ]
                     , td [] [ actions customer.id "idCardDataOverride" customer.idCardDataOverride ]
                     ]
                 , tr []
                     [ td [] [ text "ID Card Photo" ]
-                    , td [] [ text (formatDate customer.idCardImageAt) ]
-                    , td [] [ verifyStatus customer.idCardImagePath customer.idCardPhotoOverride ]
+                    , td [] [ text (formatDate customer.idCardPhotoAt) ]
+                    , td [] [ verifyStatus customer.idCardPhotoPath customer.idCardPhotoOverride ]
                     , td [] [ text (authorizedToString customer.idCardPhotoOverride) ]
+                    , td [] [ maybeText customer.idCardPhotoOverrideByName ]
                     , td [] [ actions customer.id "idCardPhotoOverride" customer.idCardPhotoOverride ]
                     ]
                 , tr []
                     [ td [] [ text "Front Facing Camera" ]
-                    , td [] [ text (formatDate customer.frontFacingCamAt) ]
-                    , td [] [ verifyStatus customer.frontFacingCamPath customer.frontFacingCamOverride ]
-                    , td [] [ text (authorizedToString customer.frontFacingCamOverride) ]
-                    , td [] [ actions customer.id "frontFacingCamOverride" customer.frontFacingCamOverride ]
+                    , td [] [ text (formatDate customer.frontCameraAt) ]
+                    , td [] [ verifyStatus customer.frontCameraPath customer.frontCameraOverride ]
+                    , td [] [ text (authorizedToString customer.frontCameraOverride) ]
+                    , td [] [ maybeText customer.frontCameraOverrideByName ]
+                    , td [] [ actions customer.id "frontCameraOverride" customer.frontCameraOverride ]
                     ]
                 , tr []
                     [ td [] [ text "Sanctions Check" ]
-                    , td [] [ text (formatDate customer.sanctionsCheckAt) ]
-                    , td [] [ verifyStatus customer.sanctionsCheck customer.sanctionsCheckOverride ]
-                    , td [] [ text (authorizedToString customer.sanctionsCheckOverride) ]
-                    , td [] [ actions customer.id "sanctionsCheckOverride" customer.sanctionsCheckOverride ]
+                    , td [] [ text (formatDate customer.sanctionsAt) ]
+                    , td [] [ verifyStatus customer.sanctions customer.sanctionsOverride ]
+                    , td [] [ text (authorizedToString customer.sanctionsOverride) ]
+                    , td [] [ maybeText customer.sanctionsOverrideByName ]
+                    , td [] [ actions customer.id "sanctionsOverride" customer.sanctionsOverride ]
                     ]
                 ]
             ]
         ]
-
-
-authorizedToString : Authorized -> String
-authorizedToString model =
-    case model of
-        Verified ->
-            "verified"
-
-        Blocked ->
-            "blocked"
-
-        Automatic ->
-            "automatic"
 
 
 view : Model -> Html Msg

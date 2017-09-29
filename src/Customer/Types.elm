@@ -10,4 +10,4 @@ type alias Model =
 
 type Msg
     = Load Model
-    | PatchCustomer String String String
+    | PatchCustomer String String Authorized

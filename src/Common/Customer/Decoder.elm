@@ -41,19 +41,31 @@ customerDecoder =
         |> required "phone" (nullable string)
         |> required "phoneAt" (nullable date)
         |> required "smsOverride" authorizedDecoder
+        |> required "smsOverrideByName" (nullable string)
+        |> required "smsOverrideAt" (nullable date)
         |> required "created" date
         |> required "status" (nullable string)
         |> required "authorizedOverride" authorizedDecoder
+        |> required "authorizedOverrideByName" (nullable string)
+        |> required "authorizedOverrideAt" (nullable date)
         |> required "authorizedAt" (nullable date)
         |> required "idCardData" (nullable string)
         |> required "idCardDataOverride" authorizedDecoder
-        |> required "idCardAt" (nullable date)
-        |> required "idCardImagePath" (nullable string)
+        |> required "idCardDataOverrideByName" (nullable string)
+        |> required "idCardDataOverrideAt" (nullable date)
+        |> required "idCardDataAt" (nullable date)
+        |> required "idCardPhotoPath" (nullable string)
         |> required "idCardPhotoOverride" authorizedDecoder
-        |> required "idCardImageAt" (nullable date)
-        |> required "sanctionsCheck" (nullable string)
-        |> required "sanctionsCheckOverride" authorizedDecoder
-        |> required "sanctionsCheckAt" (nullable date)
-        |> required "frontFacingCamPath" (nullable string)
-        |> required "frontFacingCamOverride" authorizedDecoder
-        |> required "frontFacingCamAt" (nullable date)
+        |> required "idCardPhotoOverrideByName" (nullable string)
+        |> required "idCardPhotoOverrideAt" (nullable date)
+        |> required "idCardPhotoAt" (nullable date)
+        |> required "sanctions" (nullable string)
+        |> required "sanctionsOverride" authorizedDecoder
+        |> required "sanctionsOverrideByName" (nullable string)
+        |> required "sanctionsOverrideAt" (nullable date)
+        |> required "sanctionsAt" (nullable date)
+        |> required "frontCameraPath" (nullable string)
+        |> required "frontCameraOverride" authorizedDecoder
+        |> required "frontCameraOverrideByName" (nullable string)
+        |> required "frontCameraOverrideAt" (nullable date)
+        |> required "frontCameraAt" (nullable date)
