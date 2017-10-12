@@ -69,3 +69,4 @@ customerDecoder =
         |> required "frontCameraOverrideByName" (nullable string)
         |> required "frontCameraOverrideAt" (nullable date)
         |> required "frontCameraAt" (nullable date)
+        |> required "dailyVolume" (nullable string)

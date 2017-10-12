@@ -47,6 +47,7 @@ type alias Customer =
     , frontCameraOverrideByName : Maybe String
     , frontCameraOverrideAt : Maybe Date
     , frontCameraAt : Maybe Date
+    , dailyVolume : Maybe String
     }
 
 
