@@ -54,6 +54,9 @@ routeToUrl route =
         CustomerRoute id ->
             "/#customer/" ++ id
 
+        LogsRoute id ->
+            "/#logs/" ++ id
+
         NotFoundRoute ->
             Debug.crash "Need unknown route"
 
@@ -186,6 +189,9 @@ determineCategory route =
             Nothing
 
         CustomerRoute _ ->
+            Nothing
+
+        LogsRoute _ ->
             Nothing
 
         NotFoundRoute ->

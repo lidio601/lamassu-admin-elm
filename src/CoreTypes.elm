@@ -15,6 +15,7 @@ import Transaction.Types
 import Transactions
 import Customers.Types
 import Customer.Types
+import Logs.Types
 import StatusTypes
 
 
@@ -33,6 +34,7 @@ type Route
     | TransactionRoute String
     | CustomersRoute
     | CustomerRoute String
+    | LogsRoute String
     | MaintenanceMachinesRoute
     | MaintenanceFundingRoute (Maybe String)
     | NotFoundRoute
@@ -48,6 +50,7 @@ type Msg
     | TransactionMsg Transaction.Types.Msg
     | CustomersMsg Customers.Types.Msg
     | CustomerMsg Customer.Types.Msg
+    | LogsMsg Logs.Types.Msg
     | LoadAccounts (List ( String, String ))
     | LoadStatus StatusTypes.WebStatus
     | NewUrl String

@@ -10,6 +10,9 @@ import Transactions
 import Customers.Types
 import Customers.State
 import Customers.View
+import Logs.Types
+import Logs.State
+import Logs.View
 import Customer.Types
 import Customer.State
 import Customer.View
@@ -67,6 +70,7 @@ parseRoute =
         , UrlParser.map TransactionRoute (s "transaction" </> string)
         , UrlParser.map CustomersRoute (s "customers")
         , UrlParser.map CustomerRoute (s "customer" </> string)
+        , UrlParser.map LogsRoute (s "logs" </> string)
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
 
@@ -103,6 +107,7 @@ type alias Model =
     , transaction : Transaction.Types.Model
     , customers : Customers.Types.Model
     , customer : Customer.Types.Model
+    , logs : Logs.Types.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
     , err : Maybe String
@@ -123,6 +128,7 @@ init location =
             , transaction = Transaction.State.init
             , customers = Customers.State.init
             , customer = Customer.State.init
+            , logs = Logs.State.init
             , accounts = []
             , status = Nothing
             , err = Nothing
@@ -213,6 +219,13 @@ update msg model =
             in
                 { model | customer = customerModel } ! [ Cmd.map CustomerMsg cmd ]
 
+        LogsMsg logsMsg ->
+            let
+                ( logsModel, cmd ) =
+                    Logs.State.update logsMsg model.logs
+            in
+                { model | logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
+
         LoadAccounts accounts ->
             { model | accounts = accounts } ! []
 
@@ -292,6 +305,9 @@ content model route =
 
         CustomerRoute _ ->
             map CustomerMsg (Customer.View.view model.customer)
+
+        LogsRoute _ ->
+            map LogsMsg (Logs.View.view model.logs)
 
         NotFoundRoute ->
             div [] [ text ("No such route") ]
@@ -407,6 +423,13 @@ urlUpdate location model =
                         Customer.State.load id
                 in
                     { model | location = location, customer = customerModel } ! [ Cmd.map CustomerMsg cmd ]
+
+            LogsRoute id ->
+                let
+                    ( logsModel, cmd ) =
+                        Logs.State.load id
+                in
+                    { model | location = location, logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
 
             TransactionRoute txId ->
                 let
