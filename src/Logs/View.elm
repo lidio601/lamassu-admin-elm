@@ -9,7 +9,6 @@ import List
 import Logs.Types exposing (..)
 import Date exposing (..)
 import Date.Extra exposing (toFormattedString)
-import MaintenanceMachines.Types exposing (Machines, Machine)
 
 
 machineLink : Machine -> Html Msg
@@ -73,7 +72,8 @@ tableView logs =
         div [] [ text "No logs yet." ]
     else
         div []
-            [ h1 [] [ text "Latest logs" ]
+            [ div [] (List.map rowView logs)
+            , h1 [] [ text "Latest logs" ]
             , table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
@@ -90,7 +90,7 @@ tableView logs =
 
 view : Model -> Html Msg
 view model =
-    case model of
+    case model.logs of
         NotAsked ->
             div [] []
 

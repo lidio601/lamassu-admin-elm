@@ -20,3 +20,15 @@ logDecoder =
         |> required "timestamp" (nullable date)
         |> required "logLevel" (nullable string)
         |> required "message" (nullable string)
+
+
+machinesDecoder : Decoder Machines
+machinesDecoder =
+    field "machines" (list machineDecoder)
+
+
+machineDecoder : Decoder Machine
+machineDecoder =
+    decode Machine
+        |> required "deviceId" string
+        |> required "name" string

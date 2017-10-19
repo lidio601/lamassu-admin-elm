@@ -7,21 +7,28 @@ import Logs.Types exposing (..)
 
 init : Model
 init =
-    NotAsked
-
-
-loadCmd : String -> Cmd Msg
-loadCmd id =
-    getLogs id
+    { logs = NotAsked, machines = NotAsked }
 
 
 load : String -> ( Model, Cmd Msg )
 load id =
-    ( Loading, getLogs id )
+    ( { logs = Loading, machines = Loading }, getData id )
+
+
+getData : String -> Cmd Msg
+getData id =
+    Cmd.batch [ getLogs id, getMachines ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LoadLogs loadedModel ->
-            loadedModel ! []
+        LoadLogs response ->
+            ( { model | logs = response }
+            , Cmd.none
+            )
+
+        LoadMachines response ->
+            ( { model | machines = response }
+            , Cmd.none
+            )

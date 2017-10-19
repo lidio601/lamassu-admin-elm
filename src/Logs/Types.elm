@@ -4,6 +4,16 @@ import Date exposing (Date)
 import RemoteData exposing (..)
 
 
+type alias Machine =
+    { deviceId : String
+    , name : String
+    }
+
+
+type alias Machines =
+    List Machine
+
+
 type alias Log =
     { id : String
     , deviceId : Maybe String
@@ -19,8 +29,11 @@ type alias Logs =
 
 
 type alias Model =
-    RemoteData.WebData Logs
+    { logs : WebData Logs
+    , machines : WebData Machines
+    }
 
 
 type Msg
-    = LoadLogs Model
+    = LoadLogs (WebData Logs)
+    | LoadMachines (WebData Machines)
