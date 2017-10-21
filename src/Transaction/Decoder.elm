@@ -84,4 +84,4 @@ cashOutTxDecoder =
         |> required "phone" (nullable string)
         |> required "error" (nullable string)
         |> required "created" date
-        |> required "confirmationTime" confirmedDecoder
+        |> required "confirmedAt" confirmedDecoder
