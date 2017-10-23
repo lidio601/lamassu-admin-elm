@@ -132,6 +132,15 @@ css =
             [ displayFlex
             , height (pct 100)
             ]
+        , class PaneWrapper
+            [ displayFlex
+            ]
+        , class LeftPane
+            [ minWidth (px 270)
+            ]
+        , class ContentPane
+            [ maxHeight (pct 100)
+            ]
         , class StatusBar
             [ position fixed
             , bottom zero

@@ -54,11 +54,11 @@ machinesView machines =
         div [ class [ C.EmptyTable ] ] [ text "No paired machines." ]
     else
         div []
-            [ h1 [] [ text "Paired Machines" ]
+            [ h2 [] [ text "Machines" ]
             , table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
-                        [ td [] [ text "Name" ]
+                        [ td [] [ text "" ]
                         ]
                     ]
                 , tbody [] (List.map machineRowView machines)
@@ -66,14 +66,13 @@ machinesView machines =
             ]
 
 
-tableView : Logs -> Html Msg
-tableView logs =
+logsView : Logs -> Html Msg
+logsView logs =
     if List.isEmpty logs then
         div [] [ text "No logs yet." ]
     else
         div []
-            [ div [] (List.map rowView logs)
-            , h1 [] [ text "Latest logs" ]
+            [ h2 [] [ text "Logs" ]
             , table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
@@ -88,17 +87,44 @@ tableView logs =
             ]
 
 
-view : Model -> Html Msg
-view model =
+machines : Model -> Html Msg
+machines model =
+    case model.machines of
+        NotAsked ->
+            div [] []
+
+        Loading ->
+            h2 [] [ text "Loading machines ..." ]
+
+        Failure err ->
+            div [] [ text (toString err) ]
+
+        Success machines ->
+            div [] [ machinesView machines ]
+
+
+logs : Model -> Html Msg
+logs model =
     case model.logs of
         NotAsked ->
             div [] []
 
         Loading ->
-            div [] [ text "Loading..." ]
+            h2 [] [ text "Loading logs..." ]
 
         Failure err ->
             div [] [ text (toString err) ]
 
         Success logs ->
-            div [] [ tableView logs ]
+            div [] [ logsView logs ]
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ h1 [] [ text "Latest Logs" ]
+        , div [ class [ C.PaneWrapper ] ]
+            [ div [ class [ C.LeftPane ] ] [ machines model ]
+            , div [ class [ C.ContentPane ] ] [ logs model ]
+            ]
+        ]
