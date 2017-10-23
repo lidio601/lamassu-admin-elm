@@ -48,6 +48,11 @@ machineRowView machine =
         ]
 
 
+machineItemView : Machine -> Html Msg
+machineItemView machine =
+    li [] [ machineLink machine ]
+
+
 machinesView : Machines -> Html Msg
 machinesView machines =
     if List.isEmpty machines then
@@ -55,13 +60,8 @@ machinesView machines =
     else
         div []
             [ h2 [] [ text "Machines" ]
-            , table [ class [ C.TxTable ] ]
-                [ thead []
-                    [ tr []
-                        [ td [] [ text "" ]
-                        ]
-                    ]
-                , tbody [] (List.map machineRowView machines)
+            , div [ class [ C.TxTable ] ]
+                [ ul [] (List.map machineItemView machines)
                 ]
             ]
 
