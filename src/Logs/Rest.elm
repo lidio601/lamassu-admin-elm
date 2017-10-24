@@ -17,6 +17,13 @@ getLogs id =
         |> Cmd.map LoadLogs
 
 
+getDefaultLogs : Cmd Msg
+getDefaultLogs =
+    Http.get ("/api/logs/") logsDecoder
+        |> RemoteData.sendRequest
+        |> Cmd.map LoadLogs
+
+
 getMachines : Cmd Msg
 getMachines =
     Http.get "/api/machines/" machinesDecoder

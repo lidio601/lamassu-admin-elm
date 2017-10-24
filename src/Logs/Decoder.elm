@@ -6,9 +6,11 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Logs.Types exposing (..)
 
 
-logsDecoder : Decoder (List Log)
+logsDecoder : Decoder Logs
 logsDecoder =
-    field "logs" (list logDecoder)
+    decode Logs
+        |> required "logs" (list logDecoder)
+        |> required "currentMachine" machineDecoder
 
 
 logDecoder : Decoder Log

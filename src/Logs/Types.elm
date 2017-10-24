@@ -25,7 +25,9 @@ type alias Log =
 
 
 type alias Logs =
-    List Log
+    { logs : List Log
+    , currentMachine : Machine
+    }
 
 
 type alias Model =

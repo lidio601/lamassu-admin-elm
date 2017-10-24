@@ -68,7 +68,7 @@ machinesView machines =
 
 logsView : Logs -> Html Msg
 logsView logs =
-    if List.isEmpty logs then
+    if List.isEmpty logs.logs then
         div [] [ text "No logs yet." ]
     else
         div []
@@ -82,7 +82,7 @@ logsView logs =
                         , td [] [ text "Message" ]
                         ]
                     ]
-                , tbody [] (List.map rowView logs)
+                , tbody [] (List.map rowView logs.logs)
                 ]
             ]
 
