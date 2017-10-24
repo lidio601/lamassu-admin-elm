@@ -58,11 +58,26 @@ machinesView machines =
         div [ class [ C.EmptyTable ] ] [ text "No paired machines." ]
     else
         div []
-            [ h2 [] [ text "Machines" ]
-            , div [ class [ C.TxTable ] ]
+            [ div [ class [ C.TxTable ] ]
                 [ ul [] (List.map machineItemView machines)
                 ]
             ]
+
+
+machines : Model -> Html Msg
+machines model =
+    case model.machines of
+        NotAsked ->
+            div [] []
+
+        Loading ->
+            div [] [ text "Loading machines ..." ]
+
+        Failure err ->
+            div [] [ text (toString err) ]
+
+        Success machines ->
+            div [] [ machinesView machines ]
 
 
 logsView : Logs -> Html Msg
@@ -71,8 +86,7 @@ logsView logs =
         div [] [ text "No logs yet." ]
     else
         div []
-            [ h2 [] [ text "Logs" ]
-            , table [ class [ C.TxTable ] ]
+            [ table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
                         [ td [] [ text "Date" ]
@@ -85,22 +99,6 @@ logsView logs =
             ]
 
 
-machines : Model -> Html Msg
-machines model =
-    case model.machines of
-        NotAsked ->
-            div [] []
-
-        Loading ->
-            h2 [] [ text "Loading machines ..." ]
-
-        Failure err ->
-            div [] [ text (toString err) ]
-
-        Success machines ->
-            div [] [ machinesView machines ]
-
-
 logs : Model -> Html Msg
 logs model =
     case model.logs of
@@ -108,13 +106,15 @@ logs model =
             div [] []
 
         Loading ->
-            h2 [] [ text "Loading logs..." ]
+            div [] [ text "Loading logs..." ]
 
         Failure err ->
             div [] [ text (toString err) ]
 
         Success logs ->
-            div [] [ logsView logs ]
+            div []
+                [ logsView logs
+                ]
 
 
 view : Model -> Html Msg
@@ -122,7 +122,13 @@ view model =
     div []
         [ h1 [] [ text "Latest Logs" ]
         , div [ class [ C.PaneWrapper ] ]
-            [ div [ class [ C.LeftPane ] ] [ machines model ]
-            , div [ class [ C.ContentPane ] ] [ logs model ]
+            [ div [ class [ C.LeftPane ] ]
+                [ h2 [] [ text "Machines" ]
+                , machines model
+                ]
+            , div [ class [ C.ContentPane ] ]
+                [ h2 [] [ text "Logs" ]
+                , logs model
+                ]
             ]
         ]
