@@ -22,3 +22,10 @@ getMachines =
     Http.get "/api/machines/" machinesDecoder
         |> RemoteData.sendRequest
         |> Cmd.map LoadMachines
+
+
+getDefaultLogs : Cmd Msg
+getDefaultLogs =
+    Http.get ("/api/logs/") logsDecoder
+        |> RemoteData.sendRequest
+        |> Cmd.map LoadLogs

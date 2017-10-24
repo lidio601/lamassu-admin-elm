@@ -17,7 +17,6 @@ type alias Machines =
 type alias Log =
     { id : String
     , deviceId : Maybe String
-    , name : Maybe String
     , timestamp : Maybe Date
     , logLevel : Maybe String
     , message : Maybe String
@@ -25,7 +24,7 @@ type alias Log =
 
 
 type alias Logs =
-    List Log
+    { logs : List Log, currentMachine : Machine }
 
 
 type alias Model =

@@ -34,8 +34,7 @@ maybeText maybeString =
 rowView : Log -> Html Msg
 rowView log =
     tr [ class [] ]
-        [ td [] [ maybeText log.name ]
-        , td [] [ text (formatDate log.timestamp) ]
+        [ td [] [ text (formatDate log.timestamp) ]
         , td [] [ maybeText log.logLevel ]
         , td [] [ maybeText log.message ]
         ]
@@ -68,7 +67,7 @@ machinesView machines =
 
 logsView : Logs -> Html Msg
 logsView logs =
-    if List.isEmpty logs then
+    if List.isEmpty logs.logs then
         div [] [ text "No logs yet." ]
     else
         div []
@@ -76,13 +75,12 @@ logsView logs =
             , table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
-                        [ td [] [ text "Machine" ]
-                        , td [] [ text "Date" ]
+                        [ td [] [ text "Date" ]
                         , td [] [ text "Level" ]
                         , td [] [ text "Message" ]
                         ]
                     ]
-                , tbody [] (List.map rowView logs)
+                , tbody [] (List.map rowView logs.logs)
                 ]
             ]
 
