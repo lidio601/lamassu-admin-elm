@@ -54,8 +54,8 @@ routeToUrl route =
         CustomerRoute id ->
             "/#customer/" ++ id
 
-        LogsRoute id ->
-            "/#logs/" ++ id
+        LogsRoute maybeId ->
+            "/#logs/" ++ (Maybe.withDefault "" maybeId)
 
         NotFoundRoute ->
             Debug.crash "Need unknown route"

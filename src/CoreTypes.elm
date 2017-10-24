@@ -34,7 +34,7 @@ type Route
     | TransactionRoute String
     | CustomersRoute
     | CustomerRoute String
-    | LogsRoute String
+    | LogsRoute (Maybe String)
     | MaintenanceMachinesRoute
     | MaintenanceFundingRoute (Maybe String)
     | NotFoundRoute

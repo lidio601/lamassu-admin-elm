@@ -10,9 +10,9 @@ import Logs.Decoder exposing (logsDecoder, machinesDecoder)
 import Logs.Types exposing (..)
 
 
-getLogs : String -> Cmd Msg
-getLogs id =
-    Http.get ("/api/logs/" ++ id) logsDecoder
+getLogs : Maybe String -> Cmd Msg
+getLogs maybeId =
+    Http.get ("/api/logs/" ++ (Maybe.withDefault "" maybeId)) logsDecoder
         |> RemoteData.sendRequest
         |> Cmd.map LoadLogs
 
@@ -22,10 +22,3 @@ getMachines =
     Http.get "/api/machines/" machinesDecoder
         |> RemoteData.sendRequest
         |> Cmd.map LoadMachines
-
-
-getDefaultLogs : Cmd Msg
-getDefaultLogs =
-    Http.get ("/api/logs/") logsDecoder
-        |> RemoteData.sendRequest
-        |> Cmd.map LoadLogs
