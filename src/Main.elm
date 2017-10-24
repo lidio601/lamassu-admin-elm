@@ -70,7 +70,8 @@ parseRoute =
         , UrlParser.map TransactionRoute (s "transaction" </> string)
         , UrlParser.map CustomersRoute (s "customers")
         , UrlParser.map CustomerRoute (s "customer" </> string)
-        , UrlParser.map LogsRoute (s "logs" </> string)
+        , UrlParser.map (\id -> LogsRoute (Just id)) (s "logs" </> string)
+        , UrlParser.map (LogsRoute Nothing) (s "logs")
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
 
@@ -424,10 +425,10 @@ urlUpdate location model =
                 in
                     { model | location = location, customer = customerModel } ! [ Cmd.map CustomerMsg cmd ]
 
-            LogsRoute id ->
+            LogsRoute maybeId ->
                 let
                     ( logsModel, cmd ) =
-                        Logs.State.load id
+                        Logs.State.load maybeId
                 in
                     { model | location = location, logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
 

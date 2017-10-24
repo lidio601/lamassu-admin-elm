@@ -10,16 +10,9 @@ import Logs.Decoder exposing (logsDecoder, machinesDecoder)
 import Logs.Types exposing (..)
 
 
-getLogs : String -> Cmd Msg
-getLogs id =
-    Http.get ("/api/logs/" ++ id) logsDecoder
-        |> RemoteData.sendRequest
-        |> Cmd.map LoadLogs
-
-
-getDefaultLogs : Cmd Msg
-getDefaultLogs =
-    Http.get ("/api/logs/") logsDecoder
+getLogs : Maybe String -> Cmd Msg
+getLogs maybeId =
+    Http.get ("/api/logs/" ++ (Maybe.withDefault "" maybeId)) logsDecoder
         |> RemoteData.sendRequest
         |> Cmd.map LoadLogs
 

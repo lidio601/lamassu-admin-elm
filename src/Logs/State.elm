@@ -10,14 +10,14 @@ init =
     { logs = NotAsked, machines = NotAsked }
 
 
-load : String -> ( Model, Cmd Msg )
-load id =
-    ( { logs = Loading, machines = Loading }, getData id )
+load : Maybe String -> ( Model, Cmd Msg )
+load maybeId =
+    ( { logs = Loading, machines = Loading }, getData maybeId )
 
 
-getData : String -> Cmd Msg
-getData id =
-    Cmd.batch [ getLogs id, getMachines ]
+getData : Maybe String -> Cmd Msg
+getData maybeId =
+    Cmd.batch [ getLogs maybeId, getMachines ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
