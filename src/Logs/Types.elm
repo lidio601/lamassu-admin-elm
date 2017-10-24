@@ -16,7 +16,6 @@ type alias Machines =
 
 type alias Log =
     { id : String
-    , deviceId : Maybe String
     , timestamp : Maybe Date
     , logLevel : Maybe String
     , message : Maybe String

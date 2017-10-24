@@ -17,7 +17,6 @@ logDecoder : Decoder Log
 logDecoder =
     decode Log
         |> required "id" string
-        |> required "deviceId" (nullable string)
         |> required "timestamp" (nullable date)
         |> required "logLevel" (nullable string)
         |> required "message" (nullable string)
