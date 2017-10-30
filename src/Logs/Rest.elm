@@ -2,11 +2,8 @@ module Logs.Rest exposing (..)
 
 import RemoteData exposing (..)
 import Http
-
-
--- import HttpBuilder exposing (..)
-
-import Logs.Decoder exposing (logsDecoder, machinesDecoder)
+import HttpBuilder exposing (..)
+import Logs.Decoder exposing (logsDecoder, machinesDecoder, supportLogDecoder)
 import Logs.Types exposing (..)
 
 
@@ -22,3 +19,11 @@ getMachines =
     Http.get "/api/machines/" machinesDecoder
         |> RemoteData.sendRequest
         |> Cmd.map LoadMachines
+
+
+shareLogs : String -> Cmd Msg
+shareLogs id =
+    post ("/api/support_logs?deviceId=" ++ id)
+        |> withExpect (Http.expectJson supportLogDecoder)
+        |> send RemoteData.fromResult
+        |> Cmd.map LoadSupportLog

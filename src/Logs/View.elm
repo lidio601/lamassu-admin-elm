@@ -2,6 +2,7 @@ module Logs.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (href)
+import Html.Events exposing (onClick)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
@@ -14,6 +15,11 @@ import Date.Extra exposing (toFormattedString)
 machineLink : Machine -> Html Msg
 machineLink machine =
     a [ href ("/#logs/" ++ machine.deviceId) ] [ text machine.name ]
+
+
+logsActions : Logs -> Html Msg
+logsActions logs =
+    button [ onClick (ShareLogs logs.currentMachine) ] [ text "Share log snapshot" ]
 
 
 formatDate : Maybe Date -> String
@@ -80,6 +86,22 @@ machines model =
             div [] [ machinesView machines ]
 
 
+latestLogSnapshot : Model -> Html Msg
+latestLogSnapshot model =
+    case model.supportLog of
+        NotAsked ->
+            div [] []
+
+        Loading ->
+            div [] []
+
+        Failure err ->
+            div [] [ text (toString err) ]
+
+        Success supportLog ->
+            div [] [ text "Saved latest snapshot" ]
+
+
 logsView : Logs -> Html Msg
 logsView logs =
     if List.isEmpty logs.logs then
@@ -113,7 +135,8 @@ logs model =
 
         Success logs ->
             div []
-                [ logsView logs
+                [ logsActions logs
+                , logsView logs
                 ]
 
 
@@ -128,6 +151,7 @@ view model =
                 ]
             , div [ class [ C.ContentPane ] ]
                 [ h2 [] [ text "Logs" ]
+                , latestLogSnapshot model
                 , logs model
                 ]
             ]

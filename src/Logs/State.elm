@@ -7,12 +7,12 @@ import Logs.Types exposing (..)
 
 init : Model
 init =
-    { logs = NotAsked, machines = NotAsked }
+    { logs = NotAsked, machines = NotAsked, supportLog = NotAsked }
 
 
 load : Maybe String -> ( Model, Cmd Msg )
 load maybeId =
-    ( { logs = Loading, machines = Loading }, getData maybeId )
+    ( { logs = Loading, machines = Loading, supportLog = NotAsked }, getData maybeId )
 
 
 getData : Maybe String -> Cmd Msg
@@ -30,5 +30,13 @@ update msg model =
 
         LoadMachines response ->
             ( { model | machines = response }
+            , Cmd.none
+            )
+
+        ShareLogs machine ->
+            model ! [ shareLogs machine.deviceId ]
+
+        LoadSupportLog supportLog ->
+            ( { model | supportLog = supportLog }
             , Cmd.none
             )

@@ -22,6 +22,14 @@ logDecoder =
         |> required "message" (nullable string)
 
 
+supportLogDecoder : Decoder SupportLog
+supportLogDecoder =
+    decode SupportLog
+        |> required "id" string
+        |> required "deviceId" string
+        |> required "timestamp" date
+
+
 machinesDecoder : Decoder Machines
 machinesDecoder =
     field "machines" (list machineDecoder)

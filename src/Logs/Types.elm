@@ -22,6 +22,13 @@ type alias Log =
     }
 
 
+type alias SupportLog =
+    { id : String
+    , deviceId : String
+    , timestamp : Date
+    }
+
+
 type alias Logs =
     { logs : List Log, currentMachine : Machine }
 
@@ -29,9 +36,12 @@ type alias Logs =
 type alias Model =
     { logs : WebData Logs
     , machines : WebData Machines
+    , supportLog : WebData SupportLog
     }
 
 
 type Msg
     = LoadLogs (WebData Logs)
     | LoadMachines (WebData Machines)
+    | ShareLogs Machine
+    | LoadSupportLog (WebData SupportLog)
