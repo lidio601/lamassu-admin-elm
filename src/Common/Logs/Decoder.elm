@@ -1,9 +1,9 @@
-module Logs.Decoder exposing (..)
+module Common.Logs.Decoder exposing (..)
 
 import Json.Decode exposing (..)
 import Json.Decode.Extra exposing (date, fromResult)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-import Logs.Types exposing (..)
+import Common.Logs.Types exposing (..)
 
 
 logsDecoder : Decoder Logs

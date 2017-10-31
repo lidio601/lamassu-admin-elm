@@ -7,6 +7,7 @@ import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
 import List
+import Common.Logs.Types exposing (..)
 import Logs.Types exposing (..)
 import Date exposing (..)
 import Date.Extra exposing (toFormattedString)

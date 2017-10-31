@@ -3,7 +3,7 @@ module Logs.Rest exposing (..)
 import RemoteData exposing (..)
 import Http
 import HttpBuilder exposing (..)
-import Logs.Decoder exposing (logsDecoder, machinesDecoder, supportLogDecoder)
+import Common.Logs.Decoder exposing (logsDecoder, machinesDecoder, supportLogDecoder)
 import Logs.Types exposing (..)
 
 
