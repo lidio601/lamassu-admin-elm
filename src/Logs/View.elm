@@ -99,7 +99,7 @@ latestLogSnapshot model =
             div [] [ text (toString err) ]
 
         Success supportLog ->
-            div [] [ text "Saved latest snapshot" ]
+            h4 [] [ text "✓ Saved latest snapshot" ]
 
 
 logsView : Logs -> Html Msg
@@ -108,7 +108,8 @@ logsView logs =
         div [] [ text "No logs yet." ]
     else
         div []
-            [ table [ class [ C.TxTable ] ]
+            [ logsActions logs
+            , table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
                         [ td [] [ text "Date" ]
@@ -135,8 +136,7 @@ logs model =
 
         Success logs ->
             div []
-                [ logsActions logs
-                , logsView logs
+                [ logsView logs
                 ]
 
 
