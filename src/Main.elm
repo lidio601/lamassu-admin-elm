@@ -13,6 +13,9 @@ import Customers.View
 import Logs.Types
 import Logs.State
 import Logs.View
+import SupportLogs.Types
+import SupportLogs.State
+import SupportLogs.View
 import Customer.Types
 import Customer.State
 import Customer.View
@@ -72,6 +75,8 @@ parseRoute =
         , UrlParser.map CustomerRoute (s "customer" </> string)
         , UrlParser.map (\id -> LogsRoute (Just id)) (s "logs" </> string)
         , UrlParser.map (LogsRoute Nothing) (s "logs")
+        , UrlParser.map (\id -> SupportLogsRoute (Just id)) (s "support_logs" </> string)
+        , UrlParser.map (SupportLogsRoute Nothing) (s "support_logs")
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
 
@@ -109,6 +114,7 @@ type alias Model =
     , customers : Customers.Types.Model
     , customer : Customer.Types.Model
     , logs : Logs.Types.Model
+    , supportLogs : SupportLogs.Types.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
     , err : Maybe String
@@ -130,6 +136,7 @@ init location =
             , customers = Customers.State.init
             , customer = Customer.State.init
             , logs = Logs.State.init
+            , supportLogs = SupportLogs.State.init
             , accounts = []
             , status = Nothing
             , err = Nothing
@@ -227,6 +234,13 @@ update msg model =
             in
                 { model | logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
 
+        SupportLogsMsg supportLogsMsg ->
+            let
+                ( supportLogsModel, cmd ) =
+                    SupportLogs.State.update supportLogsMsg model.supportLogs
+            in
+                { model | supportLogs = supportLogsModel } ! [ Cmd.map SupportLogsMsg cmd ]
+
         LoadAccounts accounts ->
             { model | accounts = accounts } ! []
 
@@ -309,6 +323,9 @@ content model route =
 
         LogsRoute _ ->
             map LogsMsg (Logs.View.view model.logs)
+
+        SupportLogsRoute _ ->
+            map SupportLogsMsg (SupportLogs.View.view model.supportLogs)
 
         NotFoundRoute ->
             div [] [ text ("No such route") ]
@@ -431,6 +448,13 @@ urlUpdate location model =
                         Logs.State.load maybeId
                 in
                     { model | location = location, logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
+
+            SupportLogsRoute maybeId ->
+                let
+                    ( supportLogsModel, cmd ) =
+                        SupportLogs.State.load maybeId
+                in
+                    { model | location = location, supportLogs = supportLogsModel } ! [ Cmd.map SupportLogsMsg cmd ]
 
             TransactionRoute txId ->
                 let

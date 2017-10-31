@@ -1,26 +1,25 @@
-module Logs.View exposing (..)
+module SupportLogs.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (href)
-import Html.Events exposing (onClick)
 import Css.Admin exposing (..)
 import Css.Classes as C
 import RemoteData exposing (..)
 import List
 import Common.Logs.Types exposing (..)
-import Logs.Types exposing (..)
+import SupportLogs.Types exposing (..)
 import Date exposing (..)
 import Date.Extra exposing (toFormattedString)
 
 
-machineLink : Machine -> Html Msg
-machineLink machine =
-    a [ href ("/#logs/" ++ machine.deviceId) ] [ text machine.name ]
+supportLogText : SupportLog -> Html Msg
+supportLogText supportLog =
+    text (supportLog.name ++ " " ++ (toFormattedString "yyyy-MM-dd HH:mm" supportLog.timestamp))
 
 
-logsActions : Logs -> Html Msg
-logsActions logs =
-    button [ onClick (ShareLogs logs.currentMachine) ] [ text "Share log snapshot" ]
+supportLogLink : SupportLog -> Html Msg
+supportLogLink supportLog =
+    a [ href ("/#support_logs/" ++ supportLog.deviceId) ] [ supportLogText supportLog ]
 
 
 formatDate : Maybe Date -> String
@@ -47,60 +46,37 @@ rowView log =
         ]
 
 
-machineRowView : Machine -> Html Msg
-machineRowView machine =
-    tr [ class [] ]
-        [ td [] [ machineLink machine ]
-        ]
+supportLogItemView : SupportLog -> Html Msg
+supportLogItemView supportLog =
+    li [] [ supportLogLink supportLog ]
 
 
-machineItemView : Machine -> Html Msg
-machineItemView machine =
-    li [] [ machineLink machine ]
-
-
-machinesView : Machines -> Html Msg
-machinesView machines =
-    if List.isEmpty machines then
-        div [ class [ C.EmptyTable ] ] [ text "No paired machines." ]
+supportLogsView : SupportLogs -> Html Msg
+supportLogsView supportLogs =
+    if List.isEmpty supportLogs then
+        div [ class [ C.EmptyTable ] ] [ text "No shared logs" ]
     else
         div []
             [ div [ class [ C.TxTable ] ]
-                [ ul [] (List.map machineItemView machines)
+                [ ul [] (List.map supportLogItemView supportLogs)
                 ]
             ]
 
 
-machines : Model -> Html Msg
-machines model =
-    case model.machines of
+supportLogs : Model -> Html Msg
+supportLogs model =
+    case model.supportLogs of
         NotAsked ->
             div [] []
 
         Loading ->
-            div [] [ text "Loading machines ..." ]
+            div [] [ text "Loading snapshots ..." ]
 
         Failure err ->
             div [] [ text (toString err) ]
 
-        Success machines ->
-            div [] [ machinesView machines ]
-
-
-latestLogSnapshot : Model -> Html Msg
-latestLogSnapshot model =
-    case model.latestLogSnapshot of
-        NotAsked ->
-            div [] []
-
-        Loading ->
-            div [] []
-
-        Failure err ->
-            div [] [ text (toString err) ]
-
-        Success latestLogSnapshot ->
-            h4 [] [ text "✓ Saved latest snapshot" ]
+        Success supportLogs ->
+            div [] [ supportLogsView supportLogs ]
 
 
 logsView : Logs -> Html Msg
@@ -109,8 +85,7 @@ logsView logs =
         div [] [ text "No logs yet." ]
     else
         div []
-            [ logsActions logs
-            , table [ class [ C.TxTable ] ]
+            [ table [ class [ C.TxTable ] ]
                 [ thead []
                     [ tr []
                         [ td [] [ text "Date" ]
@@ -144,15 +119,14 @@ logs model =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "Latest Logs" ]
+        [ h1 [] [ text "Lamassu support logs" ]
         , div [ class [ C.PaneWrapper ] ]
             [ div [ class [ C.LeftPane ] ]
-                [ h2 [] [ text "Machines" ]
-                , machines model
+                [ h2 [] [ text "Shared snapshots" ]
+                , supportLogs model
                 ]
             , div [ class [ C.ContentPane ] ]
                 [ h2 [] [ text "Logs" ]
-                , latestLogSnapshot model
                 , logs model
                 ]
             ]

@@ -57,6 +57,9 @@ routeToUrl route =
         LogsRoute maybeId ->
             "/#logs/" ++ (Maybe.withDefault "" maybeId)
 
+        SupportLogsRoute maybeId ->
+            "/#support_logs/" ++ (Maybe.withDefault "" maybeId)
+
         NotFoundRoute ->
             Debug.crash "Need unknown route"
 
@@ -192,6 +195,9 @@ determineCategory route =
             Nothing
 
         LogsRoute _ ->
+            Nothing
+
+        SupportLogsRoute _ ->
             Nothing
 
         NotFoundRoute ->

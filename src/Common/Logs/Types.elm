@@ -21,11 +21,21 @@ type alias Log =
     }
 
 
-type alias SupportLog =
-    { id : String
-    , deviceId : String
+type alias SupportLogSnapshot =
+    { deviceId : String
     , timestamp : Date
     }
+
+
+type alias SupportLog =
+    { deviceId : String
+    , timestamp : Date
+    , name : String
+    }
+
+
+type alias SupportLogs =
+    List SupportLog
 
 
 type alias Logs =
