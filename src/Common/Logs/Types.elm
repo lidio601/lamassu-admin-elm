@@ -28,7 +28,8 @@ type alias SupportLogSnapshot =
 
 
 type alias SupportLog =
-    { deviceId : String
+    { id : String
+    , deviceId : String
     , timestamp : Date
     , name : String
     }

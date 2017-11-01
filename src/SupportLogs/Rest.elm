@@ -8,7 +8,7 @@ import SupportLogs.Types exposing (..)
 
 getAllLogs : Maybe String -> Cmd Msg
 getAllLogs maybeId =
-    Http.get ("/api/logs/" ++ (Maybe.withDefault "" maybeId)) logsDecoder
+    Http.get ("/api/support_logs/logs?supportLogId=" ++ (Maybe.withDefault "" maybeId)) logsDecoder
         |> RemoteData.sendRequest
         |> Cmd.map LoadLogs
 

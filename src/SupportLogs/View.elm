@@ -19,7 +19,7 @@ supportLogText supportLog =
 
 supportLogLink : SupportLog -> Html Msg
 supportLogLink supportLog =
-    a [ href ("/#support_logs/" ++ supportLog.deviceId) ] [ supportLogText supportLog ]
+    a [ href ("/#support_logs/" ++ supportLog.id) ] [ supportLogText supportLog ]
 
 
 formatDate : Maybe Date -> String

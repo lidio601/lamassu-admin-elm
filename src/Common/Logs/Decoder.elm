@@ -37,6 +37,7 @@ latestLogSnapshotDecoder =
 supportLogDecoder : Decoder SupportLog
 supportLogDecoder =
     decode SupportLog
+        |> required "id" string
         |> required "deviceId" string
         |> required "timestamp" date
         |> required "name" string
