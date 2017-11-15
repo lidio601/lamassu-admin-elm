@@ -108,7 +108,7 @@ logs model =
             div [] [ text "Loading logs..." ]
 
         Failure err ->
-            div [] [ text (toString err) ]
+            div [] [ text "No logs yet." ]
 
         Success logs ->
             div []
