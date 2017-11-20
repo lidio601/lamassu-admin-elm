@@ -23,27 +23,17 @@ logsActions logs =
     button [ onClick (ShareLogs logs.currentMachine) ] [ text "Share log snapshot" ]
 
 
-formatDate : Maybe Date -> String
+formatDate : Date -> String
 formatDate date =
-    case date of
-        Just date ->
-            toFormattedString "yyyy-MM-dd HH:mm" date
-
-        Nothing ->
-            ""
-
-
-maybeText : Maybe String -> Html Msg
-maybeText maybeString =
-    text (Maybe.withDefault "" maybeString)
+    toFormattedString "yyyy-MM-dd HH:mm" date
 
 
 rowView : Log -> Html Msg
 rowView log =
     tr [ class [] ]
         [ td [] [ text (formatDate log.timestamp) ]
-        , td [] [ maybeText log.logLevel ]
-        , td [] [ maybeText log.message ]
+        , td [] [ text log.logLevel ]
+        , td [] [ text log.message ]
         ]
 
 
