@@ -81,6 +81,9 @@ linkClasses linkRoute route isValid =
                 MaintenanceFundingRoute _ ->
                     linkRoute == MaintenanceFundingRoute Nothing
 
+                LogsRoute _ ->
+                    linkRoute == LogsRoute Nothing
+
                 _ ->
                     linkRoute == route
     in
@@ -189,13 +192,13 @@ determineCategory route =
             Nothing
 
         CustomersRoute ->
-            Nothing
+            Just MaintenanceCat
 
         CustomerRoute _ ->
-            Nothing
+            Just MaintenanceCat
 
         LogsRoute _ ->
-            Nothing
+            Just MaintenanceCat
 
         SupportLogsRoute _ ->
             Nothing
@@ -232,8 +235,9 @@ view route invalidGroups =
             [ l ( "Transactions", TransactionsRoute, True )
             , ll ( "Maintenance", MaintenanceCat, MaintenanceMachinesRoute, True )
                 [ ( "Machines", MaintenanceMachinesRoute, True )
-                , ( "Customers", CustomersRoute, True )
                 , ( "Funding", MaintenanceFundingRoute Nothing, True )
+                , ( "Customers", CustomersRoute, True )
+                , ( "Logs", LogsRoute Nothing, True )
                 ]
             , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClearMachine )
                 [ configLink "definition" "Definition"
