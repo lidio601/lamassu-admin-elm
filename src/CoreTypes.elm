@@ -13,6 +13,10 @@ import MaintenanceMachines.Types
 import MaintenanceFunding.Types
 import Transaction.Types
 import Transactions
+import Customers.Types
+import Customer.Types
+import Logs.Types
+import SupportLogs.Types
 import StatusTypes
 
 
@@ -29,6 +33,10 @@ type Route
     | ConfigRoute String (Maybe String)
     | TransactionsRoute
     | TransactionRoute String
+    | CustomersRoute
+    | CustomerRoute String
+    | LogsRoute (Maybe String)
+    | SupportLogsRoute (Maybe String)
     | MaintenanceMachinesRoute
     | MaintenanceFundingRoute (Maybe String)
     | NotFoundRoute
@@ -42,6 +50,10 @@ type Msg
     | MaintenanceFundingMsg MaintenanceFunding.Types.Msg
     | TransactionsMsg Transactions.Msg
     | TransactionMsg Transaction.Types.Msg
+    | CustomersMsg Customers.Types.Msg
+    | CustomerMsg Customer.Types.Msg
+    | LogsMsg Logs.Types.Msg
+    | SupportLogsMsg SupportLogs.Types.Msg
     | LoadAccounts (List ( String, String ))
     | LoadStatus StatusTypes.WebStatus
     | NewUrl String

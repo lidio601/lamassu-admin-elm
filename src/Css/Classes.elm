@@ -4,6 +4,9 @@ module Css.Classes exposing (..)
 type CssClasses
     = Layout
     | Main
+    | PaneWrapper
+    | LeftPane
+    | ContentPane
     | NavBar
     | MainLeft
     | MainRight

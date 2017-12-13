@@ -48,6 +48,18 @@ routeToUrl route =
         TransactionRoute txId ->
             "/#transaction/" ++ txId
 
+        CustomersRoute ->
+            "/#customers/"
+
+        CustomerRoute id ->
+            "/#customer/" ++ id
+
+        LogsRoute maybeId ->
+            "/#logs/" ++ (Maybe.withDefault "" maybeId)
+
+        SupportLogsRoute maybeId ->
+            "/#support_logs/" ++ (Maybe.withDefault "" maybeId)
+
         NotFoundRoute ->
             Debug.crash "Need unknown route"
 
@@ -68,6 +80,9 @@ linkClasses linkRoute route isValid =
 
                 MaintenanceFundingRoute _ ->
                     linkRoute == MaintenanceFundingRoute Nothing
+
+                LogsRoute _ ->
+                    linkRoute == LogsRoute Nothing
 
                 _ ->
                     linkRoute == route
@@ -176,6 +191,18 @@ determineCategory route =
         TransactionRoute _ ->
             Nothing
 
+        CustomersRoute ->
+            Just MaintenanceCat
+
+        CustomerRoute _ ->
+            Just MaintenanceCat
+
+        LogsRoute _ ->
+            Just MaintenanceCat
+
+        SupportLogsRoute _ ->
+            Nothing
+
         NotFoundRoute ->
             Nothing
 
@@ -209,6 +236,8 @@ view route invalidGroups =
             , ll ( "Maintenance", MaintenanceCat, MaintenanceMachinesRoute, True )
                 [ ( "Machines", MaintenanceMachinesRoute, True )
                 , ( "Funding", MaintenanceFundingRoute Nothing, True )
+                , ( "Customers", CustomersRoute, True )
+                , ( "Logs", LogsRoute Nothing, True )
                 ]
             , ll ( "Machine Settings", MachineSettingsCat, ConfigRoute "definition" Nothing, allClearMachine )
                 [ configLink "definition" "Definition"

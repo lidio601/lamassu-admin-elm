@@ -7,6 +7,19 @@ import Pair
 import Account
 import Config
 import Transactions
+import Customers.Types
+import Customers.State
+import Customers.View
+import Logs.Types
+import Logs.State
+import Logs.View
+import SupportLogs.Types
+import SupportLogs.State
+import SupportLogs.View
+import Customer.Types
+import Customer.State
+import Customer.View
+import MaintenanceFunding.Types
 import NavBar exposing (..)
 import UrlParser exposing ((</>), s, string, top, parseHash)
 import Http
@@ -58,6 +71,12 @@ parseRoute =
         , UrlParser.map (MaintenanceFundingRoute Nothing) (s "funding")
         , UrlParser.map TransactionsRoute (s "transactions")
         , UrlParser.map TransactionRoute (s "transaction" </> string)
+        , UrlParser.map CustomersRoute (s "customers")
+        , UrlParser.map CustomerRoute (s "customer" </> string)
+        , UrlParser.map (\id -> LogsRoute (Just id)) (s "logs" </> string)
+        , UrlParser.map (LogsRoute Nothing) (s "logs")
+        , UrlParser.map (\id -> SupportLogsRoute (Just id)) (s "support_logs" </> string)
+        , UrlParser.map (SupportLogsRoute Nothing) (s "support_logs")
         , UrlParser.map (ConfigRoute "setup" Nothing) top
         ]
 
@@ -92,6 +111,10 @@ type alias Model =
     , maintenanceFunding : MaintenanceFunding.Types.Model
     , transactions : Transactions.Model
     , transaction : Transaction.Types.Model
+    , customers : Customers.Types.Model
+    , customer : Customer.Types.Model
+    , logs : Logs.Types.Model
+    , supportLogs : SupportLogs.Types.Model
     , accounts : List ( String, String )
     , status : Maybe StatusRec
     , err : Maybe String
@@ -110,6 +133,10 @@ init location =
             , maintenanceFunding = MaintenanceFunding.State.init
             , transactions = Transactions.init
             , transaction = Transaction.State.init
+            , customers = Customers.State.init
+            , customer = Customer.State.init
+            , logs = Logs.State.init
+            , supportLogs = SupportLogs.State.init
             , accounts = []
             , status = Nothing
             , err = Nothing
@@ -186,6 +213,34 @@ update msg model =
             in
                 { model | transaction = transaction } ! [ Cmd.map TransactionMsg cmd ]
 
+        CustomersMsg customersMsg ->
+            let
+                ( customersModel, cmd ) =
+                    Customers.State.update customersMsg model.customers
+            in
+                { model | customers = customersModel } ! [ Cmd.map CustomersMsg cmd ]
+
+        CustomerMsg customerMsg ->
+            let
+                ( customerModel, cmd ) =
+                    Customer.State.update customerMsg model.customer
+            in
+                { model | customer = customerModel } ! [ Cmd.map CustomerMsg cmd ]
+
+        LogsMsg logsMsg ->
+            let
+                ( logsModel, cmd ) =
+                    Logs.State.update logsMsg model.logs
+            in
+                { model | logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
+
+        SupportLogsMsg supportLogsMsg ->
+            let
+                ( supportLogsModel, cmd ) =
+                    SupportLogs.State.update supportLogsMsg model.supportLogs
+            in
+                { model | supportLogs = supportLogsModel } ! [ Cmd.map SupportLogsMsg cmd ]
+
         LoadAccounts accounts ->
             { model | accounts = accounts } ! []
 
@@ -259,6 +314,18 @@ content model route =
 
         TransactionRoute _ ->
             map TransactionMsg (Transaction.View.view model.transaction)
+
+        CustomersRoute ->
+            map CustomersMsg (Customers.View.view model.customers)
+
+        CustomerRoute _ ->
+            map CustomerMsg (Customer.View.view model.customer)
+
+        LogsRoute _ ->
+            map LogsMsg (Logs.View.view model.logs)
+
+        SupportLogsRoute _ ->
+            map SupportLogsMsg (SupportLogs.View.view model.supportLogs)
 
         NotFoundRoute ->
             div [] [ text ("No such route") ]
@@ -360,6 +427,34 @@ urlUpdate location model =
                         Transactions.load
                 in
                     { model | location = location, transactions = transactionsModel } ! [ Cmd.map TransactionsMsg cmd ]
+
+            CustomersRoute ->
+                let
+                    ( customersModel, cmd ) =
+                        Customers.State.load
+                in
+                    { model | location = location, customers = customersModel } ! [ Cmd.map CustomersMsg cmd ]
+
+            CustomerRoute id ->
+                let
+                    ( customerModel, cmd ) =
+                        Customer.State.load id
+                in
+                    { model | location = location, customer = customerModel } ! [ Cmd.map CustomerMsg cmd ]
+
+            LogsRoute maybeId ->
+                let
+                    ( logsModel, cmd ) =
+                        Logs.State.load maybeId
+                in
+                    { model | location = location, logs = logsModel } ! [ Cmd.map LogsMsg cmd ]
+
+            SupportLogsRoute maybeId ->
+                let
+                    ( supportLogsModel, cmd ) =
+                        SupportLogs.State.load maybeId
+                in
+                    { model | location = location, supportLogs = supportLogsModel } ! [ Cmd.map SupportLogsMsg cmd ]
 
             TransactionRoute txId ->
                 let
