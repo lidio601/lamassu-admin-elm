@@ -12,6 +12,7 @@ import Common.TransactionTypes exposing (..)
 import List
 import Numeral exposing (format)
 import Date.Extra exposing (toFormattedString)
+import Maybe.Extra exposing (isJust)
 
 
 type alias Txs =
@@ -95,7 +96,9 @@ rowView tx =
                         [ C.CashIn ]
 
                 status =
-                    if cashIn.operatorCompleted then
+                    if isJust cashIn.error then
+                        "Error"
+                    else if cashIn.operatorCompleted then
                         "Cancelled"
                     else if cashIn.sendConfirmed then
                         "Sent"
