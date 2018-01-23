@@ -124,19 +124,26 @@ rowView tx =
                     ]
 
         CashOutTx cashOut ->
-            tr [ class [ C.CashOut ] ]
-                [ td [] [ txLink cashOut.id ]
-                , td [] [ text "Cash out" ]
-                , td [ class [ C.NumberColumn, C.DateColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
-                , td [] [ text cashOut.machineName ]
-                , td [ class [ C.NumberColumn ] ]
-                    [ text (format "0,0.000000" ((toFloat cashOut.cryptoAtoms) / multiplier cashOut.cryptoCode))
+            let
+                status =
+                    if isJust cashOut.error then
+                        "Error"
+                    else
+                        "Success"
+            in
+                tr [ class [ C.CashOut ] ]
+                    [ td [] [ txLink cashOut.id ]
+                    , td [] [ text status ]
+                    , td [ class [ C.NumberColumn, C.DateColumn ] ] [ text (toFormattedString "yyyy-MM-dd HH:mm" cashOut.created) ]
+                    , td [] [ text cashOut.machineName ]
+                    , td [ class [ C.NumberColumn ] ]
+                        [ text (format "0,0.000000" ((toFloat cashOut.cryptoAtoms) / multiplier cashOut.cryptoCode))
+                        ]
+                    , td [] [ text cashOut.cryptoCode ]
+                    , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashOut.fiat) ]
+                    , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashOut.phone) ]
+                    , td [ class [ C.TxAddress ] ] [ text cashOut.toAddress ]
                     ]
-                , td [] [ text cashOut.cryptoCode ]
-                , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashOut.fiat) ]
-                , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashOut.phone) ]
-                , td [ class [ C.TxAddress ] ] [ text cashOut.toAddress ]
-                ]
 
 
 tableView : Txs -> Html Msg

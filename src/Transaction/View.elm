@@ -35,19 +35,37 @@ cashInTxView tx =
                     ]
             else
                 div [] []
+
+        error =
+            Maybe.withDefault "Successfull" tx.error
     in
         div []
             [ div [] [ text tx.id ]
             , div [] [ text "This is a cash-in transaction" ]
             , div [] [ text ("Fiat: " ++ (format "0,0.00" tx.fiat)) ]
             , div [] [ text ("Status: " ++ cancelStatus) ]
+            , div [] [ text error ]
             , cancelButtonDiv
             ]
 
 
 cashOutTxView : CashOutTxRec -> Html Msg
 cashOutTxView tx =
-    div [] [ text tx.id ]
+    let
+        error =
+            case tx.error of
+                Nothing ->
+                    "No errors"
+
+                Just err ->
+                    "Error: " ++ err
+    in
+        div []
+            [ div [] [ text tx.id ]
+            , div [] [ text "This is a cash-out transaction" ]
+            , div [] [ text ("Fiat: " ++ (format "0,0.00" tx.fiat)) ]
+            , div [] [ text error ]
+            ]
 
 
 txView : SubModel -> Html Msg
