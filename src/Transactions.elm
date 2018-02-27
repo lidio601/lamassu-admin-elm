@@ -128,8 +128,10 @@ rowView tx =
                 status =
                     if isJust cashOut.error then
                         "Error"
-                    else
+                    else if cashOut.dispense then
                         "Success"
+                    else
+                        "Pending"
             in
                 tr [ class [ C.CashOut ] ]
                     [ td [] [ txLink cashOut.id ]
