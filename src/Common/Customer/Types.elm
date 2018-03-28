@@ -13,6 +13,9 @@ type alias Customers =
     List Customer
 
 
+type alias IdCardData =
+    { uid : String }
+
 type alias Customer =
     { id : String
     , name : Maybe String
@@ -27,7 +30,7 @@ type alias Customer =
     , authorizedOverrideByName : Maybe String
     , authorizedOverrideAt : Maybe Date
     , authorizedAt : Maybe Date
-    , idCardData : Maybe String
+    , idCardData : Maybe IdCardData
     , idCardDataOverride : Authorized
     , idCardDataOverrideByName : Maybe String
     , idCardDataOverrideAt : Maybe Date

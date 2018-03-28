@@ -61,7 +61,7 @@ radio inputName checkedValue value msg =
         ]
 
 
-verifyStatus : Maybe String -> Authorized -> Html Msg
+verifyStatus : Maybe a -> Authorized -> Html Msg
 verifyStatus complianceType fieldOverride =
     if fieldOverride == Verified || (complianceType /= Nothing && fieldOverride == Automatic) then
         text "Verified"

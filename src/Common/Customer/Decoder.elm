@@ -33,6 +33,11 @@ authorizedDecoder =
         |> andThen mapAuthorizedTypes
 
 
+idCardDataDecoder : Decoder IdCardData
+idCardDataDecoder =
+    decode IdCardData
+        |> required "uid" string
+
 customerDecoder : Decoder Customer
 customerDecoder =
     decode Customer
@@ -49,7 +54,7 @@ customerDecoder =
         |> required "authorizedOverrideByName" (nullable string)
         |> required "authorizedOverrideAt" (nullable date)
         |> required "authorizedAt" (nullable date)
-        |> required "idCardData" (nullable string)
+        |> required "idCardData" (nullable idCardDataDecoder)
         |> required "idCardDataOverride" authorizedDecoder
         |> required "idCardDataOverrideByName" (nullable string)
         |> required "idCardDataOverrideAt" (nullable date)
