@@ -2,13 +2,21 @@ module Common.TransactionTypes exposing (..)
 
 import Date exposing (Date)
 
+type CryptoCode
+    = BTC
+    | BCH
+    | ETH
+    | ZEC
+    | DASH
+    | LTC
+
 
 type alias CashInTxRec =
     { id : String
     , machineName : String
     , toAddress : String
     , cryptoAtoms : Int
-    , cryptoCode : String
+    , cryptoCode : CryptoCode
     , fiat : Float
     , fiatCode : String
     , txHash : Maybe String
@@ -27,7 +35,7 @@ type alias CashOutTxRec =
     , machineName : String
     , toAddress : String
     , cryptoAtoms : Int
-    , cryptoCode : String
+    , cryptoCode : CryptoCode
     , fiat : Float
     , fiatCode : String
     , status : String

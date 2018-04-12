@@ -57,32 +57,47 @@ update msg model =
             loadedModel ! []
 
 
-multiplier : String -> Float
+multiplier : CryptoCode -> Float
 multiplier code =
     case code of
-        "BTC" ->
+        BTC ->
             1.0e8
 
-        "ETH" ->
+        BCH ->
+            1.0e8
+
+        ETH ->
             1.0e18
 
-        "ZEC" ->
+        ZEC ->
             1.0e8
 
-        "DASH" ->
+        DASH ->
             1.0e8
 
-        "LTC" ->
+        LTC ->
             1.0e8
 
-        default ->
-            1.0
 
 
 txLink : String -> Html Msg
 txLink txId =
     a [ href ("/#transaction/" ++ txId) ] [ text (String.left 8 txId) ]
 
+
+cryptoCodeDisplay : CryptoCode -> Html Msg
+cryptoCodeDisplay code =
+    let
+        txt : String
+        txt = case code of
+            BTC -> "BTC"
+            BCH -> "BCH"
+            ETH -> "ETH"
+            ZEC -> "ZEC"
+            DASH -> "DASH"
+            LTC -> "LTC"
+    in
+        text txt
 
 rowView : Tx -> Html Msg
 rowView tx =
@@ -117,7 +132,7 @@ rowView tx =
                     , td [ class [ C.NumberColumn ] ]
                         [ text (format "0,0.000000" ((toFloat cashIn.cryptoAtoms) / multiplier cashIn.cryptoCode))
                         ]
-                    , td [] [ text cashIn.cryptoCode ]
+                    , td [] [ cryptoCodeDisplay cashIn.cryptoCode ]
                     , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashIn.fiat) ]
                     , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashIn.phone) ]
                     , td [ class [ C.TxAddress ] ] [ text cashIn.toAddress ]
@@ -141,7 +156,7 @@ rowView tx =
                     , td [ class [ C.NumberColumn ] ]
                         [ text (format "0,0.000000" ((toFloat cashOut.cryptoAtoms) / multiplier cashOut.cryptoCode))
                         ]
-                    , td [] [ text cashOut.cryptoCode ]
+                    , td [] [ cryptoCodeDisplay cashOut.cryptoCode ]
                     , td [ class [ C.NumberColumn ] ] [ text (format "0,0.00" cashOut.fiat) ]
                     , td [ class [ C.NumberColumn ] ] [ text (Maybe.withDefault "" cashOut.phone) ]
                     , td [ class [ C.TxAddress ] ] [ text cashOut.toAddress ]

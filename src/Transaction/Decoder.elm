@@ -6,6 +6,21 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Common.TransactionTypes exposing (..)
 import String
 
+mapCryptoCode : String -> Decoder CryptoCode
+mapCryptoCode code =
+    case code of
+        "BTC" -> succeed BTC
+        "BCH" -> succeed BCH
+        "ETH" -> succeed ETH
+        "ZEC" -> succeed ZEC
+        "DASH" -> succeed DASH
+        "LTC" -> succeed LTC
+        _ -> fail ("No such cryptocurrency: " ++ code)
+
+cryptoCodeDecoder : Decoder CryptoCode
+cryptoCodeDecoder =
+    string
+        |> andThen mapCryptoCode
 
 txDecode : String -> Decoder Tx
 txDecode txClass =
@@ -48,7 +63,7 @@ cashInTxDecoder =
         |> required "machineName" string
         |> required "toAddress" string
         |> required "cryptoAtoms" intString
-        |> required "cryptoCode" string
+        |> required "cryptoCode" cryptoCodeDecoder
         |> required "fiat" floatString
         |> required "fiatCode" string
         |> required "txHash" (nullable string)
@@ -74,7 +89,7 @@ cashOutTxDecoder =
         |> required "machineName" string
         |> required "toAddress" string
         |> required "cryptoAtoms" intString
-        |> required "cryptoCode" string
+        |> required "cryptoCode" cryptoCodeDecoder
         |> required "fiat" floatString
         |> required "fiatCode" string
         |> required "status" string
