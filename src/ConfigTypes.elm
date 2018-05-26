@@ -50,6 +50,7 @@ type alias FieldLocator =
 
 type FieldComponent
     = InputBoxComponent
+    | TextAreaComponent
     | SelectizeComponent Selectize.State
 
 
@@ -100,6 +101,7 @@ type FieldType
     | FieldCryptoCurrencyType
     | FieldLanguageType
     | FieldCountryType
+    | FieldTextAreaType
 
 
 type FieldValue
@@ -113,6 +115,7 @@ type FieldValue
     | FieldCryptoCurrencyValue (List String)
     | FieldLanguageValue (List String)
     | FieldCountryValue String
+    | FieldTextAreaValue String
 
 
 type FieldValidator
@@ -259,6 +262,9 @@ fieldValueToString fieldValue =
             String.join "," v
 
         FieldCountryValue v ->
+            v
+
+        FieldTextAreaValue v ->
             v
 
 
@@ -440,6 +446,9 @@ stringToFieldHolder fieldType s =
 
             FieldCountryType ->
                 FieldOk (FieldCountryValue s)
+
+            FieldTextAreaType ->
+                FieldOk (FieldTextAreaValue s)
 
 
 groupMember : ConfigGroup -> String -> Bool
