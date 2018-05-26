@@ -258,6 +258,7 @@ view route invalidGroups =
                 , ( "Blockcypher", AccountRoute "blockcypher", True )
                 , ( "Kraken", AccountRoute "kraken", True )
                 , ( "Mailjet", AccountRoute "mailjet", True )
+                , ( "Strike", AccountRoute "strike", True )
                 , ( "Twilio", AccountRoute "twilio", True )
                 ]
             , l ( "+ Add Machine", PairRoute, True )
