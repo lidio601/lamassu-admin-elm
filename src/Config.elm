@@ -1178,6 +1178,8 @@ termsTableView model =
                 [ row "Show on screen" "termsScreenActive"
                 , row "Screen title" "termsScreenTitle"
                 , row "Text content" "termsScreenText"
+                , row "Accept button text" "termsAcceptButtonText"
+                , row "Cancel button text" "termsCancelButtonText"
                 ]
             ]
 
