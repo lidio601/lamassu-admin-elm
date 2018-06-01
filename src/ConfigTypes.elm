@@ -102,6 +102,7 @@ type FieldType
     | FieldLanguageType
     | FieldCountryType
     | FieldTextAreaType
+    | FieldMarkdownType
 
 
 type FieldValue
@@ -116,6 +117,7 @@ type FieldValue
     | FieldLanguageValue (List String)
     | FieldCountryValue String
     | FieldTextAreaValue String
+    | FieldMarkdownValue String
 
 
 type FieldValidator
@@ -265,6 +267,9 @@ fieldValueToString fieldValue =
             v
 
         FieldTextAreaValue v ->
+            v
+
+        FieldMarkdownValue v ->
             v
 
 
@@ -449,6 +454,9 @@ stringToFieldHolder fieldType s =
 
             FieldTextAreaType ->
                 FieldOk (FieldTextAreaValue s)
+
+            FieldMarkdownType ->
+                FieldOk (FieldMarkdownValue s)
 
 
 groupMember : ConfigGroup -> String -> Bool

@@ -1262,9 +1262,6 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
         FieldStringType ->
             InputBoxComponent
 
-        FieldTextAreaType ->
-            TextAreaComponent
-
         FieldPercentageType ->
             InputBoxComponent
 
@@ -1291,6 +1288,12 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
 
         FieldCountryType ->
             SelectizeComponent Selectize.initialSelectize
+
+        FieldTextAreaType ->
+            TextAreaComponent
+
+        FieldMarkdownType ->
+            TextAreaComponent
 
 
 isInScope : ConfigScope -> ConfigScope -> FieldScope -> Bool
