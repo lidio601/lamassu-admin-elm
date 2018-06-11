@@ -64,7 +64,7 @@ customerDecoder =
         |> required "idCardPhotoOverrideByName" (nullable string)
         |> required "idCardPhotoOverrideAt" (nullable date)
         |> required "idCardPhotoAt" (nullable date)
-        |> required "sanctions" (nullable string)
+        |> required "sanctions" (nullable bool)
         |> required "sanctionsOverride" authorizedDecoder
         |> required "sanctionsOverrideByName" (nullable string)
         |> required "sanctionsOverrideAt" (nullable date)

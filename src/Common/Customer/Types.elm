@@ -40,7 +40,7 @@ type alias Customer =
     , idCardPhotoOverrideByName : Maybe String
     , idCardPhotoOverrideAt : Maybe Date
     , idCardPhotoAt : Maybe Date
-    , sanctions : Maybe String
+    , sanctions : Maybe Bool
     , sanctionsOverride : Authorized
     , sanctionsOverrideByName : Maybe String
     , sanctionsOverrideAt : Maybe Date
