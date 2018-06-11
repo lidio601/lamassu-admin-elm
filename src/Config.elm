@@ -401,18 +401,16 @@ textareaInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
                 [ C.InputContainer ]
 
         inputComponent =
-            if isReadOnly then
-                div [ class [ C.BasicInputReadOnly ] ] [ text fallbackString ]
-            else
-                textarea
-                    [ onInput (Input fieldLocator)
-                    , onFocus (Focus fieldLocator)
-                    , onBlur (Blur fieldLocator)
-                    , defaultValue defaultString
-                    , placeholder fallbackString
---                    , class (C.BasicInput :: fieldClasses)
-                    ]
-                    []
+            textarea
+                [ onInput (Input fieldLocator)
+                , onFocus (Focus fieldLocator)
+                , onBlur (Blur fieldLocator)
+                , defaultValue defaultString
+                , placeholder fallbackString
+                , class (C.Textarea :: fieldClasses)
+                , disabled isReadOnly
+                ]
+                []
     in
         div [ class parentClasses ]
             [ inputComponent

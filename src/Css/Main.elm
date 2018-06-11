@@ -225,6 +225,11 @@ css =
                     ]
                 ]
             ]
+        , class Textarea
+            [ width (pct 100)
+            , border (px 0)
+            , backgroundColor transparent
+            ]
         , class CryptoTabs
             [ displayFlex
             , children

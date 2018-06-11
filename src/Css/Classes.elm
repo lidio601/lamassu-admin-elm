@@ -73,3 +73,4 @@ type CssClasses
     | ReadOnly
     | CryptoAddress
     | BalanceSection
+    | Textarea
