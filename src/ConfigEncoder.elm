@@ -44,6 +44,12 @@ encodeFieldValue fieldValue =
         FieldCountryValue value ->
             encodeFieldValueObject "country" (string value)
 
+        FieldTextAreaValue value ->
+            encodeFieldValueObject "textarea" (string value)
+
+        FieldMarkdownValue value ->
+            encodeFieldValueObject "markdown" (string value)
+
 
 encodeCrypto : Crypto -> Value
 encodeCrypto crypto =
@@ -105,6 +111,12 @@ fieldTypeEncoder fieldType =
 
         FieldCountryType ->
             string "country"
+
+        FieldTextAreaType ->
+            string "textarea"
+
+        FieldMarkdownType ->
+            string "markdown"
 
 
 maybeString : Maybe String -> Value

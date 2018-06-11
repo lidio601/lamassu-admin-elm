@@ -39,6 +39,12 @@ fieldValueTypeDecoder fieldType =
         "country" ->
             map FieldCountryValue (field "value" string)
 
+        "textarea" ->
+            map FieldTextAreaValue (field "value" string)
+
+        "markdown" ->
+            map FieldMarkdownValue (field "value" string)
+
         _ ->
             fail ("Unsupported field type: " ++ fieldType)
 
@@ -169,6 +175,12 @@ basicFieldTypeDecoder s =
 
         "country" ->
             succeed FieldCountryType
+
+        "textarea" ->
+            succeed FieldTextAreaType
+
+        "markdown" ->
+            succeed FieldMarkdownType
 
         _ ->
             fail ("No such FieldType " ++ s)

@@ -364,6 +364,60 @@ textInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             ]
 
 
+textareaInput : String -> FieldInstance -> Maybe FieldValue -> Maybe FieldValue -> Bool -> Html Msg
+textareaInput fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
+    let
+        fieldLocator =
+            fieldInstance.fieldLocator
+
+        maybeSpecificString =
+            Maybe.map fieldValueToString maybeFieldValue
+
+        maybeFallbackString =
+            Maybe.map fieldValueToString maybeFallbackFieldValue
+
+        defaultString =
+            Maybe.withDefault "" maybeSpecificString
+
+        fallbackString =
+            Maybe.withDefault "" maybeFallbackString
+
+        inputType =
+            fieldTypeToInputType fieldLocator.fieldType
+
+        fieldClasses =
+            fieldInstanceClasses fieldInstance
+
+        fieldValid =
+            validateFieldInstance
+
+        isReadOnly =
+            fieldInstance.readOnly || (not enabled)
+
+        parentClasses =
+            if isReadOnly then
+                [ C.InputContainer, C.ReadOnly ]
+            else
+                [ C.InputContainer ]
+
+        inputComponent =
+            textarea
+                [ onInput (Input fieldLocator)
+                , onFocus (Focus fieldLocator)
+                , onBlur (Blur fieldLocator)
+                , defaultValue defaultString
+                , placeholder fallbackString
+                , class (C.Textarea :: fieldClasses)
+                , disabled isReadOnly
+                ]
+                []
+    in
+        div [ class parentClasses ]
+            [ inputComponent
+            , unitDisplay fiat fieldInstance
+            ]
+
+
 type alias LocalConfig =
     SelectizeHelper.LocalConfig Msg String DisplayRec
 
@@ -724,6 +778,9 @@ fieldInput model fieldInstance maybeFieldValue maybeFallbackFieldValue enabled =
             InputBoxComponent ->
                 textInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
 
+            TextAreaComponent ->
+                textareaInput model.fiat fieldInstance maybeFieldValue maybeFallbackFieldValue enabled
+
             SelectizeComponent selectizeState ->
                 selectizeView model fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue enabled
 
@@ -817,6 +874,65 @@ checkEnabled fields fieldMeta =
 
 fieldComponent : ResolvedModel -> FieldInstance -> Html Msg
 fieldComponent model fieldInstance =
+    let
+        fieldLocator =
+            fieldInstance.fieldLocator
+
+        fieldScope =
+            fieldLocator.fieldScope
+
+        fieldCode =
+            fieldLocator.code
+
+        fieldClass =
+            fieldLocator.fieldClass
+
+        fieldInstances : List FieldInstance
+        fieldInstances =
+            model.fieldCollection.fieldInstances
+
+        fieldType =
+            fieldLocator.fieldType
+
+        maybeSpecific =
+            case fieldInstance.fieldHolder of
+                FieldOk fieldValue ->
+                    Just fieldValue
+
+                _ ->
+                    Nothing
+
+        allFields =
+            buildAllFields model.fieldCollection
+
+        maybeFallbackFieldValue =
+            fallbackValue fieldScope allFields fieldCode
+
+        enabled =
+            checkEnabled allFields (fieldInstanceToFieldMeta fieldInstance)
+
+        focused =
+            (Just fieldLocator) == model.focused
+
+        fieldValid =
+            validateFieldInstance model.fieldCollection fieldInstance
+
+        fieldLengthClasses =
+            List.map (\class -> ( class, True )) (fieldInstanceClasses fieldInstance)
+    in
+        div
+            [ classList
+                ([ ( C.Component, True )
+                 , ( C.FocusedComponent, focused )
+                 , ( C.InvalidComponent, not fieldValid )
+                 ]
+                    ++ fieldLengthClasses
+                )
+            ]
+            [ fieldInput model fieldInstance maybeSpecific maybeFallbackFieldValue enabled ]
+
+textareaComponent : ResolvedModel -> FieldInstance -> Html Msg
+textareaComponent model fieldInstance =
     let
         fieldLocator =
             fieldInstance.fieldLocator
@@ -1030,6 +1146,40 @@ complianceTableView model =
                 ]
             ]
 
+termsTableView : ResolvedModel -> Html Msg
+termsTableView model =
+    let
+        cryptoScoped fieldInstance =
+            fieldInstance.fieldLocator.fieldScope.crypto == model.crypto
+
+        instances : List FieldInstance
+        instances =
+            List.filter cryptoScoped model.fieldCollection.fieldInstances
+
+        pickField code =
+            pickFieldInstance code { crypto = GlobalCrypto, machine = GlobalMachine } instances
+
+        emptyCell =
+            td [] [ text "--" ]
+
+        fieldCodeCellView code =
+            Maybe.Extra.unwrap emptyCell (cellView model) (pickField code)
+
+        row label activeFieldCode =
+            tr []
+                ((td [ class [ C.ShortCell ] ] [ text label ])
+                    :: [ fieldCodeCellView activeFieldCode ]
+                )
+    in
+        table [ class [ C.ConfigTable ] ]
+            [ tbody []
+                [ row "Show on screen" "termsScreenActive"
+                , row "Screen title" "termsScreenTitle"
+                , row "Text content" "termsScreenText"
+                , row "Accept button text" "termsAcceptButtonText"
+                , row "Cancel button text" "termsCancelButtonText"
+                ]
+            ]
 
 tableView : ResolvedModel -> Html Msg
 tableView model =
@@ -1136,6 +1286,12 @@ buildFieldComponent configGroup fieldType fieldScope fieldValue =
 
         FieldCountryType ->
             SelectizeComponent Selectize.initialSelectize
+
+        FieldTextAreaType ->
+            TextAreaComponent
+
+        FieldMarkdownType ->
+            TextAreaComponent
 
 
 isInScope : ConfigScope -> ConfigScope -> FieldScope -> Bool
@@ -1615,6 +1771,8 @@ view model =
                 getView =
                     if configGroup.schema.code == "compliance" then
                         complianceTableView
+                    else if configGroup.schema.code == "terms" then
+                        termsTableView
                     else
                         tableView
 
