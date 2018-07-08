@@ -257,6 +257,7 @@ view route invalidGroups =
                 [ ( "BitGo", AccountRoute "bitgo", True )
                 , ( "Bitstamp", AccountRoute "bitstamp", True )
                 , ( "Blockcypher", AccountRoute "blockcypher", True )
+                , ( "Infura", AccountRoute "infura", True )
                 , ( "Kraken", AccountRoute "kraken", True )
                 , ( "Mailjet", AccountRoute "mailjet", True )
                 , ( "Strike", AccountRoute "strike", True )
