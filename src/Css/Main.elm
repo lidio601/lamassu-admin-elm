@@ -130,7 +130,7 @@ css =
             []
         , class Main
             [ displayFlex
-            , height (pct 100)
+            , marginBottom (px 40)
             ]
         , class PaneWrapper
             [ displayFlex

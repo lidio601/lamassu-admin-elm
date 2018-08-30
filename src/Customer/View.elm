@@ -165,6 +165,19 @@ customerView customer =
                     ]
                 ]
             ]
+        , h2 [] [ text "ID Card Photo" ]
+        , case customer.idCardPhotoPath of
+              Nothing ->
+                  text "N/A"
+
+              Just idCardPhotoPath ->
+                  div []
+                      [ img
+                          [ src ("/id-card-photo/" ++ idCardPhotoPath)
+                          , height 200
+                          , alt "N/A"
+                          ] []
+                      ]
         ]
 
 
