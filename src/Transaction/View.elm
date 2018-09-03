@@ -37,7 +37,7 @@ cashInTxView tx =
                 div [] []
 
         error =
-            Maybe.withDefault "Successfull" tx.error
+            Maybe.withDefault "Successful" tx.error
     in
         div []
             [ div [] [ text tx.id ]
