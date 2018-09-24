@@ -98,6 +98,20 @@ component =
                         ]
                     ]
                 ]
+            , class Language
+                [ descendants
+                    [ class SelectBox
+                        [ width (px 140)
+                        ]
+                    ]
+                ]
+            , class CryptoCurrency
+                [ descendants
+                    [ class SelectBox
+                        [ width (px 150)
+                        ]
+                    ]
+                ]
             , input
                 [ textAlign left
                 , property "background-color" "inherit"
@@ -127,6 +141,8 @@ type Class
     | InfoNoMatches
     | NoOptions
     | Disabled
+    | Language
+    | CryptoCurrency
 
 
 classes : Selectize.HtmlClasses

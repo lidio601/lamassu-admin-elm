@@ -26,6 +26,7 @@ type alias HtmlOptions =
     , noOptions : String
     , notAvailable : String
     , classes : HtmlClasses
+    , customCssClass: String
     }
 
 
@@ -451,6 +452,7 @@ view config selectedIds availableItems fallbackIds state =
                     [ classList
                         [ ( h.classes.singleItemContainer, config.maxItems == 1 )
                         , ( h.classes.multiItemContainer, config.maxItems > 1 )
+                        , (config.htmlOptions.customCssClass, True)
                         ]
                     ]
                     [ span [ class h.classes.selectBox, keyDown ]

@@ -20,6 +20,7 @@ type alias SpecificConfig itemType =
     , optionDisplay : itemType -> String
     , maxItems : Int
     , match : String -> List itemType -> List itemType
+    , customCssClass: String
     }
 
 
@@ -48,5 +49,6 @@ buildConfig localConfig specificConfig =
         , noOptions = "No options"
         , notAvailable = "N/A"
         , classes = Css.Selectize.classes
+        , customCssClass = specificConfig.customCssClass
         }
     }
