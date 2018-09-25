@@ -2,6 +2,7 @@ module SelectizeHelper exposing (LocalConfig, buildConfig)
 
 import Selectize exposing (..)
 import Css.Selectize
+import Css.Classes exposing (CssClasses)
 
 
 type alias LocalConfig msg idType itemType =
@@ -20,7 +21,7 @@ type alias SpecificConfig itemType =
     , optionDisplay : itemType -> String
     , maxItems : Int
     , match : String -> List itemType -> List itemType
-    , customCssClass: String
+    , customCssClass: CssClasses
     }
 
 

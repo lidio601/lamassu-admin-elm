@@ -437,7 +437,7 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
             , selectedDisplay = .display
             , optionDisplay = .display
             , match = FuzzyMatch.match
-            , customCssClass = className "Account"
+            , customCssClass = C.SelectizeAccount
             }
 
         matchAccount accountRec =
@@ -491,7 +491,7 @@ fiatCurrencySelectizeView model localConfig fieldInstance selectizeState maybeFi
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
-            , customCssClass = className "FiatCurrency"
+            , customCssClass = C.SelectizeFiatCurrency
             }
 
         availableItems =
@@ -527,7 +527,7 @@ cryptoCurrencySelectizeView model localConfig fieldInstance selectizeState maybe
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
-            , customCssClass =  className "CryptoCurrency"
+            , customCssClass = C.SelectizeCryptoCurrency
             }
 
         toDisplay crypto =
@@ -577,7 +577,7 @@ languageSelectizeView model localConfig fieldInstance selectizeState maybeFieldV
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
-            , customCssClass = className "Language"
+            , customCssClass = C.SelectizeLanguage
             }
 
         availableItems =
@@ -624,7 +624,7 @@ countrySelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
-            , customCssClass = className "Country"
+            , customCssClass = C.SelectizeCountry
             }
 
         availableItems =
@@ -744,7 +744,7 @@ onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValu
             , selectedDisplay = .display
             , optionDisplay = .display
             , match = FuzzyMatch.match
-            , customCssClass = className "OnOff"
+            , customCssClass = C.SelectizeOnOff
             }
 
         availableItems =

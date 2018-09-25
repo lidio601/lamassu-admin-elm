@@ -1,6 +1,7 @@
 module Css.Classes exposing (..)
 
 
+
 type CssClasses
     = Layout
     | Main
@@ -74,3 +75,9 @@ type CssClasses
     | CryptoAddress
     | BalanceSection
     | Textarea
+    | SelectizeAccount
+    | SelectizeFiatCurrency
+    | SelectizeCryptoCurrency
+    | SelectizeLanguage
+    | SelectizeCountry
+    | SelectizeOnOff

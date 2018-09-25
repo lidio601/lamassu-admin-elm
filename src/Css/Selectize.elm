@@ -5,7 +5,7 @@ import Css.LocalColors as Colors
 import Selectize
 import Css.Admin exposing (className)
 import Css.Elements exposing (input)
-
+import Css.Classes as C
 
 codeFonts : List String
 codeFonts =
@@ -98,14 +98,14 @@ component =
                         ]
                     ]
                 ]
-            , class Language
+            , class C.SelectizeLanguage
                 [ descendants
                     [ class SelectBox
                         [ width (px 140)
                         ]
                     ]
                 ]
-            , class CryptoCurrency
+            , class C.SelectizeCryptoCurrency
                 [ descendants
                     [ class SelectBox
                         [ width (px 150)
@@ -141,8 +141,6 @@ type Class
     | InfoNoMatches
     | NoOptions
     | Disabled
-    | Language
-    | CryptoCurrency
 
 
 classes : Selectize.HtmlClasses
