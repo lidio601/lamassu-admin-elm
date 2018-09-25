@@ -13,10 +13,10 @@ import Html.Attributes exposing (value, defaultValue, maxlength, class, classLis
 import Html.Events as E exposing (on, onWithOptions)
 import String
 import Json.Decode as Json
-
+import Css.Classes exposing (CssClasses)
+import Css.Admin exposing (className)
 
 -- MODEL
-
 
 type alias HtmlOptions =
     { instructionsForBlank : String
@@ -26,6 +26,7 @@ type alias HtmlOptions =
     , noOptions : String
     , notAvailable : String
     , classes : HtmlClasses
+    , customCssClass : CssClasses
     }
 
 
@@ -451,6 +452,7 @@ view config selectedIds availableItems fallbackIds state =
                     [ classList
                         [ ( h.classes.singleItemContainer, config.maxItems == 1 )
                         , ( h.classes.multiItemContainer, config.maxItems > 1 )
+                        , ( className config.htmlOptions.customCssClass, True)
                         ]
                     ]
                     [ span [ class h.classes.selectBox, keyDown ]

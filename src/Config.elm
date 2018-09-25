@@ -437,6 +437,7 @@ accountSelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
             , selectedDisplay = .display
             , optionDisplay = .display
             , match = FuzzyMatch.match
+            , customCssClass = C.SelectizeAccount
             }
 
         matchAccount accountRec =
@@ -490,6 +491,7 @@ fiatCurrencySelectizeView model localConfig fieldInstance selectizeState maybeFi
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
+            , customCssClass = C.SelectizeFiatCurrency
             }
 
         availableItems =
@@ -521,10 +523,11 @@ cryptoCurrencySelectizeView :
 cryptoCurrencySelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         specificConfig =
-            { maxItems = 5
+            { maxItems = 6
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
+            , customCssClass = C.SelectizeCryptoCurrency
             }
 
         toDisplay crypto =
@@ -570,10 +573,11 @@ languageSelectizeView :
 languageSelectizeView model localConfig fieldInstance selectizeState maybeFieldValue maybeFallbackFieldValue =
     let
         specificConfig =
-            { maxItems = 5
+            { maxItems = 4
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
+            , customCssClass = C.SelectizeLanguage
             }
 
         availableItems =
@@ -620,6 +624,7 @@ countrySelectizeView model localConfig fieldInstance selectizeState maybeFieldVa
             , selectedDisplay = .code
             , optionDisplay = .display
             , match = FuzzyMatch.match
+            , customCssClass = C.SelectizeCountry
             }
 
         availableItems =
@@ -739,6 +744,7 @@ onOffSelectizeView model localConfig fieldInstance selectizeState maybeFieldValu
             , selectedDisplay = .display
             , optionDisplay = .display
             , match = FuzzyMatch.match
+            , customCssClass = C.SelectizeOnOff
             }
 
         availableItems =
